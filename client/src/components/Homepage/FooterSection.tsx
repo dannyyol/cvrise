@@ -58,7 +58,7 @@ export function FooterSection() {
               <a href="#">Self-hosting</a>
             </li>
             <li>
-              <a href="https://github.com/cvrise/cvrise" target="_blank" rel="noreferrer">
+              <a href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer">
                 GitHub Repo
               </a>
             </li>
@@ -74,7 +74,7 @@ export function FooterSection() {
           source.
         </div>
         <div className="footer-love">
-          <a href="https://github.com/cvrise/cvrise" target="_blank" rel="noreferrer">
+          <a href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer">
             GitHub
           </a>
         </div>

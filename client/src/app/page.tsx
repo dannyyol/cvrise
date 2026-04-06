@@ -138,7 +138,7 @@ export default function Home() {
               <li><a href="#faq">FAQ</a></li>
             </ul>
             <div className="nav-right">
-              <a className="btn-login inline-flex items-center gap-1.5" href="https://github.com/cvrise/cvrise" target="_blank" rel="noreferrer">
+              <a className="btn-login inline-flex items-center gap-1.5" href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer">
                 <GitHubIcon className="w-3.5 h-3.5" /> GitHub
               </a>
               <a
@@ -170,7 +170,7 @@ export default function Home() {
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How it works</a>
             <a href="#oss" onClick={() => setMenuOpen(false)}>Open Source</a>
-            <a href="https://github.com/cvrise/cvrise" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>GitHub</a>
+            <a href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>GitHub</a>
             <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
             <div className="nav-mobile-actions">
               <a className="btn-login" href="#" onClick={() => setMenuOpen(false)}>Log in</a>
@@ -373,7 +373,7 @@ export default function Home() {
               </div>
               <div className="contrib-txt">+ 59 contributors worldwide</div>
             </div>
-            <div className="oss-code"><span>$</span> git clone https://github.com/cvrise/cvrise.git</div>
+            <div className="oss-code"><span>$</span> git clone https://github.com/dannyyol/cvrise.git</div>
           </div>
           <div className="oss-card">
             <div className="oss-links">
