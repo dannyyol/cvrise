@@ -21,6 +21,7 @@ client/*.njsproj
 client/*.sln
 client/*.sw?
 client/.env
+client/.pnpm-store/*
 client/README-THUMBNAILS.md
 client/public/thumbnails
 client/public/images
