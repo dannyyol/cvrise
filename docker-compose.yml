@@ -1,0 +1,44 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+  server:
+    build:
+      context: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: cvrise
+      APP_VERSION: 0.1.0
+      API_PREFIX: /api
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: "False"
+      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
+      CLIENT_BASE_URL: http://localhost:3000
+      PDF_CLIENT_BASE_URL: http://client:3000
+      TOKEN_TTL_SECONDS: 300
+      DATABASE_URL: sqlite+aiosqlite:////app/data/cvrise.db
+    volumes:
+      - server-data:/app/data
+    depends_on:
+      - ollama
+
+  client:
+    build:
+      context: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+      PORT: 3000
+    depends_on:
+      - server
+
+volumes:
+  server-data:
+  ollama:

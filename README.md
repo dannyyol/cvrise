@@ -29,8 +29,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/dannyyol/cvforge.git
-   cd cvforge
+   git clone https://github.com/dannyyol/cvrise.git
+   cd cvrise
    ```
 
 2. **Install and set up Ollama (for AI review functionality)**

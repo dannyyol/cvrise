@@ -26,7 +26,8 @@ async def export_pdf(payload: Dict[str, Any]):
         put_token(token, data)
 
         settings = get_settings()
-        preview_url = f"{settings.CLIENT_BASE_URL}/preview?template={template}&token={token}&export=true"
+        base_url = settings.PDF_CLIENT_BASE_URL or settings.CLIENT_BASE_URL
+        preview_url = f"{base_url}/preview?template={template}&token={token}&export=true"
         print(preview_url)
         try:
             pdf_bytes = await generate_pdf_from_preview(preview_url)

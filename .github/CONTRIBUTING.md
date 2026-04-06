@@ -18,8 +18,8 @@ Before you begin, ensure you have the following installed:
 1. **Fork the repository** on GitHub
 2. **Clone your fork locally**
    ```bash
-   git clone https://github.com/dannyyol/cvforge.git
-   cd cvforge
+   git clone https://github.com/dannyyol/cvrise.git
+   cd cvrise
    ```
 
 ## Development Setup
