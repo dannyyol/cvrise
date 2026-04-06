@@ -1,0 +1,190 @@
+.cv-heritage {
+  --accent-color: #8b2b3a;
+  --sidebar-text: #000000;
+  --header-text: #ffffff;
+  --page-padding: 10mm;
+  font-family: var(--font-family, 'Roboto', 'Arial', sans-serif);
+  color: #111827;
+  line-height: var(--line-height, 1.5);
+  letter-spacing: var(--letter-spacing, 0);
+  position: relative;
+}
+
+.cv-heritage::before {
+  content: "";
+  position: absolute;
+  top: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  bottom: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  left: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  width: calc(32% + (var(--page-padding, var(--cv-padding, 40px))));  
+  z-index: 0;
+}
+
+.cv-heritage .cv-heritage-header {
+  background: var(--accent-color);
+  color: var(--header-text);
+  text-align: center;
+  padding: 2.5em 0;
+  margin-left: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  margin-right: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  margin-top: calc(-1.1 * (var(--page-padding, var(--cv-padding, 40px))));
+  margin-bottom: 1.25em;
+  padding-left: calc(var(--page-padding, var(--cv-padding, 40px)));
+  padding-right: calc(var(--page-padding, var(--cv-padding, 40px)));
+  position: relative;
+  z-index: 1;
+}
+
+.cv-heritage .cv-heritage-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  height: 2px;
+  background: #ffffff;
+}
+
+.cv-heritage .cv-heritage-header-name {
+  font-weight: 400; /* Looks thinner in image? Or standard. Let's go with 400 for a clean look like the image */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 2.8em; /* Large name */
+  font-family: inherit; /* Or specific font from image */
+}
+
+/* Layout: Sidebar + Content */
+.cv-heritage .cv-heritage-layout {
+  display: grid;
+  grid-template-columns: 32% 1fr;
+  align-items: start;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
+/* Sidebar */
+.cv-heritage .cv-heritage-sidebar {
+  color: var(--sidebar-text);
+  
+  /* Ensure text wraps */
+  word-break: break-word;
+  overflow-wrap: break-word;
+  
+    box-sizing: border-box;
+}
+
+.cv-heritage .cv-heritage-side-group { margin-bottom: 2em; }
+
+.cv-heritage .cv-heritage-side-title {
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 1.1em;
+  margin-bottom: 0.8em;
+  color: #000;
+}
+
+.cv-heritage .cv-heritage-side-list {
+  list-style: none; /* Default no bullets */
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.cv-heritage .cv-heritage-contact-list li {
+  margin-bottom: 0.8em;
+  line-height: 1.4;
+}
+
+.cv-heritage .cv-heritage-label {
+  font-weight: 800;
+  display: block; /* Label on own line? Image shows "Address: San Francisco" inline? */
+  /* Image: "Address: San Francisco CA" on one line? OCR says "Address: San Francisco CA". */
+  /* Actually looks like label is bold, value is normal inline. */
+  display: inline;
+  margin-right: 0.3em;
+}
+
+.cv-heritage .cv-heritage-bullets {
+  list-style: disc;
+  padding-left: 1.2em;
+}
+.cv-heritage .cv-heritage-bullets li {
+  margin-bottom: 0.5em;
+}
+
+/* Main Content */
+.cv-heritage .cv-heritage-content {
+  grid-column: 2; 
+  padding: 0 0 0 3.9em;
+  background: transparent;
+  min-width: 0;
+  padding-bottom: 0;
+}
+
+/* Ensure list items don't break awkwardly across pages */
+.cv-heritage li {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.cv-heritage .cv-heritage-section { margin-bottom: 2em; }
+
+.cv-heritage .cv-heritage-section-title {
+  text-transform: uppercase;
+  color: #000; /* Black headers in content */
+  font-weight: 800;
+  font-size: 1.1em;
+  margin-bottom: 0.8em;
+  border-bottom: none; /* Image has no border */
+}
+
+.cv-heritage .cv-heritage-paragraph {
+  font-size: 0.95em;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Work History Items */
+.cv-heritage .cv-heritage-item-row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.2em;
+}
+
+.cv-heritage .cv-heritage-item-title {
+  font-weight: 800;
+  font-size: 1em;
+  color: #000;
+}
+
+.cv-heritage .cv-heritage-item-date {
+  font-weight: 400;
+  color: #000;
+  font-size: 1em; /* Same size as title in image */
+}
+
+.cv-heritage .cv-heritage-item-sub {
+  font-weight: 400;
+  color: #000;
+  font-size: 1em;
+  margin-bottom: 0.5em;
+}
+
+.cv-heritage .cv-heritage-list-item {
+  margin-bottom: 1.5em;
+}
+
+.cv-page:has(.cv-heritage) .page {
+  --heritage-sidebar-bg: color-mix(in srgb, var(--accent-color, #8b2b3a), white 88%);
+  --heritage-page-padding: var(--page-padding, var(--cv-padding, 40px));
+
+  background: linear-gradient(
+    to right,
+    var(--heritage-sidebar-bg) 0,
+    var(--heritage-sidebar-bg) calc(32% + var(--heritage-page-padding)),
+    white calc(32% + var(--heritage-page-padding)),
+    white 100%
+  ) !important;
+}

@@ -1,0 +1,198 @@
+.cv-elegant {
+  font-family: var(--font-family, 'Roboto', sans-serif);
+  color: #333;
+  line-height: var(--line-height, 1.5);
+  letter-spacing: var(--letter-spacing, 0);
+  background: white;
+  width: 100%;
+}
+
+/* Header & Top Bar */
+.cv-elegant-top-bar {
+  height: 4em;
+  background-color: #e2e8f0;
+  background-color: color-mix(in srgb, var(--accent-color, #2c5282), white 85%);
+  width: 100%;
+  margin-bottom: 1.5em;
+  margin-top:-40px;
+}
+
+.cv-elegant-header {
+  margin-bottom: 1.5em;
+  border-bottom: 2px solid var(--accent-color, #2c5282);
+  padding-bottom: 0.5em;
+  margin-top: 0;
+}
+
+.cv-elegant-name {
+  font-size: 2em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-color, #2c5282);
+  margin: 0 0 0.1em 0;
+  line-height: 1.1;
+  letter-spacing: calc(0.5px + var(--letter-spacing, 0));
+}
+
+.cv-elegant-job-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Layout - 65% Main, 30% Sidebar, Side-by-Side */
+.cv-elegant-content {
+  display: grid;
+  grid-template-columns: 65% 30%;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.cv-elegant-content::after {
+  content: none;
+}
+
+.cv-elegant-main {
+  padding-right: 2rem;
+  box-sizing: border-box;
+  min-width: 0; /* Prevent grid blowout */
+}
+
+.cv-elegant-sidebar {
+  box-sizing: border-box;
+  min-width: 0; /* Prevent grid blowout */
+}
+
+/* Section Styling */
+.cv-elegant-section {
+  margin-bottom: 1.5em;
+}
+
+.cv-elegant-section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75em;
+  border-bottom: 2px solid var(--accent-color, #2c5282);
+  padding-bottom: 0.25em;
+}
+
+.cv-elegant-section-title {
+  font-size: 1em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-color, #2c5282);
+  margin-right: 0.75em;
+  white-space: nowrap;
+  letter-spacing: calc(0.05em + var(--letter-spacing, 0));
+}
+
+.cv-elegant-section-bar {
+  display: none;
+}
+
+/* Common Item Styling */
+.cv-elegant-item {
+  margin-bottom: 1em;
+}
+
+.cv-elegant-item:last-child {
+  margin-bottom: 0;
+}
+
+.cv-elegant-item-header {
+  font-weight: 700;
+  font-size: 0.875em;
+  margin-bottom: 0.125em;
+  color: #1a202c;
+}
+
+.cv-elegant-company-location {
+  font-weight: 700;
+  font-size: 0.875em;
+  margin-bottom: 0.25em;
+  color: #2d3748;
+}
+
+/* Typography & Lists */
+.cv-elegant-p {
+  font-size: 0.8125em;
+  color: #4a5568;
+}
+
+.cv-elegant-p p {
+  margin: 0 0 0.25em 0;
+}
+
+.cv-elegant-p ul {
+  margin: 0.25em 0 0.25em 1.125em;
+  padding: 0;
+}
+
+.cv-elegant-p li {
+  margin-bottom: 0.125em;
+}
+
+.cv-elegant-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cv-elegant-list-item,
+.cv-elegant-skill-item {
+  font-size: 0.8125em;
+  margin-bottom: 0.25em;
+  position: relative;
+  padding-left: 0.75em;
+}
+
+.cv-elegant-list-item::before,
+.cv-elegant-skill-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #718096;
+}
+
+.cv-elegant-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cv-elegant-link:hover {
+  text-decoration: underline;
+}
+
+/* Sidebar Specific - Contact */
+.cv-elegant-contact-list {
+  margin-bottom: 0.5em;
+}
+
+.cv-elegant-contact-item {
+  font-size: 0.8125em;
+  margin-bottom: 0.25em;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.cv-elegant-contact-label {
+  font-weight: 800;
+  color: #1a202c;
+}
+
+/* Education Specific */
+.cv-elegant-education-degree,
+.cv-elegant-education-date {
+  font-weight: 800;
+  font-size: 0.875em;
+  color: #1a202c;
+}
+
+.cv-elegant-education-school {
+  font-weight: 800;
+  font-size: 0.875em;
+  margin-bottom: 0.25em;
+  color: #2d3748;
+}

@@ -1,0 +1,127 @@
+.cv-regal {
+  font-family: var(--font-family, Georgia, "Times New Roman", Times, serif);
+  color: #1f2937;
+  --accent-color: #8b0000;
+  line-height: var(--line-height, 1.7);
+  letter-spacing: var(--letter-spacing, 0);
+}
+
+.cv-regal-header {
+  text-align: center;
+  padding-bottom: 0.5em;
+}
+.cv-regal-top-rule {
+  height: 1px;
+  background-color: var(--accent-color);
+  width: 100%;
+  margin: 0.2em 0 0.35em 0;
+}
+.cv-regal-name {
+  font-weight: 800;
+  font-size: 1.8em;
+  text-transform: uppercase;
+  letter-spacing: calc(0.08em + var(--letter-spacing, 0));
+  color: var(--accent-color);
+}
+.cv-regal-bottom-rules {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0.25em 0 0.5em 0;
+}
+.cv-regal-bottom-rules .cv-regal-rule{
+  display: block;
+  width: 100%;
+  height: 1px;
+  background-color: var(--accent-color);
+}
+.cv-regal-bottom-rules .cv-regal-rule-bolded{
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-color);
+}
+.cv-regal-role {
+  color: color-mix(in srgb, var(--accent-color), black 30%);
+  font-weight: 700;
+  font-size: 1em;
+  text-transform: uppercase;
+  margin-top: 0.15em;
+}
+.cv-regal-contact {
+  color: #374151;
+  font-size: 0.87em;
+  margin-top: 0.25em;
+}
+
+.cv-regal-section {
+  margin-top: 1em;
+}
+.cv-regal-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: calc(0.08em + var(--letter-spacing, 0));
+  color: var(--accent-color);
+  line-height: 1.8;
+  margin: 0.75em 0 0.5em;
+}
+.cv-regal-section-title::before,
+.cv-regal-section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--accent-color), white 0%);
+  margin: 0 0.75em;
+}
+
+.cv-regal-paragraph ul,
+.cv-regal-paragraph ol {
+  padding-left: 1em;
+  margin-left: 1em;
+  list-style-position: outside;
+}
+.cv-regal-paragraph ul { list-style-type: disc; }
+.cv-regal-paragraph ol { list-style-type: decimal; }
+.cv-regal-paragraph li { margin-left: 0.25em; }
+
+.cv-regal-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+.cv-regal-list-item { list-style: none; margin-left: 0; padding-left: 0; }
+.cv-regal-item-title {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.95em;
+}
+.cv-regal-item-meta {
+  color: #4b5563;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+.cv-regal-item-divider { }
+
+.cv-regal-inline-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625em;
+}
+.cv-regal-inline-item {
+  font-size: 0.9em;
+  color: #111827;
+}
+
+.cv-regal-skills-grid { display: flex; gap: 2em; }
+.cv-regal-skills-col { flex: 1; list-style: none; padding: 0; }
+.cv-regal-skill-item { display: block; margin-bottom: 0.375em; font-size: 0.9em; color: #111827; }
+.cv-regal-muted { color: #6b7280; }

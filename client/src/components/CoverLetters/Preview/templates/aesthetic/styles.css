@@ -1,0 +1,60 @@
+.cl-aesthetic {
+  --accent-color: #8b5cf6;
+  --font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.cl-aesthetic.cl-html-root {
+  color: #1f2937;
+}
+
+.cl-aesthetic .cl-header {
+  margin-bottom: 2rem;
+}
+.cl-aesthetic .cl-header-accent {
+  height: 6px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-color), transparent);
+  border-radius: 3px;
+  margin-bottom: 1rem;
+}
+.cl-aesthetic .cl-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.cl-aesthetic .cl-header-name {
+  font-size: 1.625em;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.cl-aesthetic .cl-header-contact {
+  font-size: 0.8125em;
+  color: #6b7280;
+  text-align: right;
+}
+.cl-aesthetic .cl-dot {
+  color: #9ca3af;
+}
+
+.cl-aesthetic .cl-recipient {
+  margin-bottom: 1.25rem;
+}
+.cl-aesthetic .cl-date {
+  font-weight: 600;
+  color: #374151;
+}
+.cl-aesthetic .cl-recipient-details {
+  margin-top: 0.75rem;
+  font-size: 0.875em;
+  color: #374151;
+}
+.cl-aesthetic .cl-recipient-address {
+  white-space: pre-line;
+}
+
+.cl-aesthetic .cl-content {
+  font-size: 0.9375em;
+  line-height: var(--line-height, 1.75);
+  color: #111827;
+}
