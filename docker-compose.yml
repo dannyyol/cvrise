@@ -1,12 +1,14 @@
 services:
   ollama:
     image: ollama/ollama:latest
+    profiles: ["dev", "prod"]
     ports:
       - "11434:11434"
     volumes:
       - ollama:/root/.ollama
 
   server:
+    profiles: ["prod"]
     build:
       context: ./server
     ports:
@@ -29,16 +31,91 @@ services:
       - ollama
 
   client:
+    profiles: ["prod"]
     build:
       context: ./client
+      args:
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     ports:
       - "3000:3000"
+    env_file:
+      - ./client/.env
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
       PORT: 3000
     depends_on:
       - server
 
+  server-init:
+    profiles: ["dev"]
+    build:
+      context: ./server
+    environment:
+      APP_NAME: cvrise
+      APP_VERSION: 0.1.0
+      API_PREFIX: /api
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: "True"
+      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
+      CLIENT_BASE_URL: http://localhost:3000
+      PDF_CLIENT_BASE_URL: http://client:3000
+      TOKEN_TTL_SECONDS: 300
+      DATABASE_URL: sqlite+aiosqlite:////app/data/cvrise.db
+    volumes:
+      - ./server:/app
+      - server-data:/app/data
+    command: ["sh", "-c", "alembic upgrade heads && python -m src.cli seed"]
+    depends_on:
+      - ollama
+
+  server-dev:
+    profiles: ["dev"]
+    build:
+      context: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: cvrise
+      APP_VERSION: 0.1.0
+      API_PREFIX: /api
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: "True"
+      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
+      CLIENT_BASE_URL: http://localhost:3000
+      PDF_CLIENT_BASE_URL: http://client-dev:3000
+      TOKEN_TTL_SECONDS: 300
+      DATABASE_URL: sqlite+aiosqlite:////app/data/cvrise.db
+    volumes:
+      - ./server:/app
+      - server-data:/app/data
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      server-init:
+        condition: service_completed_successfully
+      ollama:
+        condition: service_started
+
+  client-dev:
+    profiles: ["dev"]
+    build:
+      context: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+      PNPM_CONFIG_CONFIRM_MODULES_PURGE: "false"
+      PORT: 3000
+    volumes:
+      - ./client:/app
+      - client-node-modules:/app/node_modules
+    command: ["sh", "-c", "pnpm install --no-frozen-lockfile && pnpm exec next dev -H 0.0.0.0 -p 3000"]
+    depends_on:
+      - server-dev
+
 volumes:
   server-data:
   ollama:
+  client-node-modules:
