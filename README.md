@@ -111,7 +111,7 @@
 
 ## Generating Thumbnails
 
-CVForge includes a thumbnail generation system for template previews. Here's how to generate thumbnails:
+CVRise includes a thumbnail generation system for template previews. Here's how to generate thumbnails:
 
 ### Prerequisites for Thumbnail Generation
 - Ensure both frontend and backend servers are running
@@ -144,7 +144,6 @@ The thumbnail generation script:
 You can customize the thumbnail generation by modifying `client/scripts/generate-thumbnails.mjs`:
 
 ```javascript
-// Customize viewport and thumbnail dimensions
 const VIEWPORT_WIDTH = 800;
 const VIEWPORT_HEIGHT = 1000;
 
@@ -180,12 +179,12 @@ The AI Review feature provides:
 
 ## License
 
-CVForge is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
+CVRise is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
 
 ### What this means:
 
-- **Free and Open Source** - You can use, modify, and distribute CVForge freely
-- **Commercial use allowed** - You can use CVForge in your business
+- **Free and Open Source** - You can use, modify, and distribute CVRise freely
+- **Commercial use allowed** - You can use CVRise in your business
 - **Modification allowed** - You can modify the source code to suit your needs
 - **Distribution allowed** - You can distribute original or modified versions
 - **Copyleft requirement** - Any modifications must also be licensed under AGPLv3
@@ -200,7 +199,7 @@ CVForge is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)*
 
 ### Why AGPLv3?
 
-The AGPL ensures that CVForge remains free and open source, even when used as a web service. This prevents proprietary forks and ensures that improvements benefit the entire community.
+The AGPL ensures that CVRise remains free and open source, even when used as a web service. This prevents proprietary forks and ensures that improvements benefit the entire community.
 
 ### Learn More About AGPLv3:
 
