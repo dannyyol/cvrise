@@ -29,4 +29,5 @@ client/public/images
 server/.env
 server/cvrise.db
 server/logs/*.log
+server/.DS_Store
 __pycache__/
