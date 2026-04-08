@@ -10,7 +10,6 @@ export function TransactionHistory() {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    setIsLoading(true);
     planService.getTransactions(page)
       .then((response) => {
         setTransactions(response.items);
@@ -21,11 +20,17 @@ export function TransactionHistory() {
   }, [page]);
 
   const handlePrevPage = () => {
-    if (page > 1) setPage(page - 1);
+    if (page > 1) {
+      setIsLoading(true);
+      setPage(page - 1);
+    }
   };
 
   const handleNextPage = () => {
-    if (page < totalPages) setPage(page + 1);
+    if (page < totalPages) {
+      setIsLoading(true);
+      setPage(page + 1);
+    }
   };
 
   if (isLoading && transactions.length === 0) {

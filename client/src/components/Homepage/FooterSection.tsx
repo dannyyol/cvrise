@@ -1,10 +1,12 @@
+import Image from "next/image";
+
 export function FooterSection() {
   return (
     <footer>
       <div className="footer-inner">
         <div>
           <a href="#" className="footer-brand">
-            <img src="/images/blue-logo.png" alt="CVRise" />
+            <Image src="/images/blue-logo.png" alt="CVRise" width={32} height={32} />
             <span>
               CV<span style={{ color: "var(--blue)" }}>Rise</span>
             </span>

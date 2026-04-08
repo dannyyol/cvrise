@@ -63,7 +63,7 @@ export interface CoverLetterTemplate {
   key: string;
   name: string;
   description: string;
-  guidelines: Record<string, any>;
+  guidelines: Record<string, unknown>;
 }
 
 export const resumeService = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication, CVSection } from '../registry';
+import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication, CVSection, PersonalDetails, ProfessionalSummary } from '../registry';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import './styles.css';
 
@@ -7,7 +7,7 @@ const HTMLContent = ({ content }: { content: string }) => (
   <div className="cv-heritage-paragraph" dangerouslySetInnerHTML={{ __html: content }} />
 );
 
-const ContactSection = ({ personalDetails, title }: { personalDetails: any, title: string }) => {
+const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
   const { address, phone, email, website } = personalDetails;
   
   return (
@@ -31,19 +31,22 @@ const ContactSection = ({ personalDetails, title }: { personalDetails: any, titl
   );
 };
 
-const WebsitesSection = ({ websites, title }: { websites: any[], title: string }) => {
+type SimpleItem = { id: string; name?: string; description?: string; url?: string };
+const WebsitesSection = ({ websites, title }: { websites: SimpleItem[], title: string }) => {
   if (!websites?.length) return null;
   return (
     <section className="cv-heritage-side-group" data-cv-section data-section-id="websites">
       <h3 className="cv-heritage-side-title">{title || 'Websites, Portfolios, Profiles'}</h3>
       <ul className="cv-heritage-side-list cv-heritage-bullets">
-        {websites.map((w, i) => (
-          <li key={i}>
-            <a href={w.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-              {w.url.replace(/^https?:\/\//, '')}
-            </a>
-          </li>
-        ))}
+        {websites
+          .filter((w) => !!w.url)
+          .map((w, i) => (
+            <li key={i}>
+              <a href={w.url as string} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                {(w.url as string).replace(/^https?:\/\//, '')}
+              </a>
+            </li>
+          ))}
       </ul>
     </section>
   );
@@ -65,13 +68,13 @@ const SkillsSection = ({ skills, title }: { skills: Skill[], title: string }) =>
   );
 };
 
-const LanguagesSection = ({ languages, title }: { languages: any[], title: string }) => {
+const LanguagesSection = ({ languages, title }: { languages: SimpleItem[], title: string }) => {
   if (!languages?.length) return null;
   return (
     <section className="cv-heritage-side-group" data-cv-section data-section-id="languages">
       <h3 className="cv-heritage-side-title">{title || 'Languages'}</h3>
       <ul className="cv-heritage-side-list">
-        {languages.map((lang: any) => (
+        {languages.map((lang) => (
           <li key={lang.id}>
             {lang.name}{lang.description ? ` (${lang.description})` : ''}
           </li>
@@ -81,13 +84,13 @@ const LanguagesSection = ({ languages, title }: { languages: any[], title: strin
   );
 };
 
-const InterestsSection = ({ interests, title }: { interests: any[], title: string }) => {
+const InterestsSection = ({ interests, title }: { interests: SimpleItem[], title: string }) => {
   if (!interests?.length) return null;
   return (
     <section className="cv-heritage-side-group" data-cv-section data-section-id="interests">
       <h3 className="cv-heritage-side-title">{title || 'Hobbies & Interests'}</h3>
       <ul className="cv-heritage-side-list cv-heritage-bullets">
-        {interests.map((int: any) => (
+        {interests.map((int) => (
           <li key={int.id}>{int.name}</li>
         ))}
       </ul>
@@ -95,7 +98,7 @@ const InterestsSection = ({ interests, title }: { interests: any[], title: strin
   );
 };
 
-const SummarySection = ({ summary, title }: { summary: any, title: string }) => {
+const SummarySection = ({ summary, title }: { summary: ProfessionalSummary, title: string }) => {
   if (!summary?.content) return null;
   return (
     <section className="cv-heritage-section" data-cv-section data-section-id="summary">

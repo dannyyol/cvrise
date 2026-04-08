@@ -160,8 +160,6 @@ export default function PaginatedPreview({
     container.classList.add(nextTemplateClass);
     splitContainerTemplateClassRef.current = nextTemplateClass;
 
-    // container.style.setProperty('--cv-padding', `${A4_DIMENSIONS.margin}px`);
-    // container.style.setProperty('--page-padding', `${A4_DIMENSIONS.margin}px`);
     container.style.setProperty('--accent-color', accentColor || '#475569');
     container.style.setProperty('--font-family', fontFamily || 'inherit');
     container.style.setProperty('--letter-spacing', letterSpacingValue);
@@ -208,7 +206,7 @@ export default function PaginatedPreview({
 
           splitContainerRef.current.innerHTML = '';
           
-          const root = doc.body.firstElementChild as HTMLElement; // .cv-html-root
+          const root = doc.body.firstElementChild as HTMLElement;
           const header = root.querySelector('header')?.outerHTML || '';
           const styleTag = root.querySelector('style')?.outerHTML || '';
           const rootClasses = root.className;
@@ -272,7 +270,6 @@ export default function PaginatedPreview({
             columnsHtml = pageContainerClone.outerHTML;
             
             const safeRootStyle = rootStyle.replaceAll('"', '&quot;');
-            // Only include styleTag on the first page to avoid duplication in PDF export
             const pageHtml = `<div class="${rootClasses}" style="${safeRootStyle}">${hideSpacerStyle}${i === 0 ? styleTag : ''}${i === 0 ? header : ''}${columnsHtml}</div>`;
             mergedPages.push(pageHtml);
           }
@@ -281,8 +278,8 @@ export default function PaginatedPreview({
             setPages(mergedPages);
             setCurrentPage((p) => Math.min(p, Math.max(0, mergedPages.length - 1)));
             if (isExport) {
-              // Signal to the backend that the preview is ready for PDF generation
-              (window as any).CV_PREVIEW_READY = true;
+              const w = window as Window & { CV_PREVIEW_READY?: boolean };
+              w.CV_PREVIEW_READY = true;
             }
             // Clear hidden container to free memory and prevent PDF artifacts
             if (splitContainerRef.current) {
@@ -295,15 +292,6 @@ export default function PaginatedPreview({
         const nextPages: string[] = [];
         for await (const pageHtml of splitHtmlToPages(html, { container: splitContainerRef.current }, localAbort)) {
           if (localAbort.aborted) return;
-          // For standard pagination, we need to inject the style tag if it's not present in the chunk
-          // But splitHtmlToPages returns chunks of the original HTML.
-          // If the style tag was in the header (which is usually on the first page), it might be missing in subsequent pages?
-          // No, splitHtmlToPages splits the content.
-          // We need to ensure styles are applied.
-          // Since we are in the same document, one style tag is enough.
-          // However, splitHtmlToPages returns the HTML string for the page content.
-          // We wrap it in a div.
-          // The `html` input to splitHtmlToPages contains the whole content.
           
           nextPages.push(pageHtml);
           if (nextPages.length === 1) {
@@ -315,8 +303,8 @@ export default function PaginatedPreview({
           setPages(nextPages);
           setCurrentPage((p) => Math.min(p, Math.max(0, nextPages.length - 1)));
           if (isExport) {
-            // Signal to the backend that the preview is ready for PDF generation
-            (window as any).CV_PREVIEW_READY = true;
+            const w = window as Window & { CV_PREVIEW_READY?: boolean };
+            w.CV_PREVIEW_READY = true;
           }
           // Clear hidden container to free memory and prevent PDF artifacts
           if (splitContainerRef.current) {
@@ -330,7 +318,7 @@ export default function PaginatedPreview({
       window.clearTimeout(timeout);
       if (abortRef.current) abortRef.current.aborted = true;
     };
-  }, [html, templateId, debounceTime, fontSize, letterSpacing, lineSpacing, fontFamily]);
+  }, [html, templateId, debounceTime, fontSize, letterSpacing, lineSpacing, fontFamily, isExport]);
 
   const handlePrevPage = () => setCurrentPage((p) => Math.max(0, p - 1));
   const handleNextPage = () => setCurrentPage((p) => Math.min(pages.length - 1, p + 1));
@@ -368,7 +356,7 @@ export default function PaginatedPreview({
   }, [scale, isExport]);
 
   const pageStyle = useMemo<React.CSSProperties>(() => {
-    return {
+    const base: React.CSSProperties = {
       boxSizing: 'border-box',
       width: isExport ? '210mm' : `${A4_DIMENSIONS.width}px`,
       height: isExport ? '297mm' : `${A4_DIMENSIONS.height}px`,
@@ -380,10 +368,13 @@ export default function PaginatedPreview({
       transformOrigin: 'top left',
       transition: isExport ? undefined : 'transform 0.2s ease-in-out',
       willChange: isExport ? undefined : 'transform',
-      ['--accent-color' as any]: accentColor || '#475569',
-      ['--page-padding' as any]: `${A4_DIMENSIONS.margin}px`,
-      ['--cv-padding' as any]: `${A4_DIMENSIONS.margin}px`,
     };
+    const vars: Record<string, string> = {
+      '--accent-color': accentColor || '#475569',
+      '--page-padding': `${A4_DIMENSIONS.margin}px`,
+      '--cv-padding': `${A4_DIMENSIONS.margin}px`,
+    };
+    return { ...base, ...vars };
   }, [scale, isExport, accentColor]);
 
   const pageInnerStyle = useMemo<React.CSSProperties>(() => {
@@ -391,9 +382,8 @@ export default function PaginatedPreview({
     const letterSpacingValue = getLetterSpacingCssValue(letterSpacing);
     const lineHeightValue = getLineHeightCssValue(lineSpacing);
 
-    return {
+    const base: React.CSSProperties = {
       boxSizing: 'border-box',
-      // width: '100%',
       height: '100%',
       padding: '0px',
       overflow: 'visible',
@@ -401,13 +391,16 @@ export default function PaginatedPreview({
       fontSize: `${rootFontSizePx}px`,
       letterSpacing: letterSpacingValue,
       lineHeight: lineHeightValue,
-      ['--cv-padding' as any]: `${A4_DIMENSIONS.margin}px`,
-      ['--page-padding' as any]: `${A4_DIMENSIONS.margin}px`,
-      ['--accent-color' as any]: accentColor || '#475569',
-      ['--font-family' as any]: fontFamily || 'inherit',
-      ['--letter-spacing' as any]: letterSpacingValue,
-      ['--line-height' as any]: lineHeightValue,
     };
+    const vars: Record<string, string> = {
+      '--cv-padding': `${A4_DIMENSIONS.margin}px`,
+      '--page-padding': `${A4_DIMENSIONS.margin}px`,
+      '--accent-color': accentColor || '#475569',
+      '--font-family': fontFamily || 'inherit',
+      '--letter-spacing': letterSpacingValue,
+      '--line-height': lineHeightValue,
+    };
+    return { ...base, ...vars };
   }, [accentColor, fontFamily, fontSize, letterSpacing, lineSpacing]);
 
   const pagesContainerStyle = useMemo<React.CSSProperties>(() => {

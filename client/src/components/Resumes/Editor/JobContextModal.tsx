@@ -28,6 +28,10 @@ export const JobContextModal = ({ isOpen, onClose, onGenerate }: JobContextModal
   const [generateCoverLetter, setGenerateCoverLetter] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const getErrorDetail = (error: unknown): unknown => {
+    return (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobTitle || !jobDescription) return;
@@ -42,9 +46,12 @@ export const JobContextModal = ({ isOpen, onClose, onGenerate }: JobContextModal
       });
       setIsGenerating(false);
       onClose();
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail || err?.message || 'Failed to generate. Please try again.';
-      setErrorMsg(detail);
+    } catch (err: unknown) {
+      const detail = getErrorDetail(err);
+      const message =
+        (typeof detail === 'string' ? detail : undefined) ||
+        (err instanceof Error ? err.message : 'Failed to generate. Please try again.');
+      setErrorMsg(message);
       setIsGenerating(false);
     }
   };
@@ -106,7 +113,7 @@ export const JobContextModal = ({ isOpen, onClose, onGenerate }: JobContextModal
                       <div>
                         <h4 className="text-sm font-bold text-blue-900">AI-Powered Tailoring</h4>
                         <p className="text-sm text-blue-700 mt-1 leading-relaxed">
-                          We'll analyze the job description to optimize your application. Select what you'd like to generate below.
+                          {"We'll analyze the job description to optimize your application. Select what you'd like to generate below."}
                         </p>
                       </div>
                     </div>

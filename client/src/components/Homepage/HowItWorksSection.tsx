@@ -188,9 +188,7 @@ export function HowItWorksSection() {
               <div className="ai-tip">
                 <div className="ai-tip-h">💡 AI Suggestion</div>
                 <div className="ai-tip-b">
-                  Add "cross-functional collaboration" to your summary — this keyword
-                  appears 4× in the job description and can strengthen how relevant your
-                  CV reads.
+                  {`Add "cross-functional collaboration" to your summary — this keyword appears 4× in the job description and can strengthen how relevant your CV reads.`}
                 </div>
               </div>
             </div>

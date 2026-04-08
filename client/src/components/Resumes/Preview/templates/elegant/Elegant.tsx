@@ -1,9 +1,7 @@
 import React from 'react';
-import type { TemplateProps, WorkExperience, Education, Skill, Certification, CVSection } from '../../../../../types/resume';
+import type { TemplateProps, WorkExperience, Education, Skill, Certification, CVSection, PersonalDetails, ProfessionalSummary, CustomSectionItem } from '../../../../../types/resume';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
 import './styles.css';
-
-// --- Helper Components ---
 
 const SectionHeader = ({ title }: { title: string }) => (
   <div className="cv-elegant-section-header">
@@ -23,7 +21,7 @@ const HTMLContent = ({ content }: { content: string }) => (
 
 // --- Section Renderers ---
 
-const ContactSection = ({ personalDetails, title }: { personalDetails: any, title: string }) => {
+const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
   const { address, phone, email, website, linkedin, github } = personalDetails;
   
   const renderItem = (label: string, value: string, isLink: boolean = false) => {
@@ -57,7 +55,7 @@ const ContactSection = ({ personalDetails, title }: { personalDetails: any, titl
   );
 };
 
-const SummarySection = ({ summary, title }: { summary: any, title: string }) => {
+const SummarySection = ({ summary, title }: { summary: ProfessionalSummary, title: string }) => {
   if (!summary?.content) return null;
   return (
     <div className="cv-elegant-section" data-cv-section data-section-id="summary">
@@ -127,7 +125,7 @@ const SkillsSection = ({ skills, title }: { skills: Skill[], title: string }) =>
   );
 };
 
-const ListSection = ({ items, title, id, displayField = 'name' }: { items: any[], title: string, id: string, displayField?: string }) => {
+const ListSection = ({ items, title, id, displayField = 'name' }: { items: CustomSectionItem[], title: string, id: string, displayField?: 'name' | 'name_level' | 'url' }) => {
   if (!items?.length) return null;
   return (
     <div className="cv-elegant-section" data-cv-section data-section-id={id}>
@@ -171,12 +169,13 @@ const CertificationsSection = ({ certifications, title, dateLocale }: { certific
   );
 };
 
-const GenericSection = ({ items, title, id }: { items: any[], title: string, id: string }) => {
+type NamedItem = { id: string; name?: string; title?: string; description?: string };
+const GenericSection = ({ items, title, id }: { items: NamedItem[], title: string, id: string }) => {
     if (!items?.length) return null;
     return (
         <div className="cv-elegant-section" data-cv-section data-section-id={id}>
             <SectionHeader title={title} />
-            {items.map((item: any) => (
+            {items.map((item) => (
                 <div key={item.id} className="cv-elegant-item">
                      <div className="cv-elegant-item-header">{item.name || item.title}</div>
                      {item.description && <HTMLContent content={item.description} />}

@@ -1,6 +1,5 @@
 import { LayoutDashboard, FileText, Layout, Award, Settings } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useCVStore } from '@/src/store/useCVStore';
 import { ROUTES } from '@/src/lib/routes';
 
 export type NavItem = {
@@ -11,7 +10,6 @@ export type NavItem = {
 };
 
 export const useNavItems = (): NavItem[] => {
-  const currentResumeId = useCVStore((s) => s.currentResumeId);
   return [
     { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard', exact: true },
     { to: ROUTES.RESUMES, icon: FileText, label: 'My Resumes' },

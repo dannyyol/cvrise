@@ -55,7 +55,7 @@ export default function DownloadDropdown({ className = '', menuDirection = 'down
       const filename = isCoverLetter ? 'cover-letter.pdf' : 'cv.pdf';
       await exportResumeToPDF(payload, filename);
       setToast({ message: `${isCoverLetter ? 'Cover letter' : 'Resume'} exported successfully!`, type: 'success', isVisible: true });
-    } catch (error) {
+    } catch {
       setToast({ message: 'Failed to export PDF. Please try again.', type: 'error', isVisible: true });
     } finally {
       setIsDownloading(false);

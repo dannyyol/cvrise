@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "../ui/Button";
 
 type FaqItem = {
@@ -48,7 +49,7 @@ export function FaqSection() {
       </div>
       <div className="faq-split r">
         <div className="faq-illus-side">
-          <img src="/images/faq.png" alt="FAQ Illustration" />
+          <Image src="/images/faq.png" alt="FAQ Illustration" width={520} height={520} />
         </div>
         <div className="faq-content">
           <div className="faq-list mt-[52px] flex flex-col">

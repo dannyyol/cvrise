@@ -124,8 +124,7 @@ export function PaymentSettings() {
             <div className="flex-1">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Purchase Tokens</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  Don't have your own API key? No problem. Purchase tokens to use our premium AI models directly. 
-                  Tokens are deducted only when you generate content.
+                  {"Don't have your own API key? No problem. Purchase tokens to use our premium AI models directly. Tokens are deducted only when you generate content."}
                 </p>
             </div>
             

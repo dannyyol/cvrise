@@ -11,21 +11,29 @@ interface AIAnalysisModalProps {
 }
 
 export const AIAnalysisModal = ({ isOpen, onClose, reviewData }: AIAnalysisModalProps) => {
+    if (!isOpen || !reviewData) return null;
+    return <AIAnalysisModalBody reviewData={reviewData} onClose={onClose} />;
+};
+
+function AIAnalysisModalBody({ reviewData, onClose }: { reviewData: AIReviewResponse; onClose: () => void }) {
     const [visibleSections, setVisibleSections] = useState<number[]>([]);
 
     useEffect(() => {
-        if (isOpen && reviewData) {
-            setVisibleSections([]);
-            const sections = [0, 1, 2, 3, 4, 5, 6];
-            sections.forEach((section, index) => {
-                setTimeout(() => {
-                    setVisibleSections(prev => [...prev, section]);
-                }, index * 400);
-            });
-        }
-    }, [isOpen, reviewData]);
+        const sections = [0, 1, 2, 3, 4, 5, 6];
+        const timers: number[] = [];
 
-    if (!isOpen || !reviewData) return null;
+        for (const [index, section] of sections.entries()) {
+            timers.push(
+                window.setTimeout(() => {
+                    setVisibleSections((prev) => [...prev, section]);
+                }, index * 400)
+            );
+        }
+
+        return () => {
+            for (const timer of timers) window.clearTimeout(timer);
+        };
+    }, [reviewData]);
 
     const getScoreColor = (score: number) => {
         if (score >= 80) return 'text-green-600 dark:text-green-400';
@@ -225,7 +233,7 @@ export const AIAnalysisModal = ({ isOpen, onClose, reviewData }: AIAnalysisModal
             </div>
         </div>
     );
-};
+}
 
 function ScoreCard({ icon, label, score, bgColor }: { icon: React.ReactNode; label: string; score: number; bgColor: string }) {
     const darkBg =

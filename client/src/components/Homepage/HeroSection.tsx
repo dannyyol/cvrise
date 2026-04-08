@@ -225,7 +225,7 @@ export function HeroSection({
           <div className="mc mc-person g4"><div className="mc-person-emoji">�</div><div className="mc-person-name">Mobile Friendly</div><div className="mc-person-role">Edit your CV on the go, anywhere</div></div>
           <div className="mc mc-score"><div className="mc-score-num">Self</div><div className="mc-score-label">Host it on your own infrastructure</div></div>
           <div className="mc mc-person g5"><div className="mc-person-emoji">�</div><div className="mc-person-name">Privacy First</div><div className="mc-person-role">Your data stays yours</div></div>
-          <div className="mc mc-quote"><div className="mc-quote-text">"Your data stays yours. We don't track, sell, or store your information without your explicit consent."</div><div className="mc-quote-author">— Privacy Policy</div></div>
+          <div className="mc mc-quote"><div className="mc-quote-text">{`"Your data stays yours. We don't track, sell, or store your information without your explicit consent."`}</div><div className="mc-quote-author">— Privacy Policy</div></div>
           <div className="mc mc-stat sg3"><div className="mc-stat-num">Fast</div><div className="mc-stat-label">Built with modern tech for blazing speed</div></div>
           <div className="mc mc-person g1"><div className="mc-person-emoji">⚡️</div><div className="mc-person-name">Real-time Preview</div><div className="mc-person-role">See changes instantly as you type</div></div>
           <div className="mc mc-stat sg1"><div className="mc-stat-num">ATS</div><div className="mc-stat-label">Optimized templates for Applicant Tracking Systems</div></div>
@@ -243,7 +243,7 @@ export function HeroSection({
           <div className="mc mc-person g4"><div className="mc-person-emoji">�</div><div className="mc-person-name">Mobile Friendly</div><div className="mc-person-role">Edit your CV on the go, anywhere</div></div>
           <div className="mc mc-score"><div className="mc-score-num">Self</div><div className="mc-score-label">Host it on your own infrastructure</div></div>
           <div className="mc mc-person g5"><div className="mc-person-emoji">�</div><div className="mc-person-name">Privacy First</div><div className="mc-person-role">Your data stays yours</div></div>
-          <div className="mc mc-quote"><div className="mc-quote-text">"Your data stays yours. We don't track, sell, or store your information without your explicit consent."</div><div className="mc-quote-author">— Privacy Policy</div></div>
+          <div className="mc mc-quote"><div className="mc-quote-text">{`"Your data stays yours. We don't track, sell, or store your information without your explicit consent."`}</div><div className="mc-quote-author">— Privacy Policy</div></div>
           <div className="mc mc-stat sg3"><div className="mc-stat-num">Fast</div><div className="mc-stat-label">Built with modern tech for blazing speed</div></div>
         </div>
 
@@ -252,7 +252,7 @@ export function HeroSection({
           <div className="mc mc-person g6"><div className="mc-person-emoji">�</div><div className="mc-person-name">Localization</div><div className="mc-person-role">Support for multiple languages</div></div>
           <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
           <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
-          <div className="mc mc-quote"><div className="mc-quote-text">"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."</div><div className="mc-quote-author">— Version Control</div></div>
+          <div className="mc mc-quote"><div className="mc-quote-text">{`"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."`}</div><div className="mc-quote-author">— Version Control</div></div>
           <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
           <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
           <div className="mc mc-cv">
@@ -268,7 +268,7 @@ export function HeroSection({
           <div className="mc mc-person g6"><div className="mc-person-emoji">�</div><div className="mc-person-name">Localization</div><div className="mc-person-role">Support for multiple languages</div></div>
           <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
           <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
-          <div className="mc mc-quote"><div className="mc-quote-text">"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."</div><div className="mc-quote-author">— Version Control</div></div>
+          <div className="mc mc-quote"><div className="mc-quote-text">{`"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."`}</div><div className="mc-quote-author">— Version Control</div></div>
           <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
           <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
           <div className="mc mc-cv">

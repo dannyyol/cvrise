@@ -32,7 +32,7 @@ export function FeaturesSection() {
           </span>
           <div className="fg-title">AI Job Tailoring</div>
           <div className="fg-desc">
-            Paste a job listing URL and our AI rewrites your CV to align with the role's
+            Paste a job listing URL and our AI rewrites your CV to align with the role&apos;s
             keywords and requirements, improving ATS compatibility.
           </div>
           <span className="fg-chip chip-ai">Powered by AI</span>

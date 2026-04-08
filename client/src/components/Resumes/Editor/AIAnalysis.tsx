@@ -33,7 +33,7 @@ export const AIAnalysis = () => {
         } catch {
           setErrorToast({ message: 'Analysis generated, but failed to save it. Please try again.', isVisible: true });
         }
-    } catch (error) {
+    } catch {
         setErrorToast({ message: 'Failed to generate AI analysis. Please try again.', isVisible: true });
     } finally {
         setIsAnalyzing(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Modal } from '../../ui/Modal';
 import { Input } from '../../ui/Form';
@@ -18,28 +18,21 @@ export const RenameResumeModal = ({
   initialTitle, 
   isRenaming 
 }: RenameResumeModalProps) => {
-  const [title, setTitle] = useState(initialTitle);
+  function ModalContent({
+    keyId,
+  }: {
+    keyId: string;
+  }) {
+    const [title, setTitle] = useState(initialTitle);
 
-  useEffect(() => {
-    if (isOpen) {
-      setTitle(initialTitle);
-    }
-  }, [isOpen, initialTitle]);
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!title.trim()) return;
+      await onSubmit(title);
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    await onSubmit(title);
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Rename Resume"
-      maxWidth="sm"
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    return (
+      <form key={keyId} onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <p className="text-sm text-gray-500 mb-4">
             Enter a new name for your resume.
@@ -73,6 +66,17 @@ export const RenameResumeModal = ({
           </button>
         </div>
       </form>
+    );
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Rename Resume"
+      maxWidth="sm"
+    >
+      <ModalContent keyId={isOpen ? `open-${initialTitle}` : 'closed'} />
     </Modal>
   );
 };
