@@ -34,11 +34,9 @@ export const CoverLetterForm = () => {
         companyAddress: coverLetter.companyAddress || '',
         jobTitle: coverLetter.jobTitle || '',
         jobDescription: coverLetter.jobDescription || '',
-        tone: coverLetter.tone || 'professional',
         templateKey: coverLetter.templateKey || 'soft-modern',
-        length: coverLetter.length || 'medium',
       });
-    } catch (e) {
+    } catch {
     } finally {
       setIsGenerating(false);
     }

@@ -1,9 +1,8 @@
 import React from 'react';
 import type { PersonalDetails, ThemeConfig, CoverLetter, CoverLetterTemplateId } from '../../../../types/resume';
-import SoftModern from './soft-modern/SoftModern';
-import Aesthetic from './aesthetic/Aesthetic';
-import Mono from './mono/Mono';
-import Silhouette from './silhouette/Silhouette';
+import { COVER_LETTER_TEMPLATE_COMPONENTS } from './registry.generated';
+
+export { COVER_LETTER_TEMPLATE_COMPONENTS };
 
 export interface CoverLetterTemplateProps {
   personalDetails: PersonalDetails;
@@ -11,48 +10,16 @@ export interface CoverLetterTemplateProps {
   theme: ThemeConfig;
 }
 
-export interface CoverLetterTemplateDefinition {
-  name: string;
-  description: string;
-  thumbnail: string;
-  component: React.ComponentType<CoverLetterTemplateProps>;
-}
-
-export const COVER_LETTER_TEMPLATE_REGISTRY: Record<CoverLetterTemplateId, CoverLetterTemplateDefinition> = {
-  'soft-modern': {
-    name: 'Soft Modern',
-    description: 'Contemporary design with approachable typography.',
-    thumbnail: '/thumbnails/cl-professional.png',
-    component: SoftModern,
-  },
-  aesthetic: {
-    name: 'Aesthetic',
-    description: 'Elegant and refined with attention to visual balance.',
-    thumbnail: '/thumbnails/cl-friendly.png',
-    component: Aesthetic,
-  },
-  mono: {
-    name: 'Mono',
-    description: 'Clean, monospaced typography for a technical look.',
-    thumbnail: '/thumbnails/cl-concise.png',
-    component: Mono,
-  },
-  silhouette: {
-    name: 'Silhouette',
-    description: 'Bold and impactful with strong visual hierarchy.',
-    thumbnail: '/thumbnails/cl-narrative.png',
-    component: Silhouette,
-  },
-};
-
 export function isCoverLetterTemplateId(value: string): value is CoverLetterTemplateId {
-  return value in COVER_LETTER_TEMPLATE_REGISTRY;
+  return value in COVER_LETTER_TEMPLATE_COMPONENTS;
 }
 
 export function getCoverLetterTemplateComponent(id: CoverLetterTemplateId): React.ComponentType<CoverLetterTemplateProps> {
-  // Default to soft-modern (was professional)
-  const def = COVER_LETTER_TEMPLATE_REGISTRY[id] ?? COVER_LETTER_TEMPLATE_REGISTRY['soft-modern'];
-  return def.component;
+  const component = COVER_LETTER_TEMPLATE_COMPONENTS[id] ?? COVER_LETTER_TEMPLATE_COMPONENTS['soft-modern'];
+  if (!component) {
+    throw new Error(`Unknown cover letter template: ${id}`);
+  }
+  return component;
 }
 
 export function mapCVDataToCLTemplateProps(data: {
@@ -80,9 +47,7 @@ export function mapCVDataToCLTemplateProps(data: {
       content: data.coverLetter?.content || '',
       jobTitle: data.coverLetter?.jobTitle,
       jobDescription: data.coverLetter?.jobDescription,
-      templateKey: data.coverLetter?.templateKey,
-      tone: data.coverLetter?.tone,
-      length: data.coverLetter?.length,
+      templateKey: data.coverLetter?.templateKey
     },
     theme: {
       primaryColor: (data.coverLetterTheme?.primaryColor ?? data.theme.primaryColor),

@@ -134,7 +134,7 @@ const ListSection = ({ items, title, id, displayField = 'name' }: { items: Custo
         {items.map(item => (
           <li key={item.id} className="cv-elegant-list-item">
             {displayField === 'name_level' ? (
-               <><strong>{item.name}</strong> {item.level && `- ${item.level}`}</>
+               <><strong>{item.name}</strong> {item.description && `- ${item.description}`}</>
             ) : displayField === 'url' ? (
                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="cv-elegant-link">
                   {item.url.replace(/^https?:\/\//, '')}

@@ -49,7 +49,7 @@ export default function ResumesPage() {
       const data = await resumeService.getAllResumes();
       setResumes(data);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Failed to load resumes. Please try again.');
     } finally {
       setLoading(false);
@@ -65,7 +65,7 @@ export default function ResumesPage() {
     try {
       setCurrentResumeId(id);
       router.push(ROUTES.EDITOR);
-    } catch (err) {
+    } catch {
     }
   };
 
@@ -99,7 +99,7 @@ export default function ResumesPage() {
       } else {
         router.push(ROUTES.EDITOR);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to create new resume. Please try again.');
     } finally {
       setIsCreating(false);
@@ -112,7 +112,7 @@ export default function ResumesPage() {
       await fetchResumeById(resumeId);
       setResumeToTailor(resumeId);
       setIsJobContextOpen(true);
-    } catch (err) {
+    } catch {
     }
   };
 
@@ -146,7 +146,6 @@ export default function ResumesPage() {
       await useCVStore.getState().tailorResume({
         jobTitle,
         jobDescription,
-        tone: 'professional',
       });
       setDocumentMode('resume');
     }
@@ -171,7 +170,7 @@ export default function ResumesPage() {
       await resumeService.deleteResume(resumeToDelete);
       setResumes(resumes.filter(r => r.id !== resumeToDelete));
       setResumeToDelete(null);
-    } catch (err) {
+    } catch {
     } finally {
       setIsDeleting(false);
     }

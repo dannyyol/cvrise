@@ -11,9 +11,8 @@ import { PageTitle } from '@/src/components/ui/PageTitle';
 import { Card } from '@/src/components/ui/Card';
 import DownloadDropdown from '@/src/components/DownloadDropdown';
 import { isTemplateId } from '@/src/components/Resumes/Preview/templates/registry';
-import { COVER_LETTER_TEMPLATE_REGISTRY } from '@/src/components/CoverLetters/Preview/templates/registry';
+import { isCoverLetterTemplateId } from '@/src/components/CoverLetters/Preview/templates/registry';
 import { ThemeSettingsForm } from '@/src/components/Resumes/Editor/Forms/ThemeSettingsForm';
-import type { CoverLetterTemplateId } from '@/src/types/resume';
 
 export default function TemplatesPage () {
   const { 
@@ -71,24 +70,12 @@ export default function TemplatesPage () {
   const isResumeMode = activeDocumentMode === 'resume';
   const isLoading = isPageLoading || !isReady;
 
-  // Filter/Select templates based on mode
   const supportedResumeTemplates = templates.filter(t => isTemplateId(t.key));
+  const supportedCoverLetterTemplates = coverLetterTemplates.filter(t => isCoverLetterTemplateId(t.key));
   
-  // Use cover letter templates or fallback to registry if not loaded
-  // We map cover letter templates to include thumbnails from the registry
   const currentTemplatesList = isResumeMode 
     ? supportedResumeTemplates 
-    : (coverLetterTemplates.length > 0 
-        ? coverLetterTemplates.map(t => ({
-            ...t,
-            thumbnail: COVER_LETTER_TEMPLATE_REGISTRY[t.key as keyof typeof COVER_LETTER_TEMPLATE_REGISTRY]?.thumbnail
-          }))
-        : Object.entries(COVER_LETTER_TEMPLATE_REGISTRY).map(([key, def]) => ({
-            id: key,
-            key: key,
-            name: def.name,
-            thumbnail: def.thumbnail
-          })));
+    : supportedCoverLetterTemplates;
   
   const activeTemplateKey = isResumeMode 
     ? selectedTemplate 
@@ -97,10 +84,6 @@ export default function TemplatesPage () {
   const currentTemplate = isReady 
     ? currentTemplatesList.find(t => t.key === activeTemplateKey) 
     : undefined;
-
-  const isCoverLetterTemplateId = (value: string): value is CoverLetterTemplateId => {
-    return Object.prototype.hasOwnProperty.call(COVER_LETTER_TEMPLATE_REGISTRY, value);
-  };
 
   const handleTemplateSelect = (key: string) => {
     if (isResumeMode) {

@@ -90,9 +90,7 @@ export interface CustomSectionItem {
 export type SectionType = 'personal' | 'summary' | 'experience' | 'education' | 'skills' | 'projects' | 'certifications' | 'awards' | 'publications' | 'languages' | 'interests' | 'websites' | 'volunteering' | 'references';
 
 export type TemplateId = string;
-export type CoverLetterTemplateId = 'mono' | 'aesthetic' | 'soft-modern' | 'silhouette';
-export type CoverLetterTone = 'professional' | 'friendly' | 'confident' | 'formal';
-export type CoverLetterLength = 'short' | 'medium' | 'long';
+export type CoverLetterTemplateId = string;
 
 export interface ThemeConfig {
   primaryColor: string;
@@ -143,8 +141,6 @@ export interface CoverLetter {
   jobTitle?: string;
   jobDescription?: string;
   templateKey?: CoverLetterTemplateId;
-  tone?: CoverLetterTone;
-  length?: CoverLetterLength;
 }
 
 export interface CVSection {

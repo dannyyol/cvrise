@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, UserPlus } from 'lucide-react';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Form';
@@ -29,14 +29,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [info, setInfo] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       if (credentialResponse.credential) {
         await loginWithGoogle(credentialResponse.credential);
         onLoginSuccess();
         onClose();
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       setError('Google login failed');
     }
@@ -83,17 +83,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onLoginSuccess();
         onClose();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      let msg = err.message || 'Something went wrong';
+      const errorObj = err as {
+        message?: unknown;
+        response?: { data?: { detail?: unknown } };
+      };
+
+      let msg = typeof errorObj.message === 'string' && errorObj.message.trim()
+        ? errorObj.message
+        : 'Something went wrong';
       
-      if (err.response?.data?.detail) {
-        const detail = err.response.data.detail;
+      if (errorObj.response?.data?.detail) {
+        const detail = errorObj.response.data.detail;
         if (Array.isArray(detail)) {
-          // Handle validation errors array
-          msg = detail.map((e: any) => e.msg).join(', ');
-        } else {
-          // Handle string error
+          msg = (detail as Array<{ msg?: unknown }>).map((e) => {
+            return typeof e?.msg === 'string' ? e.msg : '';
+          }).filter(Boolean).join(', ');
+        } else if (typeof detail === 'string') {
           msg = detail;
         }
       }
@@ -218,8 +225,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 try {
                   const res = await authService.resendVerification(email);
                   setInfo(res.detail || 'If that email exists, we sent a verification link');
-                } catch (err: any) {
-                  setError(err?.response?.data?.detail || err?.message || 'Failed to resend verification email');
+                } catch (err: unknown) {
+                  const errorObj = err as {
+                    message?: unknown;
+                    response?: { data?: { detail?: unknown } };
+                  };
+                  const detail = errorObj.response?.data?.detail;
+                  setError(
+                    (typeof detail === 'string' && detail.trim())
+                      ? detail
+                      : (typeof errorObj.message === 'string' && errorObj.message.trim())
+                        ? errorObj.message
+                        : 'Failed to resend verification email'
+                  );
                 } finally {
                   setIsLoading(false);
                 }

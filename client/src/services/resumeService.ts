@@ -53,9 +53,7 @@ export interface CoverLetterGenerate {
   companyAddress?: string;
   jobTitle?: string;
   jobDescription?: string;
-  tone?: string;
   templateKey?: string;
-  length?: string;
 }
 
 export interface CoverLetterTemplate {
@@ -113,7 +111,7 @@ export const resumeService = {
   },
   
   getCoverLetterTemplates: async (): Promise<CoverLetterTemplate[]> => {
-    return api.get<CoverLetterTemplate[]>('/cover-letter-templates/');
+    return api.get<CoverLetterTemplate[]>('/templates/?document=cover-letter');
   },
 
   getCoverLetters: async (resumeId: string): Promise<CoverLetterItem[]> => {
@@ -128,13 +126,12 @@ export const resumeService = {
     return api.post<CoverLetterGenerate, CoverLetterItem>(`/resumes/${resumeId}/cover-letters/generate`, data);
   },
   
-  tailorResume: async (resumeId: string, data: { jobTitle: string; jobDescription: string; tone?: string }): Promise<ResumeApiResponse> => {
-    return api.post<{ jobTitle: string; jobDescription: string; tone?: string }, ResumeApiResponse>(
+  tailorResume: async (resumeId: string, data: { jobTitle: string; jobDescription: string; }): Promise<ResumeApiResponse> => {
+    return api.post<{ jobTitle: string; jobDescription: string; }, ResumeApiResponse>(
       `/resumes/${resumeId}/tailor`,
       {
         jobTitle: data.jobTitle,
         jobDescription: data.jobDescription,
-        tone: data.tone ?? 'professional',
       }
     );
   },

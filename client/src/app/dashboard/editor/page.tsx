@@ -40,16 +40,16 @@ export default function EditorPage() {
   const source = searchParams.get('source');
   const router = useRouter();
   const { cvData, setSections, saveResume, currentResumeId, selectedTemplate, isDirty, toggleSectionVisibility, activeDocumentMode, setDocumentMode, generateCoverLetter, tailorResume, fetchTemplates, fetchCoverLetterTemplates, fetchDefaultResume, fetchResumeById, error, isLoading, templates, coverLetterTemplates } = useCVStore();
+  const coverLetterTemplateKey = cvData.coverLetter?.templateKey;
   const currentTemplateName = useMemo(() => {
     if (activeDocumentMode === 'resume') {
       const template = templates.find(t => t.key === selectedTemplate);
       return template?.name;
     } else {
-      const templateKey = cvData.coverLetter?.templateKey;
-      const template = coverLetterTemplates.find(t => t.key === templateKey);
+      const template = coverLetterTemplates.find(t => t.key === coverLetterTemplateKey);
       return template?.name
     }
-  }, [activeDocumentMode, templates, coverLetterTemplates, selectedTemplate, cvData.coverLetterTheme, cvData.coverLetter]);
+  }, [activeDocumentMode, templates, coverLetterTemplates, selectedTemplate, coverLetterTemplateKey]);
 
   const [openSectionId, setOpenSectionId] = useState<string | null>('personal');
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
@@ -130,7 +130,6 @@ export default function EditorPage() {
       await tailorResume({
         jobTitle,
         jobDescription,
-        tone: 'professional',
       });
       if (!options.generateCoverLetter) {
         setDocumentMode('resume');

@@ -1,5 +1,5 @@
 import { useCVStore } from '../../../store/useCVStore';
-import { getCoverLetterTemplateComponent, mapCVDataToCLTemplateProps } from './templates/registry';
+import { COVER_LETTER_TEMPLATE_COMPONENTS, mapCVDataToCLTemplateProps } from './templates/registry';
 import PaginatedPreview from '../../Resumes/Preview/PaginatedPreview';
 
 interface CoverLetterPreviewProps {
@@ -10,11 +10,12 @@ export const CoverLetterPreview = ({ scaleMode = "fit" }: CoverLetterPreviewProp
   const { cvData } = useCVStore();
   const { coverLetter, coverLetterTheme, theme } = cvData;
 
-  if (!coverLetter) return null;
-
-  const templateKey = coverLetterTheme?.templateKey || coverLetter.templateKey || 'soft-modern';
-  const TemplateComponent = getCoverLetterTemplateComponent(templateKey);
+  const templateKey = coverLetterTheme?.templateKey || coverLetter?.templateKey || 'soft-modern';
+  const TemplateComponent =
+    COVER_LETTER_TEMPLATE_COMPONENTS[templateKey] ?? COVER_LETTER_TEMPLATE_COMPONENTS['soft-modern'];
   const props = mapCVDataToCLTemplateProps(cvData);
+
+  if (!coverLetter || !TemplateComponent) return null;
 
   return (
     <div className="flex justify-center w-full">

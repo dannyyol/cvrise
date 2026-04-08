@@ -44,7 +44,7 @@ interface CVStore {
   setDocumentMode: (mode: 'resume' | 'cover-letter') => void;
   updateTheme: (theme: Partial<ThemeConfig>) => void;
   updateCoverLetterTheme: (theme: Partial<ThemeConfig>) => void;
-  tailorResume: (data: { jobTitle: string; jobDescription: string; tone?: string }) => Promise<void>;
+  tailorResume: (data: { jobTitle: string; jobDescription: string; }) => Promise<void>;
   
   // Section ordering and visibility
   setSections: (sections: Section[]) => void;
@@ -446,7 +446,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
     const payload = {
       jobTitle: data.jobTitle,
       jobDescription: data.jobDescription,
-      tone: data.tone ?? 'professional',
     };
     const updated = await resumeService.tailorResume(currentResumeId, payload);
     set((state) => ({

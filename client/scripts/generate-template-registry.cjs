@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
  
 const projectRoot = path.resolve(__dirname, '..');
-const templatesDir = path.join(
+const resumeTemplatesDir = path.join(
   projectRoot,
   'src',
   'components',
@@ -10,7 +10,17 @@ const templatesDir = path.join(
   'Preview',
   'templates'
 );
-const outFile = path.join(templatesDir, 'registry.generated.ts');
+const resumeOutFile = path.join(resumeTemplatesDir, 'registry.generated.ts');
+
+const coverLetterTemplatesDir = path.join(
+  projectRoot,
+  'src',
+  'components',
+  'CoverLetters',
+  'Preview',
+  'templates'
+);
+const coverLetterOutFile = path.join(coverLetterTemplatesDir, 'registry.generated.ts');
  
 function toPascalCase(value) {
   return String(value)
@@ -22,8 +32,8 @@ function toPascalCase(value) {
     .join('');
 }
  
-function findTemplateEntries() {
-  const entries = fs.readdirSync(templatesDir, { withFileTypes: true });
+function findTemplateEntries(rootDir) {
+  const entries = fs.readdirSync(rootDir, { withFileTypes: true });
   const templateDirs = entries
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
@@ -33,7 +43,7 @@ function findTemplateEntries() {
   const results = [];
  
   for (const dirName of templateDirs) {
-    const dirPath = path.join(templatesDir, dirName);
+    const dirPath = path.join(rootDir, dirName);
     const files = fs.readdirSync(dirPath, { withFileTypes: true });
     const componentFiles = files
       .filter((f) => f.isFile())
@@ -53,7 +63,7 @@ function findTemplateEntries() {
   return results;
 }
  
-function generateFile(entries) {
+function generateResumeFile(entries) {
   const imports = entries
     .map((e) => `import ${e.importName} from '${e.importPath}';`)
     .join('\n');
@@ -72,6 +82,32 @@ function generateFile(entries) {
     ``,
   ].join('\n');
 }
+
+function generateCoverLetterFile(entries) {
+  const imports = entries
+    .map((e) => `import ${e.importName} from '${e.importPath}';`)
+    .join('\n');
+ 
+  const mappings = entries.map((e) => `  '${e.templateId}': ${e.importName},`).join('\n');
+ 
+  return [
+    `import type { ComponentType } from 'react';`,
+    `import type { PersonalDetails, ThemeConfig, CoverLetter } from '../../../../types/resume';`,
+    ``,
+    imports,
+    ``,
+    `type CoverLetterTemplateProps = {`,
+    `  personalDetails: PersonalDetails;`,
+    `  coverLetter: CoverLetter;`,
+    `  theme: ThemeConfig;`,
+    `};`,
+    ``,
+    `export const COVER_LETTER_TEMPLATE_COMPONENTS: Record<string, ComponentType<CoverLetterTemplateProps>> = {`,
+    mappings,
+    `};`,
+    ``,
+  ].join('\n');
+}
  
 function writeIfChanged(filePath, contents) {
   try {
@@ -84,15 +120,29 @@ function writeIfChanged(filePath, contents) {
 }
  
 function main() {
-  if (!fs.existsSync(templatesDir)) {
-    throw new Error(`Templates directory not found: ${templatesDir}`);
+  if (!fs.existsSync(resumeTemplatesDir)) {
+    throw new Error(`Templates directory not found: ${resumeTemplatesDir}`);
   }
  
-  const entries = findTemplateEntries();
-  const content = generateFile(entries);
-  const changed = writeIfChanged(outFile, content);
-  if (changed) {
-    process.stdout.write(`Generated ${path.relative(projectRoot, outFile)}\n`);
+  const resumeEntries = findTemplateEntries(resumeTemplatesDir);
+  const resumeContent = generateResumeFile(resumeEntries);
+  const resumeChanged = writeIfChanged(resumeOutFile, resumeContent);
+  if (resumeChanged) {
+    process.stdout.write(`Generated ${path.relative(projectRoot, resumeOutFile)}\n`);
+  }
+
+  if (!fs.existsSync(coverLetterTemplatesDir)) {
+    throw new Error(`Templates directory not found: ${coverLetterTemplatesDir}`);
+  }
+
+  const coverLetterEntries = findTemplateEntries(coverLetterTemplatesDir);
+  for (const e of coverLetterEntries) {
+    e.importName = `Template${toPascalCase(e.templateId)}`;
+  }
+  const coverLetterContent = generateCoverLetterFile(coverLetterEntries);
+  const coverLetterChanged = writeIfChanged(coverLetterOutFile, coverLetterContent);
+  if (coverLetterChanged) {
+    process.stdout.write(`Generated ${path.relative(projectRoot, coverLetterOutFile)}\n`);
   }
 }
  
