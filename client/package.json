@@ -9,7 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -33,7 +34,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.3.0",
-    "@tailwindcss/oxide-darwin-x64": "^4.2.2",
+    "@tailwindcss/oxide": "^4.2.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

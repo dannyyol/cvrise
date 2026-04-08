@@ -302,6 +302,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), isDirty: false });
     } catch (error) {
       set({ isSaving: false, error: 'Failed to save changes' });
+      throw error;
     }
   },
 
@@ -472,6 +473,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       set({ coverLetterHistory: items, isHistoryLoading: false });
     } catch (error) {
       set({ isHistoryLoading: false, historyError: 'Failed to load cover letter history' });
+      throw error;
     }
   },
 

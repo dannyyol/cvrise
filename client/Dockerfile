@@ -22,6 +22,10 @@ COPY --from=deps /app/package.json /app/package.json
 COPY --from=deps /app/pnpm-lock.yaml /app/pnpm-lock.yaml
 
 COPY . /app
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 RUN pnpm run build
 
 FROM node:20-bookworm-slim AS runner
