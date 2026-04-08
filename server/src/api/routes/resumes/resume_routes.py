@@ -28,9 +28,6 @@ async def upload_resume(
     session: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    """
-    Upload a PDF resume, parse it with AI, and create a new resume entry.
-    """
     service = ResumeService(session, user)
     return await service.upload_resume(file)
 
