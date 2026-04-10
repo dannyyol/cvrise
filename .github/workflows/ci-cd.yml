@@ -106,7 +106,8 @@ jobs:
         with:
           images: ghcr.io/dannyyol/cvrise-client
           tags: |
-            type=sha,format=long
+            type=sha,format=long,prefix=
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest
 
       - name: Build + Push (client)
@@ -130,7 +131,8 @@ jobs:
         with:
           images: ghcr.io/dannyyol/cvrise-server
           tags: |
-            type=sha,format=long
+            type=sha,format=long,prefix=
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest
 
       - name: Build + Push (server)
