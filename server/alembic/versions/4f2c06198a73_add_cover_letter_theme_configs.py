@@ -12,11 +12,11 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         'cover_letter_theme_configs',
-        sa.Column('id', sa.String(), nullable=False),
-        sa.Column('resume_id', sa.String(), nullable=False),
-        sa.Column('primary_color', sa.String(), nullable=False),
-        sa.Column('secondary_color', sa.String(), nullable=False),
-        sa.Column('font_family', sa.String(), nullable=False),
+        sa.Column('id', sa.String(length=36), nullable=False),
+        sa.Column('resume_id', sa.String(length=36), nullable=False),
+        sa.Column('primary_color', sa.String(length=32), nullable=False),
+        sa.Column('secondary_color', sa.String(length=32), nullable=False),
+        sa.Column('font_family', sa.String(length=128), nullable=False),
         sa.ForeignKeyConstraint(['resume_id'], ['resumes.id']),
         sa.PrimaryKeyConstraint('id')
     )

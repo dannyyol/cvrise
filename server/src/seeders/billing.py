@@ -1,6 +1,8 @@
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.models.billing import TokenPlan, UserBalance
+from src.models.user import User
 from src.seeders.base import BaseSeeder
 import logging
 
@@ -34,7 +36,7 @@ INITIAL_PLANS = [
 ]
 
 class BillingSeeder(BaseSeeder):
-    async def run(self, session: AsyncSession, user_id: str = "default-user") -> None:
+    async def run(self, session: AsyncSession, user_id: Optional[str] = None) -> None:
         # Seed Plans
         for plan_data in INITIAL_PLANS:
             result = await session.execute(select(TokenPlan).where(TokenPlan.name == plan_data["name"]))
@@ -49,13 +51,20 @@ class BillingSeeder(BaseSeeder):
                 for key, value in plan_data.items():
                     setattr(existing_plan, key, value)
         
-        # Seed User Balance (if not exists)
-        result = await session.execute(select(UserBalance).where(UserBalance.user_id == user_id))
-        existing_balance = result.scalar_one_or_none()
-        
-        if not existing_balance:
-            logger.info(f"Initializing User Balance for user {user_id}")
-            balance = UserBalance(balance=0, user_id=user_id)
-            session.add(balance)
+        # Seed User Balance (if user_id is provided and user exists)
+        if user_id:
+            user_result = await session.execute(select(User).where(User.id == user_id))
+            user = user_result.scalar_one_or_none()
+
+            if user:
+                result = await session.execute(select(UserBalance).where(UserBalance.user_id == user_id))
+                existing_balance = result.scalar_one_or_none()
+                
+                if not existing_balance:
+                    logger.info(f"Initializing User Balance for user {user_id}")
+                    balance = UserBalance(balance=0, user_id=user_id)
+                    session.add(balance)
+            else:
+                logger.info(f"Skipping User Balance seeding: user {user_id} does not exist")
         
         await session.commit()

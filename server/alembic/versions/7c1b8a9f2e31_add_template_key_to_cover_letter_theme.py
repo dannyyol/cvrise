@@ -10,7 +10,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column(
         'cover_letter_theme_configs',
-        sa.Column('template_key', sa.String(), nullable=False, server_default='professional')
+        sa.Column('template_key', sa.String(length=64), nullable=False, server_default='professional')
     )
 
 def downgrade() -> None:

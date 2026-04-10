@@ -9,7 +9,6 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import sqlite
 
 # revision identifiers, used by Alembic.
 revision: str = '9756a5b5c215'
@@ -25,7 +24,7 @@ def upgrade() -> None:
     op.drop_table('websites')
     op.drop_table('interests')
     with op.batch_alter_table('custom_section_items', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('url', sa.String(), nullable=False))
+        batch_op.add_column(sa.Column('url', sa.String(length=512), nullable=False))
 
     # ### end Alembic commands ###
 
@@ -37,26 +36,26 @@ def downgrade() -> None:
         batch_op.drop_column('url')
 
     op.create_table('interests',
-    sa.Column('id', sa.VARCHAR(), nullable=False),
-    sa.Column('section_id', sa.VARCHAR(), nullable=False),
-    sa.Column('name', sa.VARCHAR(), nullable=False),
-    sa.Column('keywords', sqlite.JSON(), nullable=False),
+    sa.Column('id', sa.String(length=36), nullable=False),
+    sa.Column('section_id', sa.String(length=36), nullable=False),
+    sa.Column('name', sa.String(length=255), nullable=False),
+    sa.Column('keywords', sa.JSON(), nullable=False),
     sa.ForeignKeyConstraint(['section_id'], ['sections.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('websites',
-    sa.Column('id', sa.VARCHAR(), nullable=False),
-    sa.Column('section_id', sa.VARCHAR(), nullable=False),
-    sa.Column('label', sa.VARCHAR(), nullable=False),
-    sa.Column('link', sa.VARCHAR(), nullable=False),
+    sa.Column('id', sa.String(length=36), nullable=False),
+    sa.Column('section_id', sa.String(length=36), nullable=False),
+    sa.Column('label', sa.String(length=255), nullable=False),
+    sa.Column('link', sa.String(length=512), nullable=False),
     sa.ForeignKeyConstraint(['section_id'], ['sections.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('languages',
-    sa.Column('id', sa.VARCHAR(), nullable=False),
-    sa.Column('section_id', sa.VARCHAR(), nullable=False),
-    sa.Column('name', sa.VARCHAR(), nullable=False),
-    sa.Column('proficiency', sa.VARCHAR(), nullable=False),
+    sa.Column('id', sa.String(length=36), nullable=False),
+    sa.Column('section_id', sa.String(length=36), nullable=False),
+    sa.Column('name', sa.String(length=255), nullable=False),
+    sa.Column('proficiency', sa.String(length=64), nullable=False),
     sa.ForeignKeyConstraint(['section_id'], ['sections.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

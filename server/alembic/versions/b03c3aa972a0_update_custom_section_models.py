@@ -43,10 +43,10 @@ def downgrade() -> None:
         batch_op.drop_column('is_custom')
 
     with op.batch_alter_table('custom_section_items', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('date', sa.VARCHAR(), nullable=False))
-        batch_op.add_column(sa.Column('location', sa.VARCHAR(), nullable=False))
-        batch_op.add_column(sa.Column('description', sa.TEXT(), nullable=False))
-        batch_op.add_column(sa.Column('name', sa.VARCHAR(), nullable=False))
+        batch_op.add_column(sa.Column('date', sa.String(length=32), nullable=False))
+        batch_op.add_column(sa.Column('location', sa.String(length=255), nullable=False))
+        batch_op.add_column(sa.Column('description', sa.Text(), nullable=False))
+        batch_op.add_column(sa.Column('name', sa.String(length=255), nullable=False))
         batch_op.drop_column('content')
 
     # ### end Alembic commands ###

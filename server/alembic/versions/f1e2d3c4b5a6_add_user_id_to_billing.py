@@ -15,18 +15,18 @@ import sqlalchemy as sa
 revision: str = 'f1e2d3c4b5a6'
 down_revision: Union[str, Sequence[str], None] = 'ebaab0b4f6d2'
 branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = '247ecb72f125'
 
 
 def upgrade() -> None:
     # Add user_id column to user_balances
     with op.batch_alter_table('user_balances', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('user_id', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('user_id', sa.String(length=36), nullable=True))
         batch_op.create_foreign_key('fk_user_balances_users', 'users', ['user_id'], ['id'])
 
     # Add user_id column to token_transactions
     with op.batch_alter_table('token_transactions', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('user_id', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('user_id', sa.String(length=36), nullable=True))
         batch_op.create_foreign_key('fk_token_transactions_users', 'users', ['user_id'], ['id'])
 
 
