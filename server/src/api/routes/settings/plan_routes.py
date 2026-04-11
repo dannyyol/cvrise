@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from typing import List
 
-from src.api.schemas.plan import TokenPlanResponse, UserBalanceResponse, SelectPlanRequest, PaymentInitiationResponse, TokenTransactionResponse
+from src.api.schemas.plan import TokenPlanResponse, UserBalanceResponse, SelectPlanRequest, PaymentInitiationResponse, TokenTransactionResponse, CheckoutStatusResponse
 from src.services.settings.plan_service import PlanService, get_plan_service, get_authenticated_plan_service
 from src.api.schemas.common import PaginatedResponse
 
@@ -31,6 +31,16 @@ async def select_plan(
     try:
         url = await service.purchase_plan(request.plan_id)
         return PaymentInitiationResponse(checkout_url=url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/checkout-status", response_model=CheckoutStatusResponse)
+async def checkout_status(
+    session_id: str,
+    service: PlanService = Depends(get_authenticated_plan_service)
+):
+    try:
+        return await service.get_checkout_status(session_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

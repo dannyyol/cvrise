@@ -29,6 +29,11 @@ export interface PaymentInitiationResponse {
   checkout_url: string;
 }
 
+export interface CheckoutStatusResponse {
+  status: 'pending' | 'fulfilled' | 'unpaid';
+  balance?: UserBalance;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -52,5 +57,9 @@ export const planService = {
 
   purchasePlan: async (planId: string): Promise<PaymentInitiationResponse> => {
     return api.put<{ plan_id: string }, PaymentInitiationResponse>('/settings/plans/select-plan', { plan_id: planId });
-  }
+  },
+
+  getCheckoutStatus: async (sessionId: string): Promise<CheckoutStatusResponse> => {
+    return api.get<CheckoutStatusResponse>(`/settings/plans/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
+  },
 };

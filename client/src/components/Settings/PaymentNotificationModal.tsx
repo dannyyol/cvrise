@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 interface PaymentNotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  status: 'success' | 'error' | 'canceled' | null;
+  status: 'processing' | 'success' | 'error' | 'canceled' | null;
 }
 
 export const PaymentNotificationModal: React.FC<PaymentNotificationModalProps> = ({
@@ -17,6 +17,13 @@ export const PaymentNotificationModal: React.FC<PaymentNotificationModalProps> =
   if (!status) return null;
 
   const content = {
+    processing: {
+      icon: <AlertCircle className="w-16 h-16 text-blue-500 mb-4" />,
+      title: 'Confirming Payment...',
+      message: 'This may take a few seconds. Please keep this page open while we confirm your payment.',
+      buttonText: 'Close',
+      buttonColor: 'bg-blue-600 hover:bg-blue-700',
+    },
     success: {
       icon: <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />,
       title: 'Payment Successful!',

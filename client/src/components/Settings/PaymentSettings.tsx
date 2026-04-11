@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CreditCard, Coins, Zap, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { planService } from '../../services/planService';
@@ -9,26 +10,65 @@ import { TransactionHistory } from './TransactionHistory';
 import { ErrorState } from '../ui/ErrorState';
 
 export function PaymentSettings() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [plans, setPlans] = useState<TokenPlan[]>([]);
   const [balance, setBalance] = useState<UserBalance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const [notificationStatus, setNotificationStatus] = useState<'success' | 'error' | 'canceled' | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<'processing' | 'success' | 'error' | 'canceled' | null>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   useEffect(() => {
-    // Check for success/cancel params
-    const query = new URLSearchParams(window.location.search);
-    if (query.get('success')) {
-      setNotificationStatus('success');
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    const sessionId = searchParams.get('session_id');
+
+    let cancelled = false;
+
+    const verifyCheckout = async () => {
+      if (!success || !sessionId) return;
+
+      setNotificationStatus('processing');
       setIsNotificationOpen(true);
-      window.history.replaceState({}, '', window.location.pathname);
-    } else if (query.get('canceled')) {
+
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        if (cancelled) return;
+        try {
+          const status = await planService.getCheckoutStatus(sessionId);
+          if (cancelled) return;
+          if (status.status === 'fulfilled') {
+            setNotificationStatus('success');
+            if (status.balance) setBalance(status.balance);
+            return;
+          }
+          if (status.status === 'unpaid') {
+            setNotificationStatus('error');
+            return;
+          }
+        } catch {
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
+      if (!cancelled) setNotificationStatus('error');
+    };
+
+    if (success && sessionId) {
+      void verifyCheckout();
+    } else if (success) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('success');
+      params.delete('session_id');
+      if (!params.get('tab')) params.set('tab', 'billing');
+      router.replace(`${pathname}?${params.toString()}`);
+    } else if (canceled) {
       setNotificationStatus('canceled');
       setIsNotificationOpen(true);
-      window.history.replaceState({}, '', window.location.pathname);
     }
 
     const fetchData = async () => {
@@ -41,7 +81,6 @@ export function PaymentSettings() {
         setPlans(plansData);
         setBalance(balanceData);
       } catch (err) {
-        console.error('Failed to fetch payment data:', err);
         setError('Failed to load plans. Please try again later.');
       } finally {
         setIsLoading(false);
@@ -49,7 +88,11 @@ export function PaymentSettings() {
     };
 
     fetchData();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, pathname, router]);
 
   const handlePurchase = async (planId: string) => {
     try {
@@ -59,7 +102,6 @@ export function PaymentSettings() {
         window.location.href = response.checkout_url;
       }
     } catch (err) {
-      console.error('Purchase failed:', err);
       setNotificationStatus('error');
       setIsNotificationOpen(true);
       setIsPurchasing(null);
@@ -68,7 +110,13 @@ export function PaymentSettings() {
 
   const handleNotificationClose = () => {
     setIsNotificationOpen(false);
-    // Refresh balance if success
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('success');
+    params.delete('canceled');
+    params.delete('error');
+    params.delete('session_id');
+    if (!params.get('tab')) params.set('tab', 'billing');
+    router.replace(`${pathname}?${params.toString()}`);
     if (notificationStatus === 'success') {
       planService.getBalance().then(setBalance);
     }

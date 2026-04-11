@@ -15,20 +15,18 @@ export function TransactionHistory() {
         setTransactions(response.items);
         setTotalPages(response.pages);
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [page]);
 
   const handlePrevPage = () => {
     if (page > 1) {
-      setIsLoading(true);
       setPage(page - 1);
     }
   };
 
   const handleNextPage = () => {
     if (page < totalPages) {
-      setIsLoading(true);
       setPage(page + 1);
     }
   };

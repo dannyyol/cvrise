@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 
 class TokenPlanResponse(BaseModel):
@@ -40,3 +40,7 @@ class SelectPlanRequest(BaseModel):
 
 class PaymentInitiationResponse(BaseModel):
     checkout_url: str
+
+class CheckoutStatusResponse(BaseModel):
+    status: Literal["pending", "fulfilled", "unpaid"]
+    balance: Optional[UserBalanceResponse] = None

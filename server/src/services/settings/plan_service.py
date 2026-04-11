@@ -49,7 +49,6 @@ class PlanService:
         balance = result.scalars().first()
         
         if not balance:
-            # Self-heal: Create if not exists for valid user
             logger.info(f"Self-healing: Creating missing balance for user {target_user_id}")
             balance = UserBalance(balance=0, user_id=target_user_id)
             self.session.add(balance)
@@ -68,11 +67,9 @@ class PlanService:
         if balance.balance < amount:
             raise HTTPException(status_code=402, detail="Insufficient tokens")
         
-        # Deduct balance
         balance.balance -= amount
         self.session.add(balance)
         
-        # Record transaction (negative amount for deduction)
         transaction = TokenTransaction(
             amount=-amount,
             description=description,
@@ -86,7 +83,7 @@ class PlanService:
 
     async def get_transactions(self, page: int = 1, size: int = 10) -> PaginatedResponse[TokenTransactionResponse]:
         query = select(TokenTransaction).order_by(TokenTransaction.created_at.desc())
-        query = query.where(TokenTransaction.user_id == self.user_id)            
+        query = query.where(TokenTransaction.user_id == self.user_id).where(TokenTransaction.plan_id != None)            
         return await paginate(self.session, query, page, size, schema=TokenTransactionResponse)
 
     async def purchase_plan(self, plan_id: str) -> str:
@@ -103,7 +100,7 @@ class PlanService:
              # In a real app, this should probably raise an error or be handled explicitly
              logger.warning("Stripe API key not set. Falling back to immediate simulation.")
              await self._fulfill_purchase(plan, user_id=self.user_id)
-             return f"{CLIENT_URL}/settings/billing?success=true"
+             return f"{CLIENT_URL}/dashboard/settings?tab=billing&success=true"
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -119,8 +116,8 @@ class PlanService:
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f'{CLIENT_URL}/settings/billing?success=true',
-                cancel_url=f'{CLIENT_URL}/settings/billing?canceled=true',
+                success_url=f'{CLIENT_URL}/dashboard/settings?tab=billing&success=true&session_id={{CHECKOUT_SESSION_ID}}',
+                cancel_url=f'{CLIENT_URL}/dashboard/settings?tab=billing&canceled=true',
                 metadata={
                     'plan_id': plan.id,
                     'tokens': str(plan.tokens),
@@ -151,28 +148,56 @@ class PlanService:
         await self.session.refresh(balance)
         return balance
 
+    async def get_checkout_status(self, checkout_session_id: str) -> dict:
+        session = stripe.checkout.Session.retrieve(checkout_session_id)
+
+        metadata = session["metadata"] if "metadata" in session else {}
+        metadata_user_id = metadata.get("user_id") if isinstance(metadata, dict) else metadata["user_id"] if "user_id" in metadata else None
+        if metadata_user_id and metadata_user_id != self.user_id:
+            raise HTTPException(status_code=403, detail="Invalid checkout session")
+
+        payment_status = session["payment_status"] if "payment_status" in session else None
+        if payment_status != "paid":
+            return {"status": "unpaid"}
+
+        payment_id = session["payment_intent"] if "payment_intent" in session else None
+        if not payment_id:
+            return {"status": "pending"}
+
+        result = await self.session.execute(
+            select(TokenTransaction.id).where(
+                TokenTransaction.user_id == self.user_id,
+                TokenTransaction.description.like(f"%Stripe: {payment_id}%"),
+            )
+        )
+        found = result.scalar_one_or_none()
+        if found:
+            balance = await self.get_user_balance(user_id=self.user_id)
+            return {"status": "fulfilled", "balance": balance}
+
+        return {"status": "pending"}
+
     async def handle_webhook(self, payload: bytes, sig_header: str):
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, WEBHOOK_SECRET
             )
         except ValueError as e:
-            # Invalid payload
             raise ValueError("Invalid payload")
         except stripe.error.SignatureVerificationError as e:
-            # Invalid signature
             raise ValueError("Invalid signature")
 
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
-            metadata = session.get('metadata', {})
-            plan_id = metadata.get('plan_id')
-            user_id = metadata.get('user_id')
+            metadata = session["metadata"] if "metadata" in session else {}
+            plan_id = metadata.get("plan_id") if isinstance(metadata, dict) else metadata["plan_id"] if "plan_id" in metadata else None
+            user_id = metadata.get("user_id") if isinstance(metadata, dict) else metadata["user_id"] if "user_id" in metadata else None
             
             if plan_id:
                 plan = await self.get_plan_by_id(plan_id)
                 if plan:
-                    await self._fulfill_purchase(plan, payment_id=session.get('payment_intent'), user_id=user_id)
+                    payment_id = session["payment_intent"] if "payment_intent" in session else None
+                    await self._fulfill_purchase(plan, payment_id=payment_id, user_id=user_id)
 
 def get_plan_service(db: AsyncSession = Depends(get_db)) -> PlanService:
     return PlanService(db)

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Settings, Cpu, CreditCard } from 'lucide-react';
 import { AISettings } from '@/src/components/Settings/AISettings';
@@ -10,7 +11,7 @@ import { ROUTES } from '@/src/lib/routes';
 
 type Tab = 'general' | 'ai' | 'billing';
 
-export default function SettingsPage() {
+function SettingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tab = (searchParams?.get('tab') as Tab | null) ?? null;
@@ -70,5 +71,13 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading settings...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }
