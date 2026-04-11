@@ -1,3 +1,9 @@
+x-server-env: &server_env
+  - ./server/.env
+
+x-client-env: &client_env
+  - ./client/.env
+
 services:
   ollama:
     image: ollama/ollama:latest
@@ -10,17 +16,13 @@ services:
   db:
     image: mysql:8.4
     profiles: ["dev", "prod"]
-    environment:
-      MYSQL_ROOT_PASSWORD: cvrise_root
-      MYSQL_DATABASE: cvrise
-      MYSQL_USER: cvrise
-      MYSQL_PASSWORD: cvrise
+    env_file: *server_env
     volumes:
       - mysql-data:/var/lib/mysql
     ports:
       - "127.0.0.1:3307:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pcvrise_root"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\""]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,18 +33,7 @@ services:
     image: ghcr.io/dannyyol/cvrise-server:${IMAGE_TAG:-latest}
     ports:
       - "8000:8000"
-    environment:
-      APP_NAME: cvrise
-      APP_VERSION: 0.1.0
-      API_PREFIX: /api
-      HOST: 0.0.0.0
-      PORT: 8000
-      DEBUG: "False"
-      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
-      CLIENT_BASE_URL: http://localhost:3000
-      PDF_CLIENT_BASE_URL: http://client:3000
-      TOKEN_TTL_SECONDS: 300
-      DATABASE_URL: mysql+aiomysql://cvrise:cvrise@db:3306/cvrise
+    env_file: *server_env
     volumes:
       - ./server/data:/app/data
     depends_on:
@@ -56,11 +47,7 @@ services:
     image: ghcr.io/dannyyol/cvrise-client:${IMAGE_TAG:-latest}
     ports:
       - "3000:3000"
-    env_file:
-      - ./client/.env
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
-      PORT: 3000
+    env_file: *client_env
     depends_on:
       - server
 
@@ -68,18 +55,7 @@ services:
     profiles: ["dev"]
     build:
       context: ./server
-    environment:
-      APP_NAME: cvrise
-      APP_VERSION: 0.1.0
-      API_PREFIX: /api
-      HOST: 0.0.0.0
-      PORT: 8000
-      DEBUG: "True"
-      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
-      CLIENT_BASE_URL: http://localhost:3000
-      PDF_CLIENT_BASE_URL: http://client:3000
-      TOKEN_TTL_SECONDS: 300
-      DATABASE_URL: mysql+aiomysql://cvrise:cvrise@db:3306/cvrise
+    env_file: *server_env
     volumes:
       - ./server:/app
       - ./server/data:/app/data
@@ -96,18 +72,7 @@ services:
       context: ./server
     ports:
       - "8000:8000"
-    environment:
-      APP_NAME: cvrise
-      APP_VERSION: 0.1.0
-      API_PREFIX: /api
-      HOST: 0.0.0.0
-      PORT: 8000
-      DEBUG: "True"
-      CORS_ALLOWED_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
-      CLIENT_BASE_URL: http://localhost:3000
-      PDF_CLIENT_BASE_URL: http://client-dev:3000
-      TOKEN_TTL_SECONDS: 300
-      DATABASE_URL: mysql+aiomysql://cvrise:cvrise@db:3306/cvrise
+    env_file: *server_env
     volumes:
       - ./server:/app
       - ./server/data:/app/data
@@ -126,12 +91,11 @@ services:
       context: ./client
     ports:
       - "3000:3000"
+    env_file: *client_env
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
       PNPM_CONFIG_CONFIRM_MODULES_PURGE: "false"
       CI: "true"
-      PORT: 3000
     volumes:
       - ./client:/app
       - client-node-modules:/app/node_modules
