@@ -414,7 +414,7 @@ export default function Home() {
             </div>
           </div>
           <div className="cta-illus-side">
-            <Image src="/images/hero.png" width={600} height={285} alt="Hero Illustration" style={{ objectFit: 'contain' }} />
+            <Image src="/images/getstarted.png" width={600} height={285} alt="Hero Illustration" style={{ objectFit: 'contain' }} />
           </div>
         </div>
       </div>

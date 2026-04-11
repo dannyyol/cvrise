@@ -24,7 +24,6 @@ client/.env
 client/.pnpm-store/*
 client/README-THUMBNAILS.md
 client/public/thumbnails
-client/public/images
 
 server/.env
 server/data/cvrise.db
