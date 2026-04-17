@@ -7,7 +7,7 @@
     "predev": "npm run generate:templates",
     "prebuild": "npm run generate:templates",
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
