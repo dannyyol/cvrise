@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from typing import Any, Dict
 from uuid import uuid4
+from loguru import logger
 
 from ...config import get_settings
 from ...services.pdf_export import generate_pdf_from_preview, get_token, put_token
@@ -32,9 +33,11 @@ async def export_pdf(payload: Dict[str, Any]):
             return Response(content=pdf_bytes, media_type="application/pdf", headers=headers)
         except ModuleNotFoundError:
             raise HTTPException(status_code=500, detail="Playwright is not installed")
-        except Exception:
+        except Exception as e:
+            logger.exception("Failed to generate PDF for template {}: {}", template, e)
             raise HTTPException(status_code=500, detail="Failed to generate PDF")
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Unexpected PDF export failure: {}", e)
         raise HTTPException(status_code=500, detail="Export failed")

@@ -22,8 +22,6 @@ export default function Home() {
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "CVRise";
   const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL || "";
 
-  const githubCloneUrl = githubUrl.endsWith(".git") ? githubUrl : `${githubUrl}.git`;
-
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
