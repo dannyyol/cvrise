@@ -17,9 +17,9 @@ import { FaqSection } from "../components/Homepage/FaqSection";
 import { GitHubIcon } from "../components/ui/SocialIcons";
 
 export default function Home() {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME as string;
-  const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL as string;
-  
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "CVRise";
+  const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL || "";
+
   const githubCloneUrl = githubUrl.endsWith(".git") ? githubUrl : `${githubUrl}.git`;
 
   const [scrolled, setScrolled] = useState<boolean>(false);

@@ -3,7 +3,15 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL as string;
+const siteUrl = (() => {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!raw) return undefined;
+  try {
+    return new URL(raw);
+  } catch {
+    return undefined;
+  }
+})();
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,

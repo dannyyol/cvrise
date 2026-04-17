@@ -2,6 +2,9 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "generate:templates": "node scripts/generate-template-registry.cjs",
     "predev": "npm run generate:templates",
