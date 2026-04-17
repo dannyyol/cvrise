@@ -152,7 +152,6 @@ class AIResumeParser:
                 logger.error("Failed to extract valid JSON from AI response")
                 raise ValueError("Invalid JSON response from AI")
                 
-            # Post-processing to ensure IDs exist if AI missed them
             AIResumeParser._ensure_ids(parsed_data)
             AIResumeParser._normalize_data(parsed_data)
             

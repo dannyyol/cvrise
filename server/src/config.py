@@ -32,7 +32,6 @@ class AppSettings(BaseSettings):
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
 
-    # Platform/Pay-As-You-Go AI Settings
     PLATFORM_OPENAI_API_KEY: Optional[str] = None
     PLATFORM_OPENAI_MODEL: str = "gpt-4o"
     PLATFORM_ANTHROPIC_API_KEY: Optional[str] = None

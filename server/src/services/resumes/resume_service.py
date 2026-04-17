@@ -441,7 +441,6 @@ class ResumeService:
             text = FileParser.extract_text_from_pdf(content)
             parsed_data = None
             
-            # Attempt AI Parsing
             try:
                 client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
                 
@@ -453,7 +452,6 @@ class ResumeService:
                     if not await plan_service.has_sufficient_balance(cost):
                         raise HTTPException(status_code=402, detail=f"Insufficient tokens. This action requires at least {cost} tokens.")
 
-                # Call AI Parser
                 logger.info(f"Attempting AI parsing with configured client / {model_id}")
                 parsed_data = await AIResumeParser.parse_with_client(text, client, model_id)
                 logger.info("AI Parsing successful")
@@ -465,10 +463,6 @@ class ResumeService:
                 raise
             except Exception as e:
                 logger.error(f"AI parsing failed: {repr(e)}")
-                # We can fallback to manual parsing if AI fails, but for now we raise to notify user
-                # Or continue with empty data if strictly required. 
-                # Given user expectations, better to fail loud or fallback silently? 
-                # Let's fail loud as they expect AI parsing.
                 raise HTTPException(status_code=500, detail=f"AI parsing failed: {repr(e)}")
 
             if not parsed_data:
