@@ -37,7 +37,7 @@ services:
       - "8000:8000"
     env_file: *server_env
     volumes:
-      - ./server/logs:/app/logs
+      - ./server:/app
     depends_on:
       ollama:
         condition: service_started
