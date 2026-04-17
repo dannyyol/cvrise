@@ -354,7 +354,6 @@ export default function Home() {
 
       {/* ── FEATURES ── */}
       <FeaturesSection />
-
       <div className="mx-10 h-px bg-[rgba(0,0,0,0.07)]" />
 
       {/* ── FAQ ── */}
