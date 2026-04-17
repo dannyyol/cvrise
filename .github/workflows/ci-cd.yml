@@ -215,8 +215,13 @@ jobs:
 
           CLIENT_CHANGED='${{ needs.changes.outputs.client_changed }}'
           SERVER_CHANGED='${{ needs.changes.outputs.server_changed }}'
+          if [ "$CLIENT_CHANGED" = "true" ] || [ "$SERVER_CHANGED" = "true" ]; then
+            DEPLOY_IMAGE_TAG='${{ github.sha }}'
+          else
+            DEPLOY_IMAGE_TAG='latest'
+          fi
 
-          ssh -p "$VPS_PORT" -i ~/.ssh/id_rsa "$VPS_USER@$VPS_HOST" "VPS_APP_DIR='$VPS_APP_DIR' DEPLOY_REF='main' IMAGE_TAG='${{ github.sha }}' GHCR_USERNAME='$GHCR_USERNAME' GHCR_TOKEN='$GHCR_TOKEN' CLIENT_CHANGED='$CLIENT_CHANGED' SERVER_CHANGED='$SERVER_CHANGED' bash -se" <<'EOF'
+          ssh -p "$VPS_PORT" -i ~/.ssh/id_rsa "$VPS_USER@$VPS_HOST" "VPS_APP_DIR='$VPS_APP_DIR' DEPLOY_REF='main' IMAGE_TAG='$DEPLOY_IMAGE_TAG' GHCR_USERNAME='$GHCR_USERNAME' GHCR_TOKEN='$GHCR_TOKEN' CLIENT_CHANGED='$CLIENT_CHANGED' SERVER_CHANGED='$SERVER_CHANGED' bash -se" <<'EOF'
           set -euo pipefail
 
           if command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
