@@ -10,7 +10,8 @@ from src.services.ai.ai_connection import AIConnectionService
 
 router = APIRouter()
 
-@router.get("/", response_model=List[AIModelResponse])
+@router.get("", response_model=List[AIModelResponse])
+@router.get("/", response_model=List[AIModelResponse], include_in_schema=False)
 async def get_ai_models(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(AIModel))
     models = result.scalars().all()
