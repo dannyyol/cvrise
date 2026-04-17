@@ -14,7 +14,6 @@ export async function exportResumeToPDF(payload: CVPayload, filename = 'cv.pdf')
     a.remove();
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Failed to export PDF:', error);
     throw error;
   }
 }

@@ -202,8 +202,7 @@ export default function ResumesPage() {
       
       setIsRenameModalOpen(false);
       setResumeToRename(null);
-    } catch (err) {
-      console.error('Failed to rename resume:', err);
+    } catch {
       setError('Failed to rename resume. Please try again.');
     } finally {
       setIsRenaming(false);
@@ -338,8 +337,7 @@ export default function ResumesPage() {
                             await fetchResumeById(resume.id);
                             setHistoryForResume(resume.id);
                             setIsHistoryOpen(true);
-                          } catch (err) {
-                            console.error('Failed to open history:', err);
+                          } catch {
                           }
                         }}
                         className="p-2 bg-white rounded-full text-slate-700 hover:text-blue-600 hover:scale-110 transition-all shadow-lg"

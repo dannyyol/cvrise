@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { resumeService } from "../services/resumeService";
+import { useCVStore } from "../store/useCVStore";
 import { LoginModal } from "../components/Auth/LoginModal";
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
@@ -15,6 +16,7 @@ import { FeaturesSection } from "../components/Homepage/FeaturesSection";
 import { FooterSection } from "../components/Homepage/FooterSection";
 import { FaqSection } from "../components/Homepage/FaqSection";
 import { GitHubIcon } from "../components/ui/SocialIcons";
+import { ROUTES } from "../lib/routes";
 
 export default function Home() {
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "CVRise";
@@ -28,6 +30,7 @@ export default function Home() {
   const homeRef = useRef<HTMLDivElement | null>(null);
   const navigate = useRouter();
   const { isAuthenticated } = useAuth();
+  const { setCurrentResumeId } = useCVStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -69,7 +72,8 @@ export default function Home() {
   
       try {
         const resume = await resumeService.uploadResume(file);
-        navigate.push(`/editor/${resume.id}`);
+        setCurrentResumeId(resume.id);
+        navigate.push(`${ROUTES.EDITOR}?source=upload`);
       } catch (error: unknown) {
         let errorMessage = 'Failed to upload resume. Please try again.';
   
@@ -308,7 +312,7 @@ export default function Home() {
             <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
             <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
             <div className="mc mc-quote"><div className="mc-quote-text">&quot;Easily duplicate, translate, and manage multiple versions of your resume for different job applications.&quot;</div><div className="mc-quote-author">— Version Control</div></div>
-            <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
+            <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">GNU</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
             <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
             <div className="mc mc-cv">
               <div className="mini-cv-name">Open Source</div><div className="mini-cv-role">Community Driven</div>
@@ -325,7 +329,7 @@ export default function Home() {
             <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
             <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
             <div className="mc mc-quote"><div className="mc-quote-text">&quot;Easily duplicate, translate, and manage multiple versions of your resume for different job applications.&quot;</div><div className="mc-quote-author">— Version Control</div></div>
-            <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
+            <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">GNU</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
             <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
             <div className="mc mc-cv">
               <div className="mini-cv-name">Open Source</div><div className="mini-cv-role">Community Driven</div>
@@ -350,48 +354,6 @@ export default function Home() {
 
       {/* ── FEATURES ── */}
       <FeaturesSection />
-
-      <div className="mx-10 h-px bg-[rgba(0,0,0,0.07)]" />
-
-      {/* ── OSS ── */}
-      <section className="section" id="oss">
-        <div className="r">
-          <div className="sec-eyebrow">Open Source</div>
-          <h2 className="sec-h">Built in the open. Owned by everyone.</h2>
-          <p className="sec-p">{appName} is MIT-licensed and fully open source. Self-host it, contribute features, or fork it. Your career tools should never be locked behind a paywall.</p>
-        </div>
-        <div className="oss-grid r">
-          <div className="oss-card">
-            <div className="oss-card-head"><GitHubIcon className="w-3.5 h-3.5" /> cvrise / cvrise</div>
-            <div className="oss-stats">
-              <div className="os-s"><div className="os-sn">3.2k</div><div className="os-sl">★ Stars</div></div>
-              <div className="os-s"><div className="os-sn">280</div><div className="os-sl">Forks</div></div>
-              <div className="os-s"><div className="os-sn">64</div><div className="os-sl">Contributors</div></div>
-              <div className="os-s"><div className="os-sn">MIT</div><div className="os-sl">License</div></div>
-            </div>
-            <div className="oss-contrib">
-              <div className="contrib-avs">
-                <div className="ca" style={{ background: "linear-gradient(135deg,#0672AD,#1a8fd1)" }}>JM</div>
-                <div className="ca" style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>SR</div>
-                <div className="ca" style={{ background: "linear-gradient(135deg,#0672AD,#1a8fd1)" }}>AL</div>
-                <div className="ca" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}>PK</div>
-                <div className="ca" style={{ background: "linear-gradient(135deg,#dc2626,#b91c1c)" }}>MO</div>
-              </div>
-              <div className="contrib-txt">+ 59 contributors worldwide</div>
-            </div>
-            <div className="oss-code"><span>$</span> git clone {githubCloneUrl}</div>
-          </div>
-          <div className="oss-card">
-            <div className="oss-links">
-              <a className="oss-lnk" href={githubUrl} target="_blank" rel="noreferrer"><div className="oss-lnk-icon"><GitHubIcon className="w-3.5 h-3.5" /></div>Star on GitHub<span className="oss-lnk-arr">→</span></a>
-              <a className="oss-lnk" href="#"><div className="oss-lnk-icon">📖</div>Read the Documentation<span className="oss-lnk-arr">→</span></a>
-              <a className="oss-lnk" href="#"><div className="oss-lnk-icon">💬</div>Join the Discord Community<span className="oss-lnk-arr">→</span></a>
-              <a className="oss-lnk" href="#"><div className="oss-lnk-icon">🖥️</div>Self-hosting Guide<span className="oss-lnk-arr">→</span></a>
-              <a className="oss-lnk" href="#"><div className="oss-lnk-icon">🤝</div>Contribution Guide<span className="oss-lnk-arr">→</span></a>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <div className="mx-10 h-px bg-[rgba(0,0,0,0.07)]" />
 

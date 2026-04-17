@@ -36,8 +36,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onLoginSuccess();
         onClose();
       }
-    } catch (err: unknown) {
-      console.error(err);
+    } catch {
       setError('Google login failed');
     }
   };
@@ -84,7 +83,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onClose();
       }
     } catch (err: unknown) {
-      console.error(err);
       const errorObj = err as {
         message?: unknown;
         response?: { data?: { detail?: unknown } };

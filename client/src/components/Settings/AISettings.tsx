@@ -120,7 +120,6 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
       });
       setToast({ message: 'Settings saved successfully', type: 'success', isVisible: true });
     } catch (error: unknown) {
-      console.error('Failed to save settings:', error);
       const detail = getErrorDetail(error);
 
       if (isStringRecord(detail)) {
@@ -151,8 +150,7 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
         type: 'success', 
         isVisible: true 
       });
-    } catch (error: unknown) {
-      console.error('Failed to update usage mode:', error);
+    } catch {
       setUsePayAsYouGo(!enabled); // Rollback
       setToast({ 
         message: 'Failed to update usage mode. Please try again.', 
