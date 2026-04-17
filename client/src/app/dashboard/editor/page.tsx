@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useCVStore } from '@/src/store/useCVStore';
@@ -35,7 +35,7 @@ import { SortableSectionItem } from '@/src/components/Resumes/Editor/SortableSec
 import { EditorPreviewPanel } from '@/src/components/Resumes/Editor/EditorPreviewPanel';
 import { EditorPageSkeleton } from '@/src/components/Resumes/Editor/EditorPageSkeleton';
 
-export default function EditorPage() {
+function EditorPageContent() {
   const searchParams = useSearchParams();
   const source = searchParams.get('source');
   const router = useRouter();
@@ -469,3 +469,11 @@ export default function EditorPage() {
     </div>
   );
 };
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading editor...</div>}>
+      <EditorPageContent />
+    </Suspense>
+  );
+}

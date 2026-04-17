@@ -17,6 +17,11 @@ import { FaqSection } from "../components/Homepage/FaqSection";
 import { GitHubIcon } from "../components/ui/SocialIcons";
 
 export default function Home() {
+  const appName = process.env.NEXT_PUBLIC_APP_NAME as string;
+  const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL as string;
+  
+  const githubCloneUrl = githubUrl.endsWith(".git") ? githubUrl : `${githubUrl}.git`;
+
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -129,7 +134,7 @@ export default function Home() {
           <div className="nav-bg" />
           <div className="nav-inner">
             <a className="nav-logo" href="#">
-              <Image src="/images/blue-logo.png" alt="CVRise" width={28} height={28} />
+              <Image src="/images/blue-logo.png" alt={appName} width={28} height={28} />
               <span>CV<span>Rise</span></span>
             </a>
             <ul className="nav-links">
@@ -139,7 +144,7 @@ export default function Home() {
               <li><a href="#faq">FAQ</a></li>
             </ul>
             <div className="nav-right">
-              <a className="btn-login inline-flex items-center gap-1.5" href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer">
+              <a className="btn-login inline-flex items-center gap-1.5" href={githubUrl} target="_blank" rel="noreferrer">
                 <GitHubIcon className="w-3.5 h-3.5" /> GitHub
               </a>
               <a
@@ -171,7 +176,7 @@ export default function Home() {
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How it works</a>
             <a href="#oss" onClick={() => setMenuOpen(false)}>Open Source</a>
-            <a href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>GitHub</a>
+            <a href={githubUrl} target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>GitHub</a>
             <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
             <div className="nav-mobile-actions">
               <a className="btn-login" href="#" onClick={() => setMenuOpen(false)}>Log in</a>
@@ -353,7 +358,7 @@ export default function Home() {
         <div className="r">
           <div className="sec-eyebrow">Open Source</div>
           <h2 className="sec-h">Built in the open. Owned by everyone.</h2>
-          <p className="sec-p">CVRise is MIT-licensed and fully open source. Self-host it, contribute features, or fork it. Your career tools should never be locked behind a paywall.</p>
+          <p className="sec-p">{appName} is MIT-licensed and fully open source. Self-host it, contribute features, or fork it. Your career tools should never be locked behind a paywall.</p>
         </div>
         <div className="oss-grid r">
           <div className="oss-card">
@@ -374,11 +379,11 @@ export default function Home() {
               </div>
               <div className="contrib-txt">+ 59 contributors worldwide</div>
             </div>
-            <div className="oss-code"><span>$</span> git clone https://github.com/dannyyol/cvrise.git</div>
+            <div className="oss-code"><span>$</span> git clone {githubCloneUrl}</div>
           </div>
           <div className="oss-card">
             <div className="oss-links">
-              <a className="oss-lnk" href="#"><div className="oss-lnk-icon"><GitHubIcon className="w-3.5 h-3.5" /></div>Star on GitHub<span className="oss-lnk-arr">→</span></a>
+              <a className="oss-lnk" href={githubUrl} target="_blank" rel="noreferrer"><div className="oss-lnk-icon"><GitHubIcon className="w-3.5 h-3.5" /></div>Star on GitHub<span className="oss-lnk-arr">→</span></a>
               <a className="oss-lnk" href="#"><div className="oss-lnk-icon">📖</div>Read the Documentation<span className="oss-lnk-arr">→</span></a>
               <a className="oss-lnk" href="#"><div className="oss-lnk-icon">💬</div>Join the Discord Community<span className="oss-lnk-arr">→</span></a>
               <a className="oss-lnk" href="#"><div className="oss-lnk-icon">🖥️</div>Self-hosting Guide<span className="oss-lnk-arr">→</span></a>

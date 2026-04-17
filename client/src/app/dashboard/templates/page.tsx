@@ -22,6 +22,7 @@ export default function TemplatesPage () {
     templates, 
     fetchTemplates, 
     fetchDefaultResume, 
+    fetchResumeById,
     currentResumeId, 
     saveResume,
     activeDocumentMode,
@@ -40,20 +41,23 @@ export default function TemplatesPage () {
     let cancelled = false;
 
     (async () => {
-      await Promise.all([
-        fetchTemplates(),
-        fetchCoverLetterTemplates(),
-        currentResumeId ? Promise.resolve() : fetchDefaultResume(),
-      ]);
-      if (!cancelled) {
-        setIsPageLoading(false);
+      try {
+        await Promise.all([
+          fetchTemplates(),
+          fetchCoverLetterTemplates(),
+          currentResumeId ? fetchResumeById(currentResumeId) : fetchDefaultResume(),
+        ]);
+      } finally {
+        if (!cancelled) {
+          setIsPageLoading(false);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [fetchTemplates, fetchCoverLetterTemplates, fetchDefaultResume, currentResumeId]);
+  }, [fetchTemplates, fetchCoverLetterTemplates, fetchDefaultResume, fetchResumeById, currentResumeId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,7 +110,7 @@ export default function TemplatesPage () {
           <div>
             <PageTitle
               as="h2"
-              title="Templates"
+              title="Customise Design"
               icon={<LayoutTemplate className="w-7 h-7" />}
               description="Choose a professional design that highlights your strengths."
             />

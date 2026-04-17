@@ -3,10 +3,10 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-// export const dynamic = "force-dynamic";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL as string;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cvrise.com"),
+  metadataBase: siteUrl,
   title: {
     default: "CVRise | Build ATS-Ready Resume & Cover Letter",
     template: "%s | CVRise",

@@ -80,7 +80,7 @@ export function PaymentSettings() {
         ]);
         setPlans(plansData);
         setBalance(balanceData);
-      } catch (err) {
+      } catch {
         setError('Failed to load plans. Please try again later.');
       } finally {
         setIsLoading(false);
@@ -101,7 +101,7 @@ export function PaymentSettings() {
       if (response.checkout_url) {
         window.location.href = response.checkout_url;
       }
-    } catch (err) {
+    } catch {
       setNotificationStatus('error');
       setIsNotificationOpen(true);
       setIsPurchasing(null);

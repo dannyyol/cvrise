@@ -1,6 +1,7 @@
 from fastapi import HTTPException
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import time
+import json
 from playwright.async_api import async_playwright
 
 from ..config import get_settings
@@ -33,28 +34,18 @@ async def generate_pdf_from_preview(preview_url: str) -> bytes:
         context = await browser.new_context()
         page = await context.new_page()
         await page.emulate_media(media="screen")
-        await page.goto(preview_url, wait_until="networkidle")
-        await page.evaluate(
-            """
-            () => new Promise((resolve) => {
-                try {
-                    if (document.fonts && document.fonts.ready) {
-                        document.fonts.ready.then(() => resolve(null)).catch(() => resolve(null));
-                    } else {
-                        resolve(null);
-                    }
-                } catch { resolve(null); }
-            })
-            """
-        )
-
-        # Wait for the preview to be ready (signaled by window.CV_PREVIEW_READY)
+        await page.goto(preview_url, wait_until="domcontentloaded")
         try:
-            await page.wait_for_function("window.CV_PREVIEW_READY === true", timeout=30000)
+            await page.add_style_tag(content="""
+              nextjs-portal,
+              #__next-build-watcher,
+              #__next-route-announcer {
+                display: none !important;
+              }
+            """)
         except Exception:
-            # If timeout or error, we might still get a result, or it might be partial.
-            # Logging would be good here.
             pass
+        await page.wait_for_function("window.CV_PREVIEW_READY === true", timeout=30000)
 
         try:
             await page.add_style_tag(content="""
