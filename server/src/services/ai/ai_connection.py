@@ -19,18 +19,12 @@ class AIConnectionService:
             raise ValueError("API Key is required")
 
         try:
-            # Normalize base_url (remove trailing slash)
             base_url = base_url.rstrip("/")
             
             logger.info(f"Testing connection for {provider} at {base_url}")
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 if provider == "openai":
-                    # OpenAI: GET /models
-                    # If base_url includes /v1, we use it directly. 
-                    # If not, we might need to append it, but standard usage is full path to v1.
-                    # Standard: https://api.openai.com/v1
-                    
                     response = await client.get(
                         f"{base_url}/models",
                         headers={"Authorization": f"Bearer {api_key}"}
@@ -38,10 +32,7 @@ class AIConnectionService:
                     return response.status_code == 200
                 
                 elif provider == "anthropic":
-                    # Anthropic: GET /v1/models (requires x-api-key and anthropic-version)
-                    # Base URL: https://api.anthropic.com
                     
-                    # If user provided full path with /v1, don't append.
                     url = f"{base_url}/v1/models" if not base_url.endswith("/v1") else f"{base_url}/models"
                     
                     response = await client.get(
@@ -54,10 +45,7 @@ class AIConnectionService:
                     return response.status_code == 200
 
                 elif provider == "google":
-                    # Google Gemini: GET /v1beta/models
-                    # Base URL: https://generativelanguage.googleapis.com
                     
-                    # Check if user included version
                     if "/v1" in base_url:
                         url = f"{base_url}/models"
                     else:

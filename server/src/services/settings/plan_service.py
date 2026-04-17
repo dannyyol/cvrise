@@ -96,8 +96,6 @@ class PlanService:
             raise ValueError(f"Plan with id {plan_id} not found")
         
         if not stripe.api_key:
-             # Fallback for dev/demo without Stripe keys: Simulate immediate purchase
-             # In a real app, this should probably raise an error or be handled explicitly
              logger.warning("Stripe API key not set. Falling back to immediate simulation.")
              await self._fulfill_purchase(plan, user_id=self.user_id)
              return f"{CLIENT_URL}/dashboard/settings?tab=billing&success=true"
@@ -130,7 +128,6 @@ class PlanService:
             raise ValueError(f"Failed to initiate payment: {str(e)}")
 
     async def _fulfill_purchase(self, plan: TokenPlan, payment_id: str = None, user_id: str = None) -> UserBalance:
-        # Record transaction
         transaction = TokenTransaction(
             plan_id=plan.id,
             amount=plan.tokens,
@@ -139,7 +136,6 @@ class PlanService:
         )
         self.session.add(transaction)
         
-        # Update user balance
         balance = await self.get_user_balance(user_id=user_id)
         balance.balance += plan.tokens
         self.session.add(balance)

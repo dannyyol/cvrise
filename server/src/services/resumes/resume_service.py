@@ -41,12 +41,10 @@ class ResumeService:
         rd = resume.resume_data or {}
         sections = {}
         
-        # Summary
         summ_content = rd.get("professionalSummary", {}).get("content", "")
         if summ_content:
             sections["Summary"] = summ_content
             
-        # Experience
         exps = rd.get("workExperiences", [])
         if exps:
             parts = []
@@ -64,7 +62,6 @@ class ResumeService:
                 parts.append("\n".join([p for p in [line1, desc] if p]).strip())
             sections["Experience"] = "\n\n".join([p for p in parts if p])
 
-        # Education
         edus = rd.get("education", [])
         if edus:
             parts = []
@@ -79,7 +76,6 @@ class ResumeService:
                 parts.append(" ".join([line, tail]).strip())
             sections["Education"] = "\n\n".join([p for p in parts if p])
 
-        # Skills
         skills = rd.get("skills", [])
         if skills:
             skill_parts = []
@@ -89,7 +85,6 @@ class ResumeService:
                 skill_parts.append(name + (f" ({level})" if level else ""))
             sections["Skills"] = ", ".join([p for p in skill_parts if p])
 
-        # Projects
         projs = rd.get("projects", [])
         if projs:
             parts = []
@@ -104,7 +99,6 @@ class ResumeService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Projects"] = "\n\n".join([p for p in parts if p])
 
-        # Certifications
         certs = rd.get("certifications", [])
         if certs:
             parts = []
@@ -118,7 +112,6 @@ class ResumeService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Certifications"] = "\n\n".join([p for p in parts if p])
 
-        # Publications
         pubs = rd.get("publications", [])
         if pubs:
             parts = []
@@ -132,7 +125,6 @@ class ResumeService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Publications"] = "\n\n".join([p for p in parts if p])
 
-        # Awards
         awards = rd.get("awards", [])
         if awards:
             parts = []
@@ -146,7 +138,6 @@ class ResumeService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Awards"] = "\n\n".join([p for p in parts if p])
         
-        # Languages
         langs = rd.get("languages", [])
         if langs:
             parts = []
@@ -186,17 +177,11 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        # Prefer resume_data JSON if available
         if resume.resume_data:
             rd = resume.resume_data
-            # Safety cleanup for potentially nested resumeData to prevent circular references
-            # rd.pop("resumeData", None)
-            # rd.pop("resume_data", None)
             
-            # Prepare Cover Letter data with fallback to DB
             cover_letter_data = rd.get("coverLetter")
             if not cover_letter_data and resume.cover_letters:
-                # Fallback to latest from DB if not in resume_data
                 latest = sorted(
                     resume.cover_letters,
                     key=lambda x: (x.updated_at or x.created_at),
@@ -242,15 +227,12 @@ class ResumeService:
                 custom=rd.get("custom", []),
                 sections=rd.get("sections", []),
                 
-                # Themes
                 theme=rd.get("theme") or resume.theme,
                 cover_letter_theme=rd.get("coverLetterTheme") or resume.cover_letter_theme,
                 
-                # Cover Letter
                 cover_letter=cover_letter_data
             )
 
-        # Ensure cover letter theme exists
         if not resume.cover_letter_theme:
             cl_theme = CoverLetterThemeConfig(
                 id=str(uuid.uuid4()),
@@ -261,20 +243,16 @@ class ResumeService:
             )
             self.db.add(cl_theme)
             await self.db.commit()
-            # No need to re-fetch if we just added it to session and resume object
             resume.cover_letter_theme = cl_theme
 
         rd = resume.resume_data or {}
         
-        # Ensure default sections if missing
         sections_config = rd.get("sections", [])
         if not sections_config:
             sections_config = DEFAULT_RESUME_SECTIONS
             
-        # Prepare Cover Letter data
         cover_letter_data = rd.get("coverLetter")
         if not cover_letter_data and resume.cover_letters:
-            # Fallback to latest from DB if not in resume_data
             latest = sorted(
                 resume.cover_letters,
                 key=lambda x: (x.updated_at or x.created_at),
@@ -332,21 +310,17 @@ class ResumeService:
 
     async def create_resume(self, resume_in: ResumeCreate) -> ResumeResponse:
         """Create a new resume with default sections."""
-        # 1. Create Resume
         resume_id = str(uuid.uuid4())
         
-        # Resolve template_id
         input_template_id = resume_in.template_id or "classic"
         
         template_id_to_use = input_template_id
         
-        # Try to find template by ID
         stmt = select(Template).where(Template.id == input_template_id)
         result = await self.db.execute(stmt)
         template = result.scalar_one_or_none()
         
         if not template:
-            # Try to find by key
             stmt = select(Template).where(Template.key == input_template_id)
             result = await self.db.execute(stmt)
             template = result.scalar_one_or_none()
@@ -354,14 +328,12 @@ class ResumeService:
             if template:
                 template_id_to_use = template.id
             else:
-                # Fallback to classic key if nothing found (or raise error)
                 stmt = select(Template).where(Template.key == "classic")
                 result = await self.db.execute(stmt)
                 default_template = result.scalar_one_or_none()
                 if default_template:
                     template_id_to_use = default_template.id
                 else:
-                     # Should not happen if seeded
                      logger.warning("Default 'classic' template not found in DB.")
         
         resume = Resume(
@@ -373,7 +345,6 @@ class ResumeService:
         )
         self.db.add(resume)
 
-        # 2. Create Theme
         theme = ThemeConfig(
             id=str(uuid.uuid4()),
             resume_id=resume_id,
@@ -383,7 +354,6 @@ class ResumeService:
         )
         self.db.add(theme)
 
-        # 2.b Create Cover Letter Theme
         cl_theme = CoverLetterThemeConfig(
             id=str(uuid.uuid4()),
             resume_id=resume_id,
@@ -394,7 +364,6 @@ class ResumeService:
         )
         self.db.add(cl_theme)
 
-        # 3. Initialize resume_data
         sections_data = DEFAULT_RESUME_SECTIONS
 
         resume_data = {
@@ -424,7 +393,6 @@ class ResumeService:
 
         await self.db.commit()
         
-        # Refresh to get all relationships loaded
         return await self.get_resume_by_id(resume_id)
 
     async def upload_resume(self, file: UploadFile) -> ResumeResponse:
@@ -444,7 +412,6 @@ class ResumeService:
             try:
                 client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
                 
-                # Check balance if platform mode
                 plan_service = PlanService(self.db, self.user)
                 cost = settings.COST_PARSE_RESUME
                 
@@ -468,14 +435,12 @@ class ResumeService:
             if not parsed_data:
                 raise HTTPException(status_code=400, detail="AI parsing failed or no AI model configured. Please configure an AI model in settings.")
 
-            # Resolve default template (classic)
             stmt = select(Template).where(Template.key == "classic")
             result = await self.db.execute(stmt)
             template = result.scalar_one_or_none()
             
             template_id_to_use = template.id if template else "default"
             
-            # Create Resume
             resume_id = str(uuid.uuid4())
                     
             parsed_data["sections"] = DEFAULT_RESUME_SECTIONS
@@ -493,7 +458,6 @@ class ResumeService:
             
             self.db.add(new_resume)
             
-            # Create default themes
             theme = ThemeConfig(
                 id=str(uuid.uuid4()),
                 resume_id=resume_id,
@@ -515,7 +479,6 @@ class ResumeService:
             
             await self.db.commit()
             
-            # Return full response
             return await self.get_resume_by_id(resume_id)
 
         except HTTPException:
@@ -589,14 +552,11 @@ class ResumeService:
         
         rd = resume.resume_data or {}
         
-        # Update Summary
         if "professionalSummary" not in rd:
             rd["professionalSummary"] = {}
         rd["professionalSummary"]["content"] = new_summary or (rd["professionalSummary"].get("content", "") or "")
         
-        # Update Skills
         if new_skills:
-            # Create new skill objects
             new_skill_objs = [{"id": str(uuid.uuid4()), "name": s, "level": "Good"} for s in new_skills]
             rd["skills"] = new_skill_objs
 
@@ -609,7 +569,6 @@ class ResumeService:
         return await self.get_resume_by_id(resume_id)
 
     async def get_default_resume(self) -> ResumeResponse:
-        # Fetch the resume for the current user (get the most recently updated one)
         stmt = select(Resume).where(Resume.user_id == self.user_id).order_by(Resume.updated_at.desc()).limit(1)
         result = await self.db.execute(stmt)
         resume = result.scalar_one_or_none()
@@ -636,11 +595,7 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        # Update basic fields
-        # Resolve template_id
         input_template_id = data.template_id
-        # If the input template_id matches a known template key (e.g. "modern"), map it to the UUID
-        # Otherwise assume it's a UUID
         template_stmt = select(Template).where(Template.key == input_template_id)
         tpl_res = await self.db.execute(template_stmt)
         found_template = tpl_res.scalar_one_or_none()
@@ -648,24 +603,19 @@ class ResumeService:
         if found_template:
             resume.template_id = found_template.id
         else:
-            # Fallback: check if it's a valid ID
             t_id_stmt = select(Template).where(Template.id == input_template_id)
             t_id_res = await self.db.execute(t_id_stmt)
             if t_id_res.scalar_one_or_none():
                 resume.template_id = input_template_id
-            # else: keep existing or default? For now assume valid or ignore if not found
 
         resume.title = data.title
         resume.create_and_tailor = data.create_and_tailor
         
-        # Save the entire payload to resume_data JSON column
-        # We use by_alias=True to store camelCase keys which match the frontend and ResumeResponse schema
         resume.resume_data = data.model_dump(by_alias=True, exclude={"ai_analysis"})
 
         if "ai_analysis" in data.model_fields_set:
             resume.ai_analysis = data.ai_analysis
         
-        # Update Theme
         if not resume.theme:
             resume.theme = ThemeConfig(id=str(uuid.uuid4()))
         
@@ -673,7 +623,6 @@ class ResumeService:
         resume.theme.secondary_color = data.theme.secondary_color
         resume.theme.font_family = data.theme.font_family
 
-        # Update Cover Letter Theme
         if not resume.cover_letter_theme:
             resume.cover_letter_theme = CoverLetterThemeConfig(id=str(uuid.uuid4()), resume_id=resume.id)
         if data.cover_letter_theme:
@@ -683,7 +632,6 @@ class ResumeService:
             if getattr(data.cover_letter_theme, "template_key", None):
                 resume.cover_letter_theme.template_key = data.cover_letter_theme.template_key
 
-        # Persist Cover Letter content and fields
         if getattr(data, "cover_letter", None):
             latest = None
             if resume.cover_letters:
@@ -725,16 +673,11 @@ class ResumeService:
                 )
                 self.db.add(cl)
             resume.updated_at = datetime.utcnow()
-
-        # NOTE: We no longer update the individual section tables (WorkExperience, Education, etc.)
-        # The source of truth is now the `resume_data` JSON column.
         
-        # Update timestamp
         resume.updated_at = datetime.utcnow()
 
         await self.db.commit()
         
-        # Return updated resume
         return await self.get_resume_by_id(resume_id)
 
     async def delete_resume(self, resume_id: str) -> None:

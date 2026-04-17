@@ -16,13 +16,7 @@ class CVReviewConfig:
         self.provider = provider
         self.base_url = base_url
         self.api_key = api_key
-        # The actual model string to send to the API (e.g. 'gpt-4o' or 'gemini-1.5-pro')
-        # If not provided, falls back to active_model_id
         self.model_name = model_id_map or active_model_id
-
-
-# TextProcessor imported from ai_clients
-
 
 
 class PromptBuilder:
@@ -105,10 +99,8 @@ class ResumeProcessor:
     @staticmethod
     def flatten_resume_sections(sections_payload: dict) -> Dict[str, str]:
         sections_payload = sections_payload or {}
-        # Summary
         prof = sections_payload.get("professionalSummary") or {}
         summary = prof.get("content") or ""
-        # Experience
         exp_items = sections_payload.get("workExperiences") or []
         exp_parts: List[str] = []
         for item in exp_items:
@@ -125,7 +117,6 @@ class ResumeProcessor:
             desc = item.get("description", "")
             exp_parts.append(ResumeProcessor._join_nonempty([line1, desc]).strip())
         experience = "\n\n".join([p for p in exp_parts if p])
-        # Education
         edu_items = sections_payload.get("education") or []
         edu_parts: List[str] = []
         for item in edu_items:
@@ -138,10 +129,8 @@ class ResumeProcessor:
             tail = " — ".join([p for p in [inst, f"{start}–{end}".strip('–')] if p])
             edu_parts.append(ResumeProcessor._join_nonempty([" ".join([line, tail]).strip()]))
         education = "\n\n".join([p for p in edu_parts if p])
-        # Skills
         skill_items = sections_payload.get("skills") or []
         skills = ", ".join([s.get("name", "") + (f" ({s.get('level')})" if s.get("level") else "") for s in skill_items if s.get("name")])
-        # Projects
         proj_items = sections_payload.get("projects") or []
         proj_parts: List[str] = []
         for item in proj_items:
@@ -154,7 +143,6 @@ class ResumeProcessor:
             tail = " ".join([p for p in [f"({start}–{end})".strip('()–'), url] if p])
             proj_parts.append(ResumeProcessor._join_nonempty([line, tail]).strip())
         projects = "\n\n".join([p for p in proj_parts if p])
-        # Certifications
         cert_items = sections_payload.get("certifications") or []
         cert_parts: List[str] = []
         for item in cert_items:
@@ -166,7 +154,6 @@ class ResumeProcessor:
             tail = f"{issue_date}–{expiry_date}".strip("–")
             cert_parts.append(ResumeProcessor._join_nonempty([line, tail]).strip())
         certifications = "\n\n".join([p for p in cert_parts if p])
-        # Languages
         lang_items = sections_payload.get("languages") or []
         lang_parts: List[str] = []
         for item in lang_items:
@@ -176,7 +163,6 @@ class ResumeProcessor:
             if entry:
                 lang_parts.append(entry)
         languages = ", ".join([p for p in lang_parts if p])
-        # Awards
         award_items = sections_payload.get("awards") or []
         award_parts: List[str] = []
         for item in award_items:
@@ -188,7 +174,6 @@ class ResumeProcessor:
             tail = " ".join([p for p in [year, description] if p])
             award_parts.append(ResumeProcessor._join_nonempty([line, tail]).strip())
         awards = "\n\n".join([p for p in award_parts if p])
-        # Publications
         pub_items = sections_payload.get("publications") or []
         pub_parts: List[str] = []
         for item in pub_items:
@@ -280,7 +265,6 @@ class CVReviewService:
         return round(accum / total_w, 1) if total_w > 0 else 0.0
 
     async def review_cv_from_sections(self, sections: Dict[str, str], model: Optional[str] = None) -> dict:
-        # Use config.model_name if model not explicitly passed (or if passed as generic ID)
         model = model or self.config.model_name
         
         analyzed: List[dict] = []
@@ -305,8 +289,6 @@ class CVReviewService:
         }
 
     async def review_cv_payload(self, payload: dict) -> dict:
-        # If payload has a model override, use it, otherwise use config
-        # Ideally we rely on config which comes from settings
         model = self.config.model_name
         
         resume_text_full = ResumeProcessor.build_resume_text_from_nested(payload)
@@ -317,14 +299,12 @@ class CVReviewService:
         sections = ResumeProcessor.flatten_resume_sections(payload)
         base = await self.review_cv_from_sections(sections, model=model)
 
-        # Blend section score with dimension scores and apply small penalties for missing key sections
         section_overall = TextProcessor.safe_number(base.get("overall_score", 0.0), 0.0)
         ats_score = TextProcessor.safe_number(ats.get("score", 0.0), 0.0)
         cq_score = TextProcessor.safe_number(content_quality.get("score", 0.0), 0.0)
         fmt_score = TextProcessor.safe_number(fmt_analysis.get("score", 0.0), 0.0)
 
         dim_blend = (0.25 * ats_score) + (0.50 * cq_score) + (0.25 * fmt_score)
-        # missing key sections penalties
         penalty = 0.0
         if not sections.get("Experience"): penalty += 8.0
         if not sections.get("Skills"): penalty += 5.0

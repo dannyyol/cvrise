@@ -10,6 +10,13 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 RESET_TOKEN_EXPIRE_MINUTES = 30
 VERIFY_TOKEN_EXPIRE_HOURS = 24
 
+"""
+Token helpers for auth flows.
+
+SECRET_KEY is currently a static placeholder; production deployments should supply
+their own secret and rotate it carefully, since it invalidates existing tokens.
+"""
+
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -75,14 +82,12 @@ def _get_safe_password_bytes(password: str) -> bytes:
     """
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
-        # Truncate to 72 bytes
         password_bytes = password_bytes[:72]
     return password_bytes
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     safe_password_bytes = _get_safe_password_bytes(plain_password)
     
-    # hashed_password coming from DB might be str
     hashed_bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
     
     return bcrypt.checkpw(safe_password_bytes, hashed_bytes)

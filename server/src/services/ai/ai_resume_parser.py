@@ -179,7 +179,6 @@ class AIResumeParser:
     def _normalize_data(data: Dict[str, Any]):
         """Ensures all required fields are present with default values."""
         
-        # Education
         if "education" in data and isinstance(data["education"], list):
             for item in data["education"]:
                 if isinstance(item, dict):
@@ -191,7 +190,6 @@ class AIResumeParser:
                     item.setdefault("current", False)
                     item.setdefault("description", "")
 
-        # Work Experience
         if "workExperiences" in data and isinstance(data["workExperiences"], list):
             for item in data["workExperiences"]:
                 if isinstance(item, dict):
@@ -203,14 +201,12 @@ class AIResumeParser:
                     item.setdefault("current", False)
                     item.setdefault("description", "")
 
-        # Skills
         if "skills" in data and isinstance(data["skills"], list):
             for item in data["skills"]:
                 if isinstance(item, dict):
                     item.setdefault("name", "")
                     item.setdefault("level", "")
 
-        # Projects
         if "projects" in data and isinstance(data["projects"], list):
             for item in data["projects"]:
                 if isinstance(item, dict):
@@ -218,11 +214,9 @@ class AIResumeParser:
                     item.setdefault("description", "")
                     item.setdefault("technologies", [])
                     item.setdefault("link", "")
-                    # startDate/endDate are optional in schema but good to have defaults
                     item.setdefault("startDate", "")
                     item.setdefault("endDate", "")
 
-        # Certifications
         if "certifications" in data and isinstance(data["certifications"], list):
             for item in data["certifications"]:
                 if isinstance(item, dict):
@@ -230,9 +224,7 @@ class AIResumeParser:
                     item.setdefault("issuer", "")
                     item.setdefault("issueDate", "")
                     item.setdefault("link", "")
-                    # expiryDate/credentialId are optional
 
-        # Awards
         if "awards" in data and isinstance(data["awards"], list):
             for item in data["awards"]:
                 if isinstance(item, dict):
@@ -241,7 +233,6 @@ class AIResumeParser:
                     item.setdefault("date", "")
                     item.setdefault("description", "")
 
-        # Publications
         if "publications" in data and isinstance(data["publications"], list):
             for item in data["publications"]:
                 if isinstance(item, dict):
@@ -251,7 +242,6 @@ class AIResumeParser:
                     item.setdefault("description", "")
                     item.setdefault("link", "")
 
-        # Custom Section Items (languages, interests, websites, references, etc.)
         custom_lists = ["languages", "interests", "websites", "references", "volunteering", "custom"]
         for field in custom_lists:
             if field in data and isinstance(data[field], list):

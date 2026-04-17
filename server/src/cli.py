@@ -4,7 +4,6 @@ import logging
 import sys
 import os
 
-# Add the current directory to sys.path to allow imports from src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.database import SessionLocal
@@ -109,7 +108,6 @@ def reset():
     """
     settings = get_settings()
     if settings.DATABASE_URL.startswith("sqlite"):
-        # Handle SQLite specifically to avoid sync issues
         path = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "").replace("sqlite:///", "")
         if path.startswith("./"):
             path = path[2:]

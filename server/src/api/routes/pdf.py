@@ -15,6 +15,12 @@ def get_cv_data(token: str) -> Dict[str, Any]:
 
 @router.post("/export-pdf")
 async def export_pdf(payload: Dict[str, Any]):
+    """
+    Generates a PDF by rendering the client-side /pdf-render route with Playwright.
+
+    The payload includes the template key and pre-mapped template props.
+    Data is stored temporarily in-memory behind a random token (short TTL).
+    """
     try:
         template = payload.get("template")
         data = payload.get("data")

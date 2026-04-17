@@ -53,7 +53,6 @@ class OllamaClient:
 
     async def generate(self, prompt: str, model: str) -> str:
         try:
-            # Increased timeout for local models which can be slow (20 minutes)
             async with httpx.AsyncClient(timeout=httpx.Timeout(1200.0)) as client:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
@@ -99,7 +98,6 @@ class AnthropicClient:
 
     async def generate(self, prompt: str, model: str) -> str:
         try:
-            # Anthropic typically uses /v1/messages
             url = f"{self.base_url}/v1/messages" if not self.base_url.endswith("/v1") else f"{self.base_url}/messages"
             
             async with httpx.AsyncClient(timeout=300.0) as client:
@@ -131,10 +129,6 @@ class GoogleClient:
 
     async def generate(self, prompt: str, model: str) -> str:
         try:
-            # Construct URL for Google Gemini API
-            # Expected base_url: https://generativelanguage.googleapis.com
-            # Endpoint: /v1beta/models/{model}:generateContent
-            
             version = "v1beta"
             if "/v1" in self.base_url:
                 version = "v1"
@@ -158,7 +152,6 @@ class GoogleClient:
                 )
                 response.raise_for_status()
                 data = response.json()
-                # Extract text from candidates
                 return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as exc:
             logger.error("Google API call failed: {}", str(exc))

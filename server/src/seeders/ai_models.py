@@ -39,7 +39,6 @@ INITIAL_MODELS = [
 
 class AIModelSeeder(BaseSeeder):
     async def run(self, session: AsyncSession) -> None:
-        # Cleanup old Llama 3 entry if it exists
         result = await session.execute(select(AIModel).where(AIModel.id == "llama-3"))
         old_model = result.scalar_one_or_none()
         if old_model:
@@ -56,7 +55,6 @@ class AIModelSeeder(BaseSeeder):
                 session.add(model)
             else:
                 logger.info(f"AI model already exists: {model_data['name']}")
-                # Optional: Update fields if needed
                 for key, value in model_data.items():
                     setattr(existing_model, key, value)
         

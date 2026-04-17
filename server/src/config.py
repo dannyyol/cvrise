@@ -28,7 +28,6 @@ class AppSettings(BaseSettings):
     
     DATABASE_URL: str
     
-    # Stripe Settings
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
 
@@ -39,7 +38,6 @@ class AppSettings(BaseSettings):
     PLATFORM_GEMINI_API_KEY: Optional[str] = None
     PLATFORM_GEMINI_MODEL: str = "gemini-1.5-pro"
     
-    # Action Costs (in tokens)
     COST_CV_REVIEW: int = 20
     COST_GENERATE_COVER_LETTER: int = 10
     COST_TAILOR_RESUME: int = 15
@@ -47,6 +45,10 @@ class AppSettings(BaseSettings):
 
     @field_validator("CORS_ALLOWED_ORIGINS", mode="before")
     def _split_csv(cls, v):
+        """
+        Allows CORS_ALLOWED_ORIGINS to be configured as a comma-separated string:
+        CORS_ALLOWED_ORIGINS=http://a.com,http://b.com
+        """
         if isinstance(v, str):
             return [s.strip() for s in v.split(",") if s.strip()]
         return v

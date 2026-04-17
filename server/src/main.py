@@ -9,7 +9,6 @@ from pathlib import Path
 
 from src.config import get_settings
 from src.api import create_api_router
-from src.database import init_db
 
 logger.add(
     Path(__file__).resolve().parents[1] / "logs" / "app.log",
@@ -21,8 +20,6 @@ logger.add(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("FastAPI lifespan startup")
-    # Database initialization is handled by Alembic migrations
-    # await init_db() 
     yield
     logger.info("FastAPI lifespan shutdown")
 
@@ -63,6 +60,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    """
+    API router is mounted behind API_PREFIX (typically "/api").
+
+    If you see 307 redirects in access logs for list endpoints, check for
+    trailing-slash mismatches between client calls and route declarations.
+    """
     app.include_router(create_api_router(), prefix=settings.API_PREFIX)
 
     return app

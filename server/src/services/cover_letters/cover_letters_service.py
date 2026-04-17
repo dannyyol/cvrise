@@ -48,12 +48,10 @@ class CoverLetterService:
         rd = resume.resume_data or {}
         sections = {}
         
-        # Summary
         summ_content = rd.get("professionalSummary", {}).get("content", "")
         if summ_content:
             sections["Summary"] = summ_content
             
-        # Experience
         exps = rd.get("workExperiences", [])
         if exps:
             parts = []
@@ -71,7 +69,6 @@ class CoverLetterService:
                 parts.append("\n".join([p for p in [line1, desc] if p]).strip())
             sections["Experience"] = "\n\n".join([p for p in parts if p])
 
-        # Education
         edus = rd.get("education", [])
         if edus:
             parts = []
@@ -86,7 +83,6 @@ class CoverLetterService:
                 parts.append(" ".join([line, tail]).strip())
             sections["Education"] = "\n\n".join([p for p in parts if p])
 
-        # Skills
         skills = rd.get("skills", [])
         if skills:
             skill_parts = []
@@ -96,7 +92,6 @@ class CoverLetterService:
                 skill_parts.append(name + (f" ({level})" if level else ""))
             sections["Skills"] = ", ".join([p for p in skill_parts if p])
 
-        # Projects
         projs = rd.get("projects", [])
         if projs:
             parts = []
@@ -111,7 +106,6 @@ class CoverLetterService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Projects"] = "\n\n".join([p for p in parts if p])
 
-        # Certifications
         certs = rd.get("certifications", [])
         if certs:
             parts = []
@@ -125,7 +119,6 @@ class CoverLetterService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Certifications"] = "\n\n".join([p for p in parts if p])
 
-        # Publications
         pubs = rd.get("publications", [])
         if pubs:
             parts = []
@@ -139,7 +132,6 @@ class CoverLetterService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Publications"] = "\n\n".join([p for p in parts if p])
 
-        # Awards
         awards = rd.get("awards", [])
         if awards:
             parts = []
@@ -153,7 +145,6 @@ class CoverLetterService:
                 parts.append("\n".join([p for p in [line, tail] if p]).strip())
             sections["Awards"] = "\n\n".join([p for p in parts if p])
         
-        # Languages
         langs = rd.get("languages", [])
         if langs:
             parts = []
@@ -293,7 +284,6 @@ class CoverLetterService:
                 Resume.id == resume_id,
                 Resume.user_id == self.user_id
             )
-            # Trigger reload and ensure clean query
             result = await self.db.execute(stmt)
             resume = result.scalar_one_or_none()
             if not resume:

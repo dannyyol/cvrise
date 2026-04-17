@@ -13,6 +13,12 @@ router = APIRouter()
 @router.get("", response_model=List[AIModelResponse])
 @router.get("/", response_model=List[AIModelResponse], include_in_schema=False)
 async def get_ai_models(db: AsyncSession = Depends(get_db)):
+    """
+    List available AI models.
+
+    We support both "/ai-models" and "/ai-models/" to avoid 307 redirects when
+    clients differ on trailing slashes.
+    """
     result = await db.execute(select(AIModel))
     models = result.scalars().all()
     return models

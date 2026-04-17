@@ -59,12 +59,6 @@ class CoverLetterTemplateSeeder(BaseSeeder):
             },
         ]
         
-        # We need to handle potential conflicts or old data if we want a clean slate, 
-        # but standard seeder practice is usually update-or-create.
-        # However, since we are renaming keys (professional -> mono, etc.), 
-        # the old ones might remain if we don't clean them up. 
-        # The user asked to "recreate" the seeder.
-        
         for data in templates:
             stmt = select(CoverLetterTemplate).where(CoverLetterTemplate.key == data['key'])
             result = await session.execute(stmt)

@@ -37,7 +37,6 @@ INITIAL_PLANS = [
 
 class BillingSeeder(BaseSeeder):
     async def run(self, session: AsyncSession, user_id: Optional[str] = None) -> None:
-        # Seed Plans
         for plan_data in INITIAL_PLANS:
             result = await session.execute(select(TokenPlan).where(TokenPlan.name == plan_data["name"]))
             existing_plan = result.scalar_one_or_none()
@@ -51,7 +50,6 @@ class BillingSeeder(BaseSeeder):
                 for key, value in plan_data.items():
                     setattr(existing_plan, key, value)
         
-        # Seed User Balance (if user_id is provided and user exists)
         if user_id:
             user_result = await session.execute(select(User).where(User.id == user_id))
             user = user_result.scalar_one_or_none()

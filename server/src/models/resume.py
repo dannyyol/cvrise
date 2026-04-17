@@ -20,7 +20,6 @@ class Resume(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
-    # Relationships
     template: Mapped["Template"] = relationship("Template", back_populates="resumes")
     theme: Mapped[Optional["ThemeConfig"]] = relationship("ThemeConfig", back_populates="resume", uselist=False, cascade="all, delete-orphan")
     cover_letter_theme: Mapped[Optional["CoverLetterThemeConfig"]] = relationship("CoverLetterThemeConfig", back_populates="resume", uselist=False, cascade="all, delete-orphan")
@@ -41,7 +40,6 @@ class Template(Base):
     supports_accent: Mapped[bool] = mapped_column(Boolean, default=False)
     sidebar_section_keys: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
 
-    # Relationship
     resumes: Mapped[List["Resume"]] = relationship("Resume", back_populates="template")
 
 class ThemeConfig(Base):

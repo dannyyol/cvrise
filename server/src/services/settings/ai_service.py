@@ -26,23 +26,16 @@ class AISettingsService:
     async def update_ai_settings(self, settings_data: AISettingsUpdate) -> Dict[str, Any]:
         active_model_id = settings_data.activeModelId
         
-        # Verify model exists
         model_result = await self.session.execute(select(AIModel).where(AIModel.id == active_model_id))
         model = model_result.scalar_one_or_none()
         if not model:
              raise HTTPException(status_code=400, detail="Invalid Active Model ID")
              
-        # Check config for this provider
         configs = settings_data.configs
-        # Convert Pydantic models to dict if necessary, but Pydantic handles this usually.
-        # However, settings_data.configs is Dict[str, AISettingsConfig]
-        
-        # We need to access the config for the specific provider
         provider_config_model = configs.get(model.key_id)
         provider_config = provider_config_model.model_dump() if provider_config_model else {}
         validation_errors = {}
         
-        # Only validate configuration if using custom keys (not Pay As You Go)
         result = await self.session.execute(select(Setting).where(Setting.key == 'ai_config'))
         existing_setting = result.scalar_one_or_none()
         existing_value = existing_setting.value if existing_setting else {}
@@ -60,7 +53,6 @@ class AISettingsService:
         if validation_errors:
             raise HTTPException(status_code=400, detail=validation_errors)
 
-        # Prepare value for storage (convert Pydantic model to dict)
         value_to_store = settings_data.model_dump()
         
         if existing_setting:
@@ -89,14 +81,12 @@ async def get_configured_ai_client(session: AsyncSession) -> Tuple[AsyncLLMClien
     if usage_mode == "platform":
         app_settings = get_settings()
         
-        # Check if platform key is available
         if not app_settings.PLATFORM_OPENAI_API_KEY:
              raise HTTPException(
                  status_code=400, 
                  detail="Platform OpenAI API Key is not configured on the server. Please contact support or switch to Custom mode."
              )
         
-        # Use OpenAI for Platform mode
         client = OpenAIClient(
             base_url="https://api.openai.com/v1", 
             api_key=app_settings.PLATFORM_OPENAI_API_KEY
@@ -104,7 +94,6 @@ async def get_configured_ai_client(session: AsyncSession) -> Tuple[AsyncLLMClien
         return client, app_settings.PLATFORM_OPENAI_MODEL, True
         
     else:
-        # Custom Mode
         active_model_id = ai_settings.get("activeModelId")
         if not active_model_id:
              raise HTTPException(status_code=400, detail="No active AI model selected. Please configure an AI model in Settings.")

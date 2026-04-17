@@ -14,8 +14,6 @@ from src.models.enums import UserRole
 from src.api.schemas.auth import UserCreate, UserLogin, Token, GoogleLoginRequest
 from src.utils.security import get_password_hash, verify_password, create_access_token, create_refresh_token, SECRET_KEY, ALGORITHM, create_reset_token, verify_and_extract_reset_subject, create_verify_token, verify_and_extract_verify_subject
 import jwt
-from src.seeders.resumes import ResumeSeeder
-from src.seeders.resume_data_migration import ResumeDataMigrationSeeder
 from src.services.auth.email_service import send_email
 from src.services.auth.email_templates import render_template
 from src.config import get_settings
@@ -23,15 +21,11 @@ from src.config import get_settings
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.resume_seeder = ResumeSeeder()
-        self.resume_data_seeder = ResumeDataMigrationSeeder()
         self.cover_letter_template_seeder = CoverLetterTemplateSeeder()
         self.ai_model_seeder = AIModelSeeder()
         self.billing_seeder = BillingSeeder()
 
-
     async def authenticate_user(self, user_in: UserLogin) -> Token:
-        # Check if user exists
         email = user_in.email.lower().strip()
         query = select(User).where(User.email == email)
         result = await self.db.execute(query)
@@ -70,14 +64,11 @@ class AuthService:
 
     async def seed_new_user_data(self, user_id: str):
         """Seed initial data for a new user."""
-        await self.resume_seeder.run(self.db, user_id=user_id)
-        await self.resume_data_seeder.run(self.db, user_id=user_id)
         await self.cover_letter_template_seeder.run(self.db)
         await self.ai_model_seeder.run(self.db)
         await self.billing_seeder.run(self.db, user_id=user_id)
 
     async def register_user(self, user_in: UserCreate) -> User:
-        # Check if user already exists
         email = user_in.email.lower().strip()
         query = select(User).where(User.email == email)
         result = await self.db.execute(query)
@@ -87,7 +78,6 @@ class AuthService:
                 detail="Email already registered"
             )
 
-        # Create new user
         hashed_password = get_password_hash(user_in.password)
         new_user = User(
             email=email,
@@ -105,12 +95,7 @@ class AuthService:
 
     async def authenticate_google_user(self, google_in: GoogleLoginRequest) -> Token:
         try:
-            # Verify the token
             client_id = os.getenv("GOOGLE_CLIENT_ID")
-            
-            
-            # If client_id is not set, we might want to log a warning or skip audience check
-            # For strict security, client_id should be verified
             
             id_info = id_token.verify_oauth2_token(
                 google_in.token, 
@@ -118,20 +103,17 @@ class AuthService:
                 audience=client_id
             )
 
-            # Get email from token
             email = id_info.get('email')
             if not email:
                 raise ValueError("Email not found in token")
             
             email = email.lower().strip()
 
-            # Check if user exists
             query = select(User).where(User.email == email)
             result = await self.db.execute(query)
             user = result.scalar_one_or_none()
 
             if not user:
-                # Auto-register user
                 random_password = secrets.token_urlsafe(32)
                 hashed_password = get_password_hash(random_password)
                 
@@ -145,7 +127,6 @@ class AuthService:
                 await self.db.commit()
                 await self.db.refresh(user)
 
-                # Seed default resume for the new user
                 await self.seed_new_user_data(user.id)
             elif not user.is_active:
                 user.is_active = True

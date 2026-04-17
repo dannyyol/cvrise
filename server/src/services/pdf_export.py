@@ -25,6 +25,12 @@ def get_token(token: str) -> Dict[str, Any]:
     return entry["data"]
 
 async def generate_pdf_from_preview(preview_url: str) -> bytes:
+    """
+    Loads the Next.js PDF render route in a headless browser and prints it to PDF.
+
+    This runs inside the server container, so preview_url should usually be an
+    internal Docker DNS name (e.g. http://client:3000/) rather than the public domain.
+    """
     ready_timeout_ms = 120000
     navigation_timeout_ms = 60000
 
@@ -66,6 +72,10 @@ async def generate_pdf_from_preview(preview_url: str) -> bytes:
                 pass
 
             try:
+                """
+                Primary readiness signal is window.CV_PREVIEW_READY, set by the preview component.
+                Fallback condition: once at least one '.cv-page' exists and the loader icon is gone.
+                """
                 await page.wait_for_function(
                     """() => {
                       if (window.CV_PREVIEW_READY === true) return true;

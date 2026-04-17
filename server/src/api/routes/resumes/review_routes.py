@@ -22,24 +22,18 @@ async def review_resume(
     try:
         plan_service = PlanService(session, user)
         
-        # 1. Get Configured Client (handles Pay As You Go check)
         client, model_id, is_platform_mode = await get_configured_ai_client(session)
         
-        # 2. Check Balance if Platform Mode
         cost = settings.COST_CV_REVIEW
         if is_platform_mode:
             if not await plan_service.has_sufficient_balance(cost):
                  raise HTTPException(status_code=402, detail=f"Insufficient tokens. This action requires at least {cost} tokens.")
 
-        # 3. Create Service
         service = create_cv_review_service(client, model_id)
 
-        # 4. Perform Review
         if payload.get("sections"):
-            # Pass the whole payload which contains the resume data (professionalSummary, workExperiences, etc.)
             result = await service.review_cv_payload(payload)
             
-            # 5. Deduct Tokens if Platform Mode
             if is_platform_mode:
                 await plan_service.deduct_tokens(cost, "CV Review Generation")
                 

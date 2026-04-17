@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 class ResumeDataMigrationSeeder(BaseSeeder):
     async def run(self, session: AsyncSession, user_id: str = "default-user") -> None:
-        # Check if default resume exists
         stmt = select(Resume).where(Resume.user_id == user_id)
         result = await session.execute(stmt)
         resume = result.scalar_one_or_none()
@@ -22,7 +21,6 @@ class ResumeDataMigrationSeeder(BaseSeeder):
 
         logger.info(f"Seeding resume_data column for {user_id} resume...")
 
-        # Construct the default resume data (camelCase keys)
         resume_data = {
             "personalDetails": {
                 "fullName": "John Doe",
