@@ -23,6 +23,34 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      client_changed: ${{ steps.filter.outputs.client }}
+      server_changed: ${{ steps.filter.outputs.server }}
+      infra_changed: ${{ steps.filter.outputs.infra }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Paths filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            client:
+              - 'client/**'
+            server:
+              - 'server/**'
+            infra:
+              - 'docker-compose.yml'
+              - '.github/workflows/ci-cd.yml'
+
   client:
     name: Client (Next.js)
     runs-on: ubuntu-latest
@@ -78,7 +106,7 @@ jobs:
   docker-images:
     name: Docker Images (GHCR)
     runs-on: ubuntu-latest
-    needs: [client, server]
+    needs: [changes, client, server]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
@@ -87,13 +115,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
+        if: needs.changes.outputs.client_changed == 'true' || needs.changes.outputs.server_changed == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -101,6 +127,7 @@ jobs:
           password: ${{ github.token }}
 
       - name: Metadata (client)
+        if: needs.changes.outputs.client_changed == 'true'
         id: meta_client
         uses: docker/metadata-action@v5
         with:
@@ -111,12 +138,13 @@ jobs:
             type=raw,value=latest
 
       - name: Build + Push (client)
+        if: needs.changes.outputs.client_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ steps.meta_client.outputs.tags }}
           labels: ${{ steps.meta_client.outputs.labels }}
           build-args: |
@@ -126,6 +154,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Metadata (server)
+        if: needs.changes.outputs.server_changed == 'true'
         id: meta_server
         uses: docker/metadata-action@v5
         with:
@@ -136,22 +165,27 @@ jobs:
             type=raw,value=latest
 
       - name: Build + Push (server)
+        if: needs.changes.outputs.server_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ steps.meta_server.outputs.tags }}
           labels: ${{ steps.meta_server.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Skip image build
+        if: needs.changes.outputs.client_changed != 'true' && needs.changes.outputs.server_changed != 'true'
+        run: echo "No client/server changes detected. Skipping Docker build and push."
+
   deploy-main:
     name: Deploy (VPS)
     runs-on: ubuntu-latest
-    needs: [docker-images]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, docker-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (needs.changes.outputs.client_changed == 'true' || needs.changes.outputs.server_changed == 'true' || needs.changes.outputs.infra_changed == 'true')
     env:
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_PORT: ${{ secrets.VPS_PORT }}
@@ -179,7 +213,10 @@ jobs:
           echo "$VPS_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          ssh -p "$VPS_PORT" -i ~/.ssh/id_rsa "$VPS_USER@$VPS_HOST" "VPS_APP_DIR='$VPS_APP_DIR' DEPLOY_REF='main' IMAGE_TAG='${{ github.sha }}' GHCR_USERNAME='$GHCR_USERNAME' GHCR_TOKEN='$GHCR_TOKEN' bash -se" <<'EOF'
+          CLIENT_CHANGED='${{ needs.changes.outputs.client_changed }}'
+          SERVER_CHANGED='${{ needs.changes.outputs.server_changed }}'
+
+          ssh -p "$VPS_PORT" -i ~/.ssh/id_rsa "$VPS_USER@$VPS_HOST" "VPS_APP_DIR='$VPS_APP_DIR' DEPLOY_REF='main' IMAGE_TAG='${{ github.sha }}' GHCR_USERNAME='$GHCR_USERNAME' GHCR_TOKEN='$GHCR_TOKEN' CLIENT_CHANGED='$CLIENT_CHANGED' SERVER_CHANGED='$SERVER_CHANGED' bash -se" <<'EOF'
           set -euo pipefail
 
           if command -v docker-compose >/dev/null 2>&1 && ! docker compose version >/dev/null 2>&1; then
@@ -194,8 +231,21 @@ jobs:
           git reset --hard "origin/$DEPLOY_REF"
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
           export IMAGE_TAG="${IMAGE_TAG:-latest}"
-          $DC --profile prod pull
-          $DC --profile prod up -d --remove-orphans
+
+          if [ "${SERVER_CHANGED}" = "true" ]; then
+            $DC --profile prod pull server
+            $DC --profile prod up -d --no-deps --force-recreate server
+          fi
+
+          if [ "${CLIENT_CHANGED}" = "true" ]; then
+            $DC --profile prod pull client
+            $DC --profile prod up -d --no-deps --force-recreate client
+          fi
+
+          if [ "${SERVER_CHANGED}" != "true" ] && [ "${CLIENT_CHANGED}" != "true" ]; then
+            $DC --profile prod up -d --remove-orphans
+          fi
+
           $DC --profile prod ps
           EOF
 
