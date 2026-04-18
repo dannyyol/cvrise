@@ -10,9 +10,10 @@
     .wrapper { width:100%; background:#f6fbff; padding:34px 0; }
     .top-header { max-width:600px; margin:0 auto 6px; padding:16px 22px 2px; }
     .card { max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #dbeafe; border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(6,114,173,0.12); }
-    .brand { display:flex; align-items:center; justify-content:flex-start; gap:1px; }
+    .brand { border-collapse:collapse; }
+    .logo-cell { width:44px; height:44px; line-height:0; font-size:0; }
     .logo { width:44px; height:44px; border-radius:12px; display:block; background:transparent; }
-    .brand-name { font-size:24px; font-weight:800; color:#0b1220; line-height:1; letter-spacing:0.2px; }
+    .brand-name { font-size:24px; font-weight:800; color:#0b1220; line-height:28px; letter-spacing:0.2px; }
     .brand-rise { color:#0672AD; }
     .content { padding:22px; }
     .h1 { margin:0 0 10px; font-size:20px; font-weight:900; color:#0b1220; }
@@ -30,10 +31,16 @@
   <div class="preheader">{{ preheader_text }}</div>
   <div class="wrapper">
     <div class="top-header">
-      <div class="brand">
-        <img class="logo" src="{{ logo_url }}" alt="{{ app_name }}" width="44" height="44">
-        <div class="brand-name">CV<span class="brand-rise">Rise</span></div>
-      </div>
+      <table class="brand" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+        <tr>
+          <td class="logo-cell" width="44" height="44" style="padding:0; width:44px; height:44px; vertical-align:middle; line-height:0; font-size:0;">
+            <img class="logo" src="https://getcvrise.com/images/blue-logo.png" alt="" role="presentation" aria-hidden="true" width="44" height="44" style="display:block; width:44px; height:44px; border:0; outline:none; text-decoration:none; border-radius:12px; -ms-interpolation-mode:bicubic;">
+          </td>
+          <td style="padding:0 0 0 2px; vertical-align:middle;">
+            <div class="brand-name" style="line-height:28px; mso-line-height-rule:exactly;">CV<span class="brand-rise">Rise</span></div>
+          </td>
+        </tr>
+      </table>
     </div>
     <div class="card">
       <div class="content">
@@ -41,7 +48,9 @@
         {% block content %}{% endblock %}
         {% if action_url and action_label %}
           <div class="btn-wrap">
-            <a class="btn" href="{{ action_url }}">{{ action_label }}</a>
+            <a class="btn" href="{{ action_url }}" style="display:inline-block; background:#0672AD; color:#ffffff !important; text-decoration:none;">
+              <span style="color:#ffffff !important; text-decoration:none;">{{ action_label }}</span>
+            </a>
           </div>
           <div class="hr"></div>
           <p class="p" style="margin-bottom:8px;">If the button doesn’t work, copy and paste this link into your browser:</p>
