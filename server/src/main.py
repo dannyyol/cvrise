@@ -10,11 +10,16 @@ from pathlib import Path
 from src.config import get_settings
 from src.api import create_api_router
 
+LOG_PATH = Path(__file__).resolve().parents[1] / "logs" / "app.log"
+LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+LOG_PATH.touch(exist_ok=True)
+
 logger.add(
-    Path(__file__).resolve().parents[1] / "logs" / "app.log",
+    str(LOG_PATH),
     rotation="10 MB",
     enqueue=True,
     level="INFO",
+    watch=True,
 )
 
 @asynccontextmanager
@@ -59,6 +64,16 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def _ensure_app_log_file(request: Request, call_next):
+        try:
+            LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+            if not LOG_PATH.exists():
+                LOG_PATH.touch(exist_ok=True)
+        except Exception:
+            pass
+        return await call_next(request)
 
     """
     API router is mounted behind API_PREFIX (typically "/api").

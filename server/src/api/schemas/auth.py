@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, model_validator
 from src.models.enums import UserRole
 
@@ -16,6 +17,7 @@ class UserResponse(BaseModel):
     id: str
     email: EmailStr
     is_active: bool
+    email_verified_at: datetime | None = None
     role: UserRole
     
     class Config:

@@ -3,6 +3,7 @@ from sqlalchemy.future import select
 from fastapi import HTTPException, status
 import os
 import secrets
+from datetime import datetime, timezone
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
@@ -45,7 +46,7 @@ class AuthService:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        if not user.is_active:
+        if not self._is_user_email_verified(user):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Email not verified",
@@ -61,12 +62,15 @@ class AuthService:
             user=user
         )
 
-
     async def seed_new_user_data(self, user_id: str):
         """Seed initial data for a new user."""
         await self.cover_letter_template_seeder.run(self.db)
         await self.ai_model_seeder.run(self.db)
         await self.billing_seeder.run(self.db, user_id=user_id)
+
+    @staticmethod
+    def _is_user_email_verified(user: User) -> bool:
+        return bool(user.email_verified_at) or user.is_active
 
     async def register_user(self, user_in: UserCreate) -> User:
         email = user_in.email.lower().strip()
@@ -121,15 +125,17 @@ class AuthService:
                     email=email,
                     hashed_password=hashed_password,
                     role=UserRole.USER,
-                    is_active=True
+                    is_active=True,
+                    email_verified_at=datetime.now(timezone.utc),
                 )
                 self.db.add(user)
                 await self.db.commit()
                 await self.db.refresh(user)
 
                 await self.seed_new_user_data(user.id)
-            elif not user.is_active:
+            elif not self._is_user_email_verified(user):
                 user.is_active = True
+                user.email_verified_at = datetime.now(timezone.utc)
                 await self.db.commit()
                 await self.seed_new_user_data(user.id)
 
@@ -177,7 +183,7 @@ class AuthService:
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
 
-        if not user or not user.is_active:
+        if not user or not self._is_user_email_verified(user):
             raise credentials_exception
 
         access_token = create_access_token(subject=user.id)
@@ -262,10 +268,11 @@ class AuthService:
         if not user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification token")
 
-        if user.is_active:
+        if self._is_user_email_verified(user):
             return {"detail": "Email already verified"}
 
         user.is_active = True
+        user.email_verified_at = datetime.now(timezone.utc)
         await self.db.commit()
         await self.seed_new_user_data(user.id)
         return {"detail": "Email verified successfully"}
@@ -275,6 +282,6 @@ class AuthService:
         query = select(User).where(User.email == normalized)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
-        if user and not user.is_active:
+        if user and not self._is_user_email_verified(user):
             await self._send_verification_email(user)
         return {"detail": "If that email exists, we have sent a verification link"}

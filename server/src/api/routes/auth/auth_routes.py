@@ -104,11 +104,9 @@ async def register(
     service = AuthService(session)
     return await service.register_user(user_in)
 
-
 @router.get("/me", response_model=UserResponse)
 async def me(current_user=Depends(get_current_user)):
     return current_user
-
 
 @router.post("/logout")
 async def logout(response: Response):

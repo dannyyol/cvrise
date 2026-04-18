@@ -13,5 +13,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.USER, server_default=UserRole.USER.value)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
