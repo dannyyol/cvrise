@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 
+from src.config import get_settings
 from src.database import get_db
 from src.models.ai_model import AIModel
 from src.api.schemas.ai_model import AIModelResponse, TestConnectionRequest
@@ -13,13 +14,11 @@ router = APIRouter()
 @router.get("", response_model=List[AIModelResponse])
 @router.get("/", response_model=List[AIModelResponse], include_in_schema=False)
 async def get_ai_models(db: AsyncSession = Depends(get_db)):
-    """
-    List available AI models.
-
-    We support both "/ai-models" and "/ai-models/" to avoid 307 redirects when
-    clients differ on trailing slashes.
-    """
-    result = await db.execute(select(AIModel))
+    settings = get_settings()
+    stmt = select(AIModel)
+    if not settings.DEBUG:
+        stmt = stmt.where(AIModel.key_id != "ollama").where(AIModel.id != "ollama")
+    result = await db.execute(stmt)
     models = result.scalars().all()
     return models
 

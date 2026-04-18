@@ -55,7 +55,7 @@ class TemplateSeeder(BaseSeeder):
             },
             {
                 'key': 'chronicle',
-                'name': 'chronicle',
+                'name': 'Chronicle',
                 'description': '',
                 'thumbnail': '/thumbnails/chronicle.png',
                 'supports_accent': True,
