@@ -10,6 +10,8 @@ from google.auth.transport import requests
 from src.seeders.billing import BillingSeeder
 from src.seeders.ai_models import AIModelSeeder
 from src.seeders.cover_letter_templates import CoverLetterTemplateSeeder
+from src.seeders.resumes import ResumeSeeder
+from src.seeders.resume_data_migration import ResumeDataMigrationSeeder
 from src.models.user import User
 from src.models.enums import UserRole
 from src.api.schemas.auth import UserCreate, UserLogin, Token, GoogleLoginRequest
@@ -22,6 +24,8 @@ from src.config import get_settings
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.resume_seeder = ResumeSeeder()
+        self.resume_data_seeder = ResumeDataMigrationSeeder()
         self.cover_letter_template_seeder = CoverLetterTemplateSeeder()
         self.ai_model_seeder = AIModelSeeder()
         self.billing_seeder = BillingSeeder()
@@ -64,6 +68,8 @@ class AuthService:
 
     async def seed_new_user_data(self, user_id: str):
         """Seed initial data for a new user."""
+        await self.resume_seeder.run(self.db, user_id=user_id)
+        await self.resume_data_seeder.run(self.db, user_id=user_id)
         await self.cover_letter_template_seeder.run(self.db)
         await self.ai_model_seeder.run(self.db)
         await self.billing_seeder.run(self.db, user_id=user_id)
