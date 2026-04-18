@@ -27,7 +27,9 @@ class CoverLetterService:
 
     @property
     def user_id(self) -> str:
-        return self.user.id if self.user else "default-user"
+        if not self.user:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        return self.user.id
 
     async def _get_ai_config(self) -> Tuple[AIModel, dict]:
         stmt = select(Setting).where(Setting.key == "ai_config")

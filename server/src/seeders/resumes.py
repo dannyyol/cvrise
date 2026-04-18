@@ -8,7 +8,11 @@ import uuid
 logger = logging.getLogger(__name__)
 
 class ResumeSeeder(BaseSeeder):
-    async def run(self, session: AsyncSession, user_id: str = "default-user") -> None:
+    async def run(self, session: AsyncSession, user_id: str | None = None) -> None:
+        if not user_id:
+            logger.info("Skipping resume seeding (no user_id).")
+            return
+
         stmt = select(Resume).where(Resume.user_id == user_id)
         result = await session.execute(stmt)
         existing_resume = result.scalar_one_or_none()

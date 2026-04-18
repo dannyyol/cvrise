@@ -50,3 +50,4 @@ stripe>=8.0.0
 bcrypt>=4.0.0
 pyjwt>=2.8.0
 google-auth>=2.0.0
+pytest>=8.0.0

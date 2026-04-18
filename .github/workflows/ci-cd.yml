@@ -77,6 +77,18 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
+      - name: Generate templates
+        run: pnpm run generate:templates
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm exec tsc -p tsconfig.json --noEmit
+
+      - name: Test
+        run: pnpm run test
+
       - name: Build
         run: pnpm run build
 
@@ -102,6 +114,9 @@ jobs:
 
       - name: Compile check
         run: python -m compileall src
+
+      - name: Run tests
+        run: python -m pytest tests -q
 
   docker-images:
     name: Docker Images (GHCR)
@@ -258,6 +273,7 @@ jobs:
   deploy-manual:
     name: Deploy (VPS) - Manual
     runs-on: ubuntu-latest
+    needs: [client, server]
     if: github.event_name == 'workflow_dispatch'
     env:
       VPS_HOST: ${{ secrets.VPS_HOST }}
