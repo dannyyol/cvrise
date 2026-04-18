@@ -24,7 +24,7 @@ class AppSettings(BaseSettings):
 
     CLIENT_BASE_URL: str
     PDF_CLIENT_BASE_URL: Optional[str] = None
-    TOKEN_TTL_SECONDS: int = Field(default=300, env="TOKEN_TTL_SECONDS")
+    TOKEN_TTL_SECONDS: int = Field(default=300)
     
     DATABASE_URL: str
     

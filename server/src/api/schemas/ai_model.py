@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class AIModelBase(BaseModel):
     id: str
@@ -11,8 +11,7 @@ class AIModelCreate(AIModelBase):
     pass
 
 class AIModelResponse(AIModelBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TestConnectionRequest(BaseModel):
     provider: str

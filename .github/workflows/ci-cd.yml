@@ -95,6 +95,16 @@ jobs:
   server:
     name: Server (FastAPI)
     runs-on: ubuntu-latest
+    env:
+      APP_NAME: "CVRise"
+      APP_VERSION: "ci"
+      API_PREFIX: "/api"
+      HOST: "127.0.0.1"
+      PORT: "8000"
+      DEBUG: "true"
+      CORS_ALLOWED_ORIGINS: '["http://localhost:3000"]'
+      CLIENT_BASE_URL: "http://localhost:3000"
+      DATABASE_URL: "mysql+aiomysql://ci:ci@localhost/cvrise_ci"
     defaults:
       run:
         working-directory: server
