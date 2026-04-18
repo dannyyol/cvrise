@@ -29,7 +29,7 @@ class PlanService:
         return self.user.id if self.user else None
 
     async def get_all_plans(self) -> List[TokenPlan]:
-        result = await self.session.execute(select(TokenPlan))
+        result = await self.session.execute(select(TokenPlan).order_by(TokenPlan.tokens.asc()))
         return result.scalars().all()
 
     async def get_plan_by_id(self, plan_id: str) -> Optional[TokenPlan]:
