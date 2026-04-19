@@ -10,6 +10,7 @@ import { Toast } from '../../ui/Toast';
 import { submitCVForReview, type AIReviewResponse } from '../../../services/analysisService';
 import { AIAnalysisModal } from './AIAnalysisModal';
 import { Card, CardHeader, CardContent } from '../../ui/Card';
+import axios from 'axios';
 
 export const AIAnalysis = () => {
   const { cvData, selectedTemplate, aiAnalysis, saveAIAnalysis } = useCVStore();
@@ -33,8 +34,11 @@ export const AIAnalysis = () => {
         } catch {
           setErrorToast({ message: 'Analysis generated, but failed to save it. Please try again.', isVisible: true });
         }
-    } catch {
-        setErrorToast({ message: 'Failed to generate AI analysis. Please try again.', isVisible: true });
+    } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? (err.response?.data as { detail?: string } | undefined)?.detail ?? 'Failed to generate AI analysis. Please try again.'
+          : 'Failed to generate AI analysis. Please try again.';
+        setErrorToast({ message, isVisible: true });
     } finally {
         setIsAnalyzing(false);
     }

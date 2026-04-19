@@ -275,6 +275,9 @@
   .interests-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .interests-form .input-field-borderless { @apply rounded-2xl; }
 
+  .cover-letter-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
+  .cover-letter-form .input-field-borderless { @apply rounded-2xl; }
+
   .textarea-field {
     @apply flex min-h-[80px] w-full rounded-xl border-0 bg-slate-100 px-3 py-2 text-sm ring-offset-white shadow-none
     placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0

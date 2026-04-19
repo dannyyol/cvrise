@@ -43,7 +43,7 @@ export const CoverLetterForm = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="form-container cover-letter-form">
       <div className="bg-white rounded-xl border border-gray-200/60 shadow-sm p-6 space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export const CoverLetterForm = () => {
 
         {isRecipientOpen ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="form-grid-2">
               <Input
                 label="Hiring Manager Name"
                 name="recipientName"
@@ -78,6 +78,7 @@ export const CoverLetterForm = () => {
                 onChange={handleChange}
                 icon={<User className="w-4 h-4" />}
                 placeholder="e.g. Jane Smith"
+                className="input-field-borderless"
               />
               <Input
                 label="Hiring Manager Title"
@@ -86,10 +87,11 @@ export const CoverLetterForm = () => {
                 onChange={handleChange}
                 icon={<Briefcase className="w-4 h-4" />}
                 placeholder="e.g. Hiring Manager"
+                className="input-field-borderless"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="form-grid-2">
               <Input
                 label="Company Name"
                 name="companyName"
@@ -97,6 +99,7 @@ export const CoverLetterForm = () => {
                 onChange={handleChange}
                 icon={<Building2 className="w-4 h-4" />}
                 placeholder="e.g. Acme Corp"
+                className="input-field-borderless"
               />
               <Input
                 label="Company Address"
@@ -105,6 +108,7 @@ export const CoverLetterForm = () => {
                 onChange={handleChange}
                 icon={<MapPin className="w-4 h-4" />}
                 placeholder="e.g. 123 Tech Lane, San Francisco, CA"
+                className="input-field-borderless"
               />
             </div>
           </>
@@ -146,7 +150,7 @@ export const CoverLetterForm = () => {
           value={coverLetter.content}
           onChange={handleContentChange}
           placeholder="Dear Hiring Manager..."
-          className="min-h-[400px]"
+          className="rich-text-container-borderless min-h-[400px]"
         />
       </div>
     </div>

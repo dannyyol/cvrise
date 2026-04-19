@@ -18,7 +18,7 @@ interface AISettingsProps {
 
 export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   const [models, setModels] = useState<AIModel[]>([]);
-  const [selectedModelId, setSelectedModelId] = useState<string>('gemini-1.5-pro');
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
