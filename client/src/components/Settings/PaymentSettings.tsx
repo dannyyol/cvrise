@@ -22,7 +22,7 @@ export function PaymentSettings() {
   const [notificationStatus, setNotificationStatus] = useState<'processing' | 'success' | 'error' | 'canceled' | null>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const cleanPaymentParamsFromUrl = useCallback(() => {
+  const cleanPaymentParamsFromUrl = useCallback((hardNavigate = false) => {
     const url = new URL(window.location.href);
     url.searchParams.delete('success');
     url.searchParams.delete('canceled');
@@ -31,6 +31,14 @@ export function PaymentSettings() {
     if (!url.searchParams.get('tab')) url.searchParams.set('tab', 'billing');
     const query = url.searchParams.toString();
     const nextUrl = `${url.pathname}${query ? `?${query}` : ''}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl === currentUrl) return;
+
+    if (hardNavigate) {
+      window.location.replace(nextUrl);
+      return;
+    }
+
     router.replace(nextUrl);
     const finalize = () => {
       if (window.location.search.includes('session_id=') || window.location.search.includes('success=') || window.location.search.includes('canceled=') || window.location.search.includes('error=')) {
@@ -125,7 +133,7 @@ export function PaymentSettings() {
 
   const handleNotificationClose = () => {
     setIsNotificationOpen(false);
-    cleanPaymentParamsFromUrl();
+    cleanPaymentParamsFromUrl(true);
     if (notificationStatus === 'success') {
       planService.getBalance().then(setBalance);
     }
