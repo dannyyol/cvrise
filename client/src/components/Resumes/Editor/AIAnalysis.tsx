@@ -23,11 +23,38 @@ export const AIAnalysis = () => {
     setReviewData(aiAnalysis);
   }, [aiAnalysis]);
 
+  const isSuccessfulReview = (data: AIReviewResponse) => {
+    const hasTopSignal =
+      data.overall_score > 0 ||
+      (data.strengths?.length ?? 0) > 0 ||
+      (data.areas_to_improve?.length ?? 0) > 0;
+
+    const hasSectionSignal = (data.sections ?? []).some(
+      (s) => (s.score ?? 0) > 0 || (s.suggestions?.length ?? 0) > 0
+    );
+
+    const hasDimSignal =
+      (data.atsCompatibility?.score ?? 0) > 0 ||
+      (data.contentQuality?.score ?? 0) > 0 ||
+      (data.formattingAnalysis?.score ?? 0) > 0 ||
+      (data.atsCompatibility?.summary?.length ?? 0) > 0 ||
+      (data.contentQuality?.summary?.length ?? 0) > 0 ||
+      (data.formattingAnalysis?.summary?.length ?? 0) > 0;
+
+    return hasTopSignal || hasSectionSignal || hasDimSignal;
+  };
+
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     const payload = buildCVPayload(cvData, selectedTemplate);
     try {
         const data = await submitCVForReview(payload.data);
+
+        if (!isSuccessfulReview(data)) {
+          setErrorToast({ message: 'AI analysis failed. Please try again.', isVisible: true });
+          return;
+        }
+
         setReviewData(data);
         try {
           await saveAIAnalysis(data);

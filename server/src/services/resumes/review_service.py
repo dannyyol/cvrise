@@ -316,6 +316,25 @@ class CVReviewService:
         base["atsCompatibility"] = ats
         base["contentQuality"] = content_quality
         base["formattingAnalysis"] = fmt_analysis
+
+        if (
+            final_overall <= 0
+            and not base.get("strengths")
+            and not base.get("areas_to_improve")
+            and all(
+                TextProcessor.safe_number(s.get("score", 0), 0.0) <= 0
+                and not s.get("suggestions")
+                for s in (base.get("sections") or [])
+            )
+            and TextProcessor.safe_number(ats.get("score", 0), 0.0) <= 0
+            and not ats.get("summary")
+            and TextProcessor.safe_number(content_quality.get("score", 0), 0.0) <= 0
+            and not content_quality.get("summary")
+            and TextProcessor.safe_number(fmt_analysis.get("score", 0), 0.0) <= 0
+            and not fmt_analysis.get("summary")
+        ):
+            raise ValueError("AI review returned empty response")
+
         return base
 
 def create_cv_review_service(client: AsyncLLMClient, model_id: str) -> CVReviewService:

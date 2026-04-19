@@ -43,6 +43,9 @@ async def review_resume(
 
     except HTTPException:
         raise
+    except ValueError as e:
+        logger.warning("Review failed: {}", e)
+        raise HTTPException(status_code=502, detail="AI analysis failed. Please try again.")
     except Exception as e:
         logger.exception("Review failed: {}", e)
         raise HTTPException(status_code=500, detail=f"Review failed: {str(e)}")

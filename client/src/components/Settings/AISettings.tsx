@@ -305,7 +305,7 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
                 <>
                   <Input
                     label="Model ID"
-                    placeholder="e.g. gpt-4o"
+                    placeholder="e.g. gpt-4.1"
                     value={configs[selectedModel.key_id]?.modelId || ''}
                     onChange={(e) => handleConfigChange(selectedModel.key_id, 'modelId', e.target.value)}
                     icon={<Cpu className="w-4 h-4 text-gray-400" />}
