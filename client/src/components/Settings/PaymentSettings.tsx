@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { CreditCard, Coins, Zap, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { planService } from '../../services/planService';
@@ -12,7 +12,6 @@ import { ErrorState } from '../ui/ErrorState';
 export function PaymentSettings() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
 
   const [plans, setPlans] = useState<TokenPlan[]>([]);
   const [balance, setBalance] = useState<UserBalance | null>(null);
@@ -22,6 +21,19 @@ export function PaymentSettings() {
   
   const [notificationStatus, setNotificationStatus] = useState<'processing' | 'success' | 'error' | 'canceled' | null>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const cleanPaymentParamsFromUrl = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('success');
+    url.searchParams.delete('canceled');
+    url.searchParams.delete('error');
+    url.searchParams.delete('session_id');
+    if (!url.searchParams.get('tab')) url.searchParams.set('tab', 'billing');
+    const query = url.searchParams.toString();
+    const nextUrl = `${url.pathname}${query ? `?${query}` : ''}${url.hash}`;
+    window.history.replaceState(window.history.state, '', nextUrl);
+    router.replace(nextUrl);
+  }, [router]);
 
   useEffect(() => {
     const success = searchParams.get('success');
@@ -61,11 +73,7 @@ export function PaymentSettings() {
     if (success && sessionId) {
       void verifyCheckout();
     } else if (success) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('success');
-      params.delete('session_id');
-      if (!params.get('tab')) params.set('tab', 'billing');
-      router.replace(`${pathname}?${params.toString()}`);
+      cleanPaymentParamsFromUrl();
     } else if (canceled) {
       setNotificationStatus('canceled');
       setIsNotificationOpen(true);
@@ -92,7 +100,7 @@ export function PaymentSettings() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, pathname, router]);
+  }, [searchParams, cleanPaymentParamsFromUrl]);
 
   const handlePurchase = async (planId: string) => {
     try {
@@ -110,13 +118,7 @@ export function PaymentSettings() {
 
   const handleNotificationClose = () => {
     setIsNotificationOpen(false);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('success');
-    params.delete('canceled');
-    params.delete('error');
-    params.delete('session_id');
-    if (!params.get('tab')) params.set('tab', 'billing');
-    router.replace(`${pathname}?${params.toString()}`);
+    cleanPaymentParamsFromUrl();
     if (notificationStatus === 'success') {
       planService.getBalance().then(setBalance);
     }
