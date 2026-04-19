@@ -31,8 +31,15 @@ export function PaymentSettings() {
     if (!url.searchParams.get('tab')) url.searchParams.set('tab', 'billing');
     const query = url.searchParams.toString();
     const nextUrl = `${url.pathname}${query ? `?${query}` : ''}${url.hash}`;
-    window.history.replaceState(window.history.state, '', nextUrl);
     router.replace(nextUrl);
+    const finalize = () => {
+      if (window.location.search.includes('session_id=') || window.location.search.includes('success=') || window.location.search.includes('canceled=') || window.location.search.includes('error=')) {
+        window.history.replaceState(window.history.state, '', nextUrl);
+      }
+    };
+    finalize();
+    setTimeout(finalize, 0);
+    setTimeout(finalize, 50);
   }, [router]);
 
   useEffect(() => {
