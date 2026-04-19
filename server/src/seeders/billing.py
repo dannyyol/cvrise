@@ -36,19 +36,26 @@ INITIAL_PLANS = [
 ]
 
 class BillingSeeder(BaseSeeder):
-    async def run(self, session: AsyncSession, user_id: Optional[str] = None) -> None:
-        for plan_data in INITIAL_PLANS:
-            result = await session.execute(select(TokenPlan).where(TokenPlan.name == plan_data["name"]))
-            existing_plan = result.scalar_one_or_none()
-            
-            if not existing_plan:
-                logger.info(f"Creating Token Plan: {plan_data['name']}")
-                plan = TokenPlan(**plan_data)
-                session.add(plan)
-            else:
-                logger.info(f"Token Plan already exists: {plan_data['name']}")
-                for key, value in plan_data.items():
-                    setattr(existing_plan, key, value)
+    async def run(
+        self,
+        session: AsyncSession,
+        user_id: Optional[str] = None,
+        ensure_plans: bool = True,
+        commit: bool = True,
+    ) -> None:
+        if ensure_plans:
+            for plan_data in INITIAL_PLANS:
+                result = await session.execute(select(TokenPlan).where(TokenPlan.name == plan_data["name"]))
+                existing_plan = result.scalar_one_or_none()
+                
+                if not existing_plan:
+                    logger.info(f"Creating Token Plan: {plan_data['name']}")
+                    plan = TokenPlan(**plan_data)
+                    session.add(plan)
+                else:
+                    logger.info(f"Token Plan already exists: {plan_data['name']}")
+                    for key, value in plan_data.items():
+                        setattr(existing_plan, key, value)
         
         if user_id:
             user_result = await session.execute(select(User).where(User.id == user_id))
@@ -65,4 +72,5 @@ class BillingSeeder(BaseSeeder):
             else:
                 logger.info(f"Skipping User Balance seeding: user {user_id} does not exist")
         
-        await session.commit()
+        if commit:
+            await session.commit()

@@ -10,17 +10,21 @@ import uuid
 logger = logging.getLogger(__name__)
 
 class ResumeDataMigrationSeeder(BaseSeeder):
-    async def run(self, session: AsyncSession, user_id: str | None = None) -> None:
+    async def run(self, session: AsyncSession, user_id: str | None = None, commit: bool = True) -> None:
         if not user_id:
             logger.info("Skipping resume_data migration seeding (no user_id).")
             return
 
-        stmt = select(Resume).where(Resume.user_id == user_id)
+        stmt = select(Resume).where(Resume.user_id == user_id).order_by(Resume.updated_at.desc()).limit(1)
         result = await session.execute(stmt)
         resume = result.scalar_one_or_none()
 
         if not resume:
             logger.warning(f"Resume for {user_id} not found. Skipping resume_data migration.")
+            return
+
+        if resume.resume_data:
+            logger.info(f"Resume data for {user_id} already exists. Skipping.")
             return
 
         logger.info(f"Seeding resume_data column for {user_id} resume...")
@@ -241,5 +245,8 @@ class ResumeDataMigrationSeeder(BaseSeeder):
         }
 
         resume.resume_data = resume_data
-        await session.commit()
+        if commit:
+            await session.commit()
+        else:
+            await session.flush()
         logger.info("Resume data migration completed successfully.")

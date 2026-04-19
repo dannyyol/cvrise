@@ -8,10 +8,10 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 from src.seeders.billing import BillingSeeder
-from src.seeders.ai_models import AIModelSeeder
-from src.seeders.cover_letter_templates import CoverLetterTemplateSeeder
 from src.seeders.resumes import ResumeSeeder
 from src.seeders.resume_data_migration import ResumeDataMigrationSeeder
+from src.models.resume import Resume
+from src.models.billing import UserBalance
 from src.models.user import User
 from src.models.enums import UserRole
 from src.api.schemas.auth import UserCreate, UserLogin, Token, GoogleLoginRequest
@@ -53,6 +53,9 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Email not verified",
             )
+
+        if not await self._is_user_workspace_ready(user.id):
+            await self._provision_user_workspace(user.id)
             
         access_token = create_access_token(subject=user.id)
         refresh_token = create_refresh_token(subject=user.id)
@@ -66,9 +69,34 @@ class AuthService:
 
     async def seed_new_user_data(self, user_id: str):
         """Seed initial data for a new user."""
-        await self.resume_seeder.run(self.db, user_id=user_id)
-        await self.resume_data_seeder.run(self.db, user_id=user_id)
-        await self.billing_seeder.run(self.db, user_id=user_id)
+        await self.resume_seeder.run(self.db, user_id=user_id, commit=False)
+        await self.resume_data_seeder.run(self.db, user_id=user_id, commit=False)
+        await self.billing_seeder.run(self.db, user_id=user_id, ensure_plans=False, commit=False)
+
+    async def _provision_user_workspace(self, user_id: str) -> None:
+        try:
+            await self.seed_new_user_data(user_id)
+            await self.db.commit()
+        except RuntimeError as exc:
+            await self.db.rollback()
+            if str(exc) == "Missing required template: classic":
+                raise HTTPException(status_code=503, detail="Workspace is initializing. Please try again.") from exc
+            raise
+        except Exception:
+            await self.db.rollback()
+            raise
+
+    async def _is_user_workspace_ready(self, user_id: str) -> bool:
+        resume_result = await self.db.execute(
+            select(Resume).where(Resume.user_id == user_id, Resume.resume_data.isnot(None)).limit(1)
+        )
+        resume = resume_result.scalar_one_or_none()
+        if not resume:
+            return False
+
+        balance_result = await self.db.execute(select(UserBalance).where(UserBalance.user_id == user_id).limit(1))
+        balance = balance_result.scalar_one_or_none()
+        return balance is not None
 
     @staticmethod
     def _is_user_email_verified(user: User) -> bool:
@@ -131,15 +159,15 @@ class AuthService:
                     email_verified_at=datetime.now(timezone.utc),
                 )
                 self.db.add(user)
-                await self.db.commit()
+                await self.db.flush()
                 await self.db.refresh(user)
-
-                await self.seed_new_user_data(user.id)
+                await self._provision_user_workspace(user.id)
             elif not self._is_user_email_verified(user):
                 user.is_active = True
                 user.email_verified_at = datetime.now(timezone.utc)
-                await self.db.commit()
-                await self.seed_new_user_data(user.id)
+                await self._provision_user_workspace(user.id)
+            elif not await self._is_user_workspace_ready(user.id):
+                await self._provision_user_workspace(user.id)
 
             access_token = create_access_token(subject=user.id)
             refresh_token = create_refresh_token(subject=user.id)
@@ -275,8 +303,7 @@ class AuthService:
 
         user.is_active = True
         user.email_verified_at = datetime.now(timezone.utc)
-        await self.db.commit()
-        await self.seed_new_user_data(user.id)
+        await self._provision_user_workspace(user.id)
         return {"detail": "Email verified successfully"}
 
     async def resend_verification_email(self, email: str):
