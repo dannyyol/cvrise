@@ -14,11 +14,13 @@ def get_cover_letter_service(
 ) -> CoverLetterService:
     return CoverLetterService(db, user)
 
-@router.get("/", response_model=list[CoverLetterItem])
+@router.get("", response_model=list[CoverLetterItem])
+@router.get("/", response_model=list[CoverLetterItem], include_in_schema=False)
 async def list_cover_letters(resume_id: str, service: CoverLetterService = Depends(get_cover_letter_service)):
     return await service.list_cover_letters(resume_id)
 
-@router.post("/", response_model=CoverLetterItem)
+@router.post("", response_model=CoverLetterItem)
+@router.post("/", response_model=CoverLetterItem, include_in_schema=False)
 async def create_cover_letter(resume_id: str, body: CoverLetterCreate, service: CoverLetterService = Depends(get_cover_letter_service)):
     return await service.create_cover_letter(resume_id, body)
 
