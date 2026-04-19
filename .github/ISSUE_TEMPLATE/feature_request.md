@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea for CVForge
+about: Suggest an idea for CVRise
 title: '[FEATURE] '
 labels: ['enhancement', 'needs-discussion']
 assignees: ''
@@ -19,7 +19,7 @@ Describe the solution you'd like to see implemented.
 Describe any alternative solutions or features you've considered.
 
 ## Feature Category
-Which area of CVForge would this feature affect?
+Which area of CVRise would this feature affect?
 - [ ] CV Templates
 - [ ] Text Customization
 - [ ] AI Review System

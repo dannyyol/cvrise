@@ -224,55 +224,55 @@
   .education-form .checkbox-label { @apply text-[11px] font-medium text-slate-600; }
   .education-form .item-card { @apply border-0 shadow-sm; }
   .education-form .item-header { @apply border-b-0; }
-  .education-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .education-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .education-form .input-field-borderless { @apply rounded-2xl; }
   .experience-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .experience-form .checkbox-label { @apply text-[11px] font-medium text-slate-600; }
   .experience-form .item-card { @apply border-0 shadow-sm; }
   .experience-form .item-header { @apply border-b-0; }
-  .experience-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .experience-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .experience-form .input-field-borderless { @apply rounded-2xl; }
   .languages-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .languages-form .item-card { @apply border-0 shadow-sm; }
   .languages-form .item-header { @apply border-b-0; }
-  .languages-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .languages-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .languages-form .input-field-borderless { @apply rounded-2xl; }
   .skills-form .input-field { @apply h-11; }
   .skills-form .input-icon-wrapper { @apply text-slate-400; }
   .skills-form .item-card { @apply border-0 shadow-sm; }
   .skills-form .item-header { @apply border-b-0; }
-  .skills-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .skills-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .skills-form .input-field-borderless { @apply rounded-2xl; }
   .websites-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .websites-form .item-card { @apply border-0 shadow-sm; }
   .websites-form .item-header { @apply border-b-0; }
-  .websites-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .websites-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .websites-form .input-field-borderless { @apply rounded-2xl; }
   .projects-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .projects-form .project-card { @apply border-0 shadow-sm; }
   .projects-form .project-header { @apply bg-white hover:bg-gray-50/50; }
-  .projects-form .project-content { @apply border-t-0 p-0 bg-transparent; }
+  .projects-form .project-content { @apply border-t-0 p-4 bg-transparent; }
   .projects-form .input-field-borderless { @apply rounded-2xl; }
   .awards-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .awards-form .checkbox-label { @apply text-[11px] font-medium text-slate-600; }
   .awards-form .item-card { @apply border-0 shadow-sm; }
   .awards-form .item-header { @apply border-b-0; }
-  .awards-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .awards-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .awards-form .input-field-borderless { @apply rounded-2xl; }
   .publications-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .publications-form .item-card { @apply border-0 shadow-sm; }
   .publications-form .item-header { @apply border-b-0; }
-  .publications-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .publications-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .publications-form .input-field-borderless { @apply rounded-2xl; }
   .certifications-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .certifications-form .item-card { @apply border-0 shadow-sm; }
   .certifications-form .item-header { @apply border-b-0; }
-  .certifications-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .certifications-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .certifications-form .input-field-borderless { @apply rounded-2xl; }
   .interests-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .interests-form .item-card { @apply border-0 shadow-sm; }
   .interests-form .item-header { @apply border-b-0; }
-  .interests-form .item-content { @apply border-t-0 p-0 bg-transparent; }
+  .interests-form .item-content { @apply border-t-0 p-4 bg-transparent; }
   .interests-form .input-field-borderless { @apply rounded-2xl; }
 
   .textarea-field {

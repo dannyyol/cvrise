@@ -1,13 +1,13 @@
 ---
 name: Question
-about: Ask a question about CVForge
+about: Ask a question about CVRise
 title: '[QUESTION] '
 labels: ['question']
 assignees: ''
 ---
 
 ## Question
-What would you like to know about CVForge?
+What would you like to know about CVRise?
 
 ## Context
 Please provide any relevant context that might help us answer your question better.
@@ -23,7 +23,7 @@ Please check all that apply:
 ## Environment (if relevant)
 - **OS**: [e.g. macOS, Windows, Linux]
 - **Browser**: [e.g. Chrome, Firefox, Safari]
-- **CVForge Setup**: [e.g. local development, self-hosted, specific branch]
+- **CVRise Setup**: [e.g. local development, self-hosted, specific branch]
 
 ## Additional Details
 Any additional information that might be helpful for answering your question.

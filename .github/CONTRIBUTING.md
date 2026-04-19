@@ -1,17 +1,21 @@
-# Contributing to CVForge
+# Contributing to CVRise
 
-Thank you for your interest in contributing to CVForge! This guide will help you get started with the development environment and contribution process.
+Thank you for your interest in contributing to CVRise! This guide covers local setup, workflows, and expectations for pull requests.
 
 ## Getting Started
 
-### Prerequisites
+### Prerequisites (Recommended)
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (v18 or higher)
-- **Python** (v3.13 or higher)
-- **pnpm** (recommended) or **npm** or **yarn**
-- **Ollama** (for AI review functionality)
+- Docker + Docker Compose
+- Make (optional)
+
+### Prerequisites (No Docker)
+- Node.js >= 20.9
+- pnpm (recommended) or npm
+- Python 3.12+
+- A MySQL database
 
 ### Fork and Clone
 
@@ -24,100 +28,47 @@ Before you begin, ensure you have the following installed:
 
 ## Development Setup
 
-### 1. Install and Set Up Ollama
+### Option A: Docker (Recommended)
 
-Ollama is required for the AI review functionality.
-
-**macOS:**
+From the repo root:
 ```bash
-# Download and install from https://ollama.ai
-# Or using Homebrew:
-brew install ollama
+make dev
 ```
 
-**Linux:**
+URLs:
+- App: http://localhost:3000
+- API docs: http://localhost:8000/docs
+
+### Option B: No Docker
+
+1) Create env files:
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
+cp server/env.example server/.env
+cp client/env.example client/.env
 ```
 
-**Windows:**
-```bash
-# Download installer from https://ollama.ai
-```
-
-**Start Ollama and pull a model:**
-```bash
-# Start Ollama service
-ollama serve
-
-```
-
-### 2. Set Up the Frontend (Client)
-
-```bash
-cd client
-pnpm install
-# or
-npm install
-```
-
-### 3. Set Up the Backend (Server)
-
-```bash
-cd ../server
-pip install -r requirements.txt
-```
-
-### 4. Configure Environment Variables
-
-```bash
-# In the server directory
-cp env.example .env
-# Edit .env with your preferred settings
-```
-
-### 5. Running the Application
-
-**Start the backend server:**
+2) Server:
 ```bash
 cd server
+python -m pip install -r requirements.txt
+python -m playwright install chromium
+alembic upgrade heads
+python -m src.cli seed
 python -m uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-**Start the frontend development server:**
+3) Client:
 ```bash
 cd client
+pnpm install
 pnpm dev
 ```
-
-**Open your browser:**
-Navigate to `http://localhost:5173` to start developing!
-
-### 6. Generating Thumbnails (Optional)
-
-CVForge includes a thumbnail generation system for template previews:
-
-**Prerequisites:**
-- Ensure both frontend and backend servers are running
-- The application should be accessible at `http://localhost:5173`
-
-**Generate thumbnails:**
-```bash
-cd client
-pnpm generate-thumbnails
-```
-
-The script will:
-- Use Puppeteer to take screenshots of each template
-- Generate thumbnails at 400x500 resolution
-- Save thumbnails to `client/public/thumbnails/`
-- Support templates: classic, legacy, professional
 
 ## How to Contribute
 
 ### Development Workflow
 
-1. **Create a new branch** for your feature or bug fix:
+1. **Create a new branch** for your change:
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -138,9 +89,21 @@ The script will:
 
 ### Coding Standards
 
-- **Frontend**: Follow TypeScript and React best practices
-- **Backend**: Follow Python PEP 8 style guidelines
-- **Commits**: Use conventional commit messages (feat, fix, docs, style, refactor, test, chore)
+- Keep changes focused and readable.
+- Prefer existing patterns/utilities in the codebase.
+- Commits: use conventional commit prefixes (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`).
+
+### Before Opening a PR
+
+Run the checks that CI runs:
+- Client (from `client/`):
+  - `pnpm run lint`
+  - `pnpm exec tsc -p tsconfig.json --noEmit`
+  - `pnpm run test`
+  - `pnpm run build`
+- Server (from `server/`):
+  - `python -m compileall src`
+  - `python -m pytest tests -q`
 
 ### Pull Request Process
 
@@ -152,7 +115,7 @@ The script will:
 
 ### Areas for Contribution
 
-- **Beginner**: CV template design, documentation improvements
+- **Beginner**: Template tweaks, documentation improvements
 - **Intermediate**: Frontend components, UI/UX enhancements
 - **Advanced**: Backend architecture, AI integration, testing
 

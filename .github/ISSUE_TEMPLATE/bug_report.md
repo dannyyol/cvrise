@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve CVForge
+about: Create a report to help us improve CVRise
 title: '[BUG] '
 labels: ['bug', 'needs-triage']
 assignees: ''
@@ -27,7 +27,7 @@ If applicable, add screenshots to help explain your problem.
 ## Environment
 - **OS**: [e.g. macOS 14.0, Windows 11, Ubuntu 22.04]
 - **Browser**: [e.g. Chrome 120, Firefox 121, Safari 17]
-- **CVForge Version**: [e.g. latest main branch, specific commit hash]
+- **CVRise Version**: [e.g. latest main branch, specific commit hash]
 - **Template Used**: [e.g. Classic, Legacy, Professional]
 
 ## CV Data (if relevant)
