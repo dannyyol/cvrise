@@ -26,8 +26,6 @@ class AuthService:
         self.db = db
         self.resume_seeder = ResumeSeeder()
         self.resume_data_seeder = ResumeDataMigrationSeeder()
-        self.cover_letter_template_seeder = CoverLetterTemplateSeeder()
-        self.ai_model_seeder = AIModelSeeder()
         self.billing_seeder = BillingSeeder()
 
     async def authenticate_user(self, user_in: UserLogin) -> Token:
@@ -70,8 +68,6 @@ class AuthService:
         """Seed initial data for a new user."""
         await self.resume_seeder.run(self.db, user_id=user_id)
         await self.resume_data_seeder.run(self.db, user_id=user_id)
-        await self.cover_letter_template_seeder.run(self.db)
-        await self.ai_model_seeder.run(self.db)
         await self.billing_seeder.run(self.db, user_id=user_id)
 
     @staticmethod
