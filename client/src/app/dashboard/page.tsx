@@ -2,21 +2,43 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from "next/navigation";
-import { Plus, MoreVertical, ExternalLink, Clock, Upload, Loader2 } from 'lucide-react';
+import { Plus, ExternalLink, Clock, Upload, Loader2 } from 'lucide-react';
 import { resumeService } from '@/src/services/resumeService';
 import type { ResumeSummary } from '@/src/services/resumeService';
+import type { CoverLetterTemplateId } from '@/src/types/resume';
 import { useCVStore } from '@/src/store/useCVStore';
 import { CreateResumeModal } from '@/src/components/Resumes/Modals/CreateResumeModal';
+import { RenameResumeModal } from '@/src/components/Resumes/Modals/RenameResumeModal';
+import { DeleteResumeModal } from '@/src/components/Resumes/Modals/DeleteResumeModal';
+import { JobContextModal } from '@/src/components/Resumes/Editor/JobContextModal';
+import { CoverLetterHistoryDrawer } from '@/src/components/CoverLetters/Editor/CoverLetterHistoryDrawer';
+import { ResumeCardMenu } from '@/src/components/Resumes/ResumeCardMenu';
 import { motion } from 'framer-motion';
 import { ROUTES } from '@/src/lib/routes';
 
 export default function DashboardPage () {
   const router = useRouter();
-  const { setCurrentResumeId } = useCVStore();
+  const {
+    setCurrentResumeId,
+    fetchResumeById,
+    currentResumeId,
+    generateCoverLetter,
+    setDocumentMode,
+    fetchTemplates,
+  } = useCVStore();
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [resumeToRename, setResumeToRename] = useState<ResumeSummary | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isJobContextOpen, setIsJobContextOpen] = useState(false);
+  const [resumeToTailor, setResumeToTailor] = useState<string | null>(null);
+  const [historyForResume, setHistoryForResume] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -37,7 +59,8 @@ export default function DashboardPage () {
       }
     };
     loadData();
-  }, [setCurrentResumeId]);
+    fetchTemplates();
+  }, [fetchTemplates, setCurrentResumeId]);
 
   const handleCreateResume = async (title: string, createAndTailor: boolean) => {
     try {
@@ -66,6 +89,115 @@ export default function DashboardPage () {
     } finally {
       setIsUploading(false);
       if (event.target) event.target.value = '';
+    }
+  };
+
+  const handleTailorToJob = async (e: React.MouseEvent, resumeId: string) => {
+    e.stopPropagation();
+    try {
+      await fetchResumeById(resumeId);
+      setResumeToTailor(resumeId);
+      setIsJobContextOpen(true);
+    } catch {
+    }
+  };
+
+  const handleOpenCoverLetterHistory = async (e: React.MouseEvent, resumeId: string) => {
+    e.stopPropagation();
+    try {
+      await fetchResumeById(resumeId);
+      setHistoryForResume(resumeId);
+      setIsHistoryOpen(true);
+    } catch {
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setResumeToDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!resumeToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await resumeService.deleteResume(resumeToDelete);
+      setResumes(resumes.filter((r) => r.id !== resumeToDelete));
+      setResumeToDelete(null);
+    } catch {
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleRenameClick = (e: React.MouseEvent, resume: ResumeSummary) => {
+    e.stopPropagation();
+    setResumeToRename(resume);
+    setIsRenameModalOpen(true);
+  };
+
+  const handleConfirmRename = async (title: string) => {
+    if (!resumeToRename || !title.trim()) return;
+
+    try {
+      setIsRenaming(true);
+      const fullResume = await resumeService.getResumeById(resumeToRename.id);
+      const updatedResume = { ...fullResume, title: title.trim() };
+      await resumeService.updateResume(resumeToRename.id, updatedResume);
+      setResumes(
+        resumes.map((r) =>
+          r.id === resumeToRename.id
+            ? { ...r, title: title.trim(), updatedAt: new Date().toISOString() }
+            : r
+        )
+      );
+      setIsRenameModalOpen(false);
+      setResumeToRename(null);
+    } catch {
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleGenerateTailoredContent = async (
+    jobTitle: string,
+    jobDescription: string,
+    options: {
+      tailorResume: boolean;
+      generateCoverLetter: boolean;
+      templateKey: CoverLetterTemplateId;
+    }
+  ) => {
+    if (options.generateCoverLetter) {
+      const company = jobTitle.split(' at ')[1] || 'Company';
+      setDocumentMode('cover-letter');
+      await generateCoverLetter({
+        title: `${jobTitle} @ ${company}`,
+        recipientName: 'Hiring Manager',
+        recipientTitle: 'Hiring Manager',
+        companyName: company,
+        companyAddress: '',
+        jobTitle,
+        jobDescription,
+        templateKey: options.templateKey,
+      });
+    } else {
+      setDocumentMode('resume');
+    }
+
+    if (options.tailorResume) {
+      await useCVStore.getState().tailorResume({
+        jobTitle,
+        jobDescription,
+      });
+      setDocumentMode('resume');
+    }
+
+    const idToOpen = resumeToTailor;
+    if (idToOpen) {
+      setCurrentResumeId(idToOpen);
+      router.push(ROUTES.EDITOR);
     }
   };
 
@@ -128,10 +260,10 @@ export default function DashboardPage () {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 key={resume.id}
-                className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden h-72 flex flex-col"
+                className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-visible h-72 flex flex-col"
               >
                 <div 
-                  className="flex-1 bg-slate-50 p-6 relative overflow-hidden cursor-pointer"
+                  className="flex-1 bg-slate-50 p-6 relative overflow-hidden rounded-t-3xl cursor-pointer"
                   onClick={() => {
                     setCurrentResumeId(resume.id);
                     router.push(ROUTES.EDITOR);
@@ -181,9 +313,12 @@ export default function DashboardPage () {
                     </div>
                   </div>
                   
-                  <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
+                  <ResumeCardMenu
+                    onTailorToJob={(e) => handleTailorToJob(e, resume.id)}
+                    onCoverLetter={(e) => handleOpenCoverLetterHistory(e, resume.id)}
+                    onRename={(e) => handleRenameClick(e, resume)}
+                    onDelete={(e) => handleDeleteClick(e, resume.id)}
+                  />
                 </div>
               </motion.div>
             ))}
@@ -196,6 +331,34 @@ export default function DashboardPage () {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateResume}
         isCreating={isCreating}
+      />
+      <DeleteResumeModal
+        isOpen={!!resumeToDelete}
+        onClose={() => setResumeToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
+      <RenameResumeModal
+        isOpen={isRenameModalOpen}
+        onClose={() => setIsRenameModalOpen(false)}
+        onSubmit={handleConfirmRename}
+        initialTitle={resumeToRename?.title || ''}
+        isRenaming={isRenaming}
+      />
+      <JobContextModal
+        isOpen={isJobContextOpen}
+        onClose={() => setIsJobContextOpen(false)}
+        onGenerate={handleGenerateTailoredContent}
+      />
+      <CoverLetterHistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelect={() => {
+          const id = historyForResume || currentResumeId;
+          if (id) {
+            router.push(`${ROUTES.EDITOR}?source=cover-letter-history`);
+          }
+        }}
       />
     </div>
   );

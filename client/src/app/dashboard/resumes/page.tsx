@@ -16,6 +16,7 @@ import { CoverLetterHistoryDrawer } from '../../../components/CoverLetters/Edito
 import { CreateResumeModal } from '../../../components/Resumes/Modals/CreateResumeModal';
 import { RenameResumeModal } from '../../../components/Resumes/Modals/RenameResumeModal';
 import { DeleteResumeModal } from '../../../components/Resumes/Modals/DeleteResumeModal';
+import { ResumeCardMenu } from '../../../components/Resumes/ResumeCardMenu';
 import { ROUTES } from '../../../lib/routes';
 
 export default function ResumesPage() {
@@ -112,6 +113,16 @@ export default function ResumesPage() {
       await fetchResumeById(resumeId);
       setResumeToTailor(resumeId);
       setIsJobContextOpen(true);
+    } catch {
+    }
+  };
+
+  const handleOpenCoverLetterHistory = async (e: React.MouseEvent, resumeId: string) => {
+    e.stopPropagation();
+    try {
+      await fetchResumeById(resumeId);
+      setHistoryForResume(resumeId);
+      setIsHistoryOpen(true);
     } catch {
     }
   };
@@ -310,9 +321,9 @@ export default function ResumesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => handleSelectResume(resume.id)}
-              className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer relative"
+              className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-visible hover:border-blue-500/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer relative"
             >
-              <div className="h-40 bg-slate-100 border-b border-slate-100 relative overflow-hidden flex items-center justify-center">
+              <div className="h-40 bg-slate-100 border-b border-slate-100 relative overflow-hidden flex items-center justify-center rounded-t-2xl">
                  <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100" />
                  <FileText className="w-16 h-16 text-slate-300 relative z-10 group-hover:scale-110 transition-transform duration-500" />
                  
@@ -363,13 +374,22 @@ export default function ResumesPage() {
               </div>
 
               <div className="p-5 flex flex-col gap-4">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                    {resume.title || 'Untitled Resume'}
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">
-                    Last edited on {formatDate(resume.updatedAt)}
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      {resume.title || 'Untitled Resume'}
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                      Last edited on {formatDate(resume.updatedAt)}
+                    </p>
+                  </div>
+                  <ResumeCardMenu
+                    onTailorToJob={(e) => handleTailorToJob(e, resume.id)}
+                    onCoverLetter={(e) => handleOpenCoverLetterHistory(e, resume.id)}
+                    onRename={(e) => handleRenameClick(e, resume)}
+                    onDelete={(e) => handleDeleteClick(e, resume.id)}
+                    className="md:hidden"
+                  />
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-50 pt-4 mt-auto">
