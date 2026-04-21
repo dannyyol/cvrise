@@ -18,7 +18,7 @@ interface AISettingsProps {
 
 export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   const [models, setModels] = useState<AIModel[]>([]);
-  const [selectedModelId, setSelectedModelId] = useState<string>('');
+  const [selectedModelId, setSelectedModelId] = useState<string>('gpt-4o');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
@@ -150,13 +150,11 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
         type: 'success', 
         isVisible: true 
       });
-    } catch {
-      setUsePayAsYouGo(!enabled); // Rollback
-      setToast({ 
-        message: 'Failed to update usage mode. Please try again.', 
-        type: 'error', 
-        isVisible: true 
-      });
+    } catch (error: unknown) {
+      setUsePayAsYouGo(!enabled);
+      const detail = getErrorDetail(error);
+      const errorMessage = typeof detail === 'string' ? detail : 'Failed to update usage mode. Please try again';
+      setToast({ message: errorMessage, type: 'error', isVisible: true });
     } finally {
       setIsUpdatingMode(false);
     }

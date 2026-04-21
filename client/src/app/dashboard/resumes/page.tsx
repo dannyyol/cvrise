@@ -306,7 +306,7 @@ export default function ResumesPage() {
           
           <button
             onClick={handleCreateClick}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-500 text-white rounded-xl font-medium hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-700 transition-all shadow-sm hover:shadow-md active:scale-95 w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             Create New

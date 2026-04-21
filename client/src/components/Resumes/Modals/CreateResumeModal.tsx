@@ -71,7 +71,7 @@ export const CreateResumeModal = ({
           <button
             type="submit"
             disabled={!title.trim() || isCreating}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
             {isCreating ? 'Creating...' : 'Create Resume'}

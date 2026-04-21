@@ -262,8 +262,9 @@ class CoverLetterService:
         )
         self.db.add(cl)
         resume.updated_at = datetime.utcnow()
-        await self.db.commit()
-        return CoverLetterItem(
+        await self.db.flush()
+        await self.db.refresh(cl)
+        item = CoverLetterItem(
             id=cl.id,
             title=cl.name,
             recipient_name=cl.recipient_name,
@@ -279,6 +280,8 @@ class CoverLetterService:
             created_at=cl.created_at.isoformat() if cl.created_at else None,
             updated_at=cl.updated_at.isoformat() if cl.updated_at else None,
         )
+        await self.db.commit()
+        return item
 
     async def generate_cover_letter(self, resume_id: str, body: CoverLetterGenerateRequest) -> CoverLetterItem:
         try:
@@ -324,10 +327,9 @@ class CoverLetterService:
             )
             self.db.add(cl)
             resume.updated_at = datetime.utcnow()
-            if is_platform_mode:
-                await plan_service.deduct_tokens(cost, "Cover Letter Generation")
-            await self.db.commit()
-            return CoverLetterItem(
+            await self.db.flush()
+            await self.db.refresh(cl)
+            item = CoverLetterItem(
                 id=cl.id,
                 title=cl.name,
                 recipient_name=cl.recipient_name,
@@ -343,6 +345,11 @@ class CoverLetterService:
                 created_at=cl.created_at.isoformat() if cl.created_at else None,
                 updated_at=cl.updated_at.isoformat() if cl.updated_at else None,
             )
+            if is_platform_mode:
+                await plan_service.deduct_tokens(cost, "Cover Letter Generation")
+            else:
+                await self.db.commit()
+            return item
         except HTTPException:
             raise
         except Exception as e:
