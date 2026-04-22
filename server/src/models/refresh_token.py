@@ -7,7 +7,6 @@ from sqlalchemy.sql import func
 
 from src.database import Base
 
-
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 

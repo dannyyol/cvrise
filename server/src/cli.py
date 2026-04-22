@@ -34,7 +34,6 @@ SEEDERS = {
 def get_alembic_config():
     """
     Get the Alembic configuration.
-    Assumes alembic.ini is in the current working directory or parent directory.
     """
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     alembic_cfg = Config(os.path.join(base_dir, "alembic.ini"))
@@ -104,7 +103,6 @@ def refresh(seed_data: bool = typer.Option(True, help="Whether to seed the datab
 def reset():
     """
     Reset the database: Drop all tables and recreate them empty (no seeding).
-    Handles SQLite by removing the file directly.
     """
     settings = get_settings()
     if settings.DATABASE_URL.startswith("sqlite"):

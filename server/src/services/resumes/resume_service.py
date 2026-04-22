@@ -397,7 +397,7 @@ class ResumeService:
 
     async def upload_resume(self, file: UploadFile) -> ResumeResponse:
         """
-        Upload a PDF resume, parse it with AI, and create a new resume entry.
+        This method upload a PDF resume, parse it with AI, and create a new resume entry.
         """
         try:
             content = await file.read()

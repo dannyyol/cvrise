@@ -108,7 +108,7 @@ class PlanService:
                         'product_data': {
                             'name': f"{plan.name} Plan ({plan.tokens} Tokens)",
                         },
-                        'unit_amount': int(plan.price * 100), # Amount in cents
+                        'unit_amount': int(plan.price * 100),
                     },
                     'quantity': 1,
                 }],

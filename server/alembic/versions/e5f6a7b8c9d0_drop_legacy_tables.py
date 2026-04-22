@@ -18,10 +18,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-def upgrade() -> None:
-    # Drop tables in reverse order of dependency
-    # Note: websites, languages, interests are skipped as they do not exist in the DB
-    
+def upgrade() -> None:    
     op.drop_table('custom_section_items')
     op.drop_table('awards')
     op.drop_table('publications')
@@ -35,9 +32,7 @@ def upgrade() -> None:
     op.drop_table('sections')
 
 
-def downgrade() -> None:
-    # Recreate tables (simplified schema for restoration if needed)
-    
+def downgrade() -> None:    
     op.create_table('sections',
         sa.Column('id', sa.String(length=36), nullable=False),
         sa.Column('resume_id', sa.String(length=36), nullable=False),
@@ -49,7 +44,6 @@ def downgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
     
-    # Common columns for section items
     section_fk = sa.ForeignKeyConstraint(['section_id'], ['sections.id'], )
     
     op.create_table('work_experiences',

@@ -879,8 +879,8 @@
   .homepage .nav-mobile-actions { flex-direction: column; }
   .homepage .nav-mobile-actions .btn-login,
   .homepage .nav-mobile-actions .btn-nav-cta { width: 100%; }
-  .homepage .hero-trust { gap: 8px; margin-top: 22px; justify-content: flex-start; max-width: 360px; margin-left: auto; margin-right: auto; }
-  .homepage .ht { width: auto; justify-content: flex-start; font-size: 0.85rem; }
+  .homepage .hero-trust { gap: 8px; margin-top: 22px; justify-content: center; max-width: 360px; margin-left: auto; margin-right: auto; }
+  .homepage .ht { width: auto; justify-content: center; font-size: 0.85rem; }
   .homepage .ht-sep { display: none; }
   .homepage .section { padding: 64px 16px; }
   .homepage .cta-wrap { padding: 36px 16px; }
