@@ -3,12 +3,13 @@ import { useCVStore } from '../../../../store/useCVStore';
 import { Input } from '../../../ui/Form';
 import { RichTextEditor } from '../../../ui/RichTextEditor';
 import { User, Building2, MapPin, RefreshCw, Briefcase, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '../../../ui/Card';
 
 export const CoverLetterForm = () => {
   const { cvData, updateCoverLetter, generateCoverLetter } = useCVStore();
   const { coverLetter } = cvData;
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isRecipientOpen, setIsRecipientOpen] = useState(false);
+  const [isRecipientOpen, setIsRecipientOpen] = useState(true);
 
   if (!coverLetter) return null;
 
@@ -44,8 +45,8 @@ export const CoverLetterForm = () => {
 
   return (
     <div className="form-container cover-letter-form">
-      <div className="bg-white rounded-xl border border-gray-200/60 shadow-sm p-6 space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+      <Card variant="accordion" topBorder shadow={false} className="group mb-4">
+        <CardHeader className="editor-section-header">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm border border-blue-100/50">
               <User className="w-5 h-5" />
@@ -66,10 +67,10 @@ export const CoverLetterForm = () => {
               <ChevronDown className="w-4 h-4" />
             )}
           </button>
-        </div>
+        </CardHeader>
 
         {isRecipientOpen ? (
-          <>
+          <CardContent className="editor-section-content">
             <div className="form-grid-2">
               <Input
                 label="Hiring Manager Name"
@@ -111,12 +112,12 @@ export const CoverLetterForm = () => {
                 className="input-field-borderless"
               />
             </div>
-          </>
+          </CardContent>
         ) : null}
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl border border-gray-200/60 shadow-sm p-6 space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+      <Card variant="accordion" topBorder shadow={false} className="group">
+        <CardHeader className="editor-section-header">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm border border-blue-100/50">
               <FileText className="w-5 h-5" />
@@ -143,16 +144,18 @@ export const CoverLetterForm = () => {
               </>
             )}
           </button>
-        </div>
+        </CardHeader>
 
-        <RichTextEditor
-          label="Body Content"
-          value={coverLetter.content}
-          onChange={handleContentChange}
-          placeholder="Dear Hiring Manager..."
-          className="rich-text-container-borderless min-h-[400px]"
-        />
-      </div>
+        <CardContent className="editor-section-content space-y-4">
+          <RichTextEditor
+            label="Body Content"
+            value={coverLetter.content}
+            onChange={handleContentChange}
+            placeholder="Dear Hiring Manager..."
+            className="rich-text-container-borderless min-h-[400px]"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };

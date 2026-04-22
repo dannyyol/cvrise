@@ -13,6 +13,7 @@ interface CVStore {
   coverLetterGenerationMode: 'local' | 'ai';
   selectedTemplate: TemplateId;
   currentResumeId: string | null;
+  currentResumeTitle: string | null;
   lastSaved: Date | null;
   isLoading: boolean;
   isSaving: boolean;
@@ -174,6 +175,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   coverLetterGenerationMode: 'local',
   selectedTemplate: 'classic',
   currentResumeId: null,
+  currentResumeTitle: null,
   lastSaved: null,
   isLoading: false,
   isSaving: false,
@@ -189,6 +191,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
     aiAnalysis: null,
     activeDocumentMode: 'resume',
     currentResumeId: null,
+    currentResumeTitle: null,
     lastSaved: null,
     isLoading: false,
     isSaving: false,
@@ -239,6 +242,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
         aiAnalysis: nextAIAnalysis ?? null,
         selectedTemplate: data.template_key,
         currentResumeId: data.id,
+        currentResumeTitle: data.title,
         lastSaved: new Date(data.updatedAt),
         isLoading: false,
         isDirty: false
@@ -271,6 +275,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
         aiAnalysis: nextAIAnalysis ?? null,
         selectedTemplate: data.template_key,
         currentResumeId: data.id,
+        currentResumeTitle: data.title,
         lastSaved: new Date(data.updatedAt),
         isLoading: false,
         isDirty: false
@@ -285,7 +290,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   saveResume: async () => {
-    const { currentResumeId, cvData, selectedTemplate, isSaving } = get();
+    const { currentResumeId, currentResumeTitle, cvData, selectedTemplate, isSaving } = get();
     if (!currentResumeId || isSaving) return;
 
     set({ isSaving: true });
@@ -293,13 +298,14 @@ export const useCVStore = create<CVStore>((set, get) => ({
       const payload = {
         ...cvData,
         id: currentResumeId,
+        title: currentResumeTitle ?? 'Untitled Resume',
         template_id: selectedTemplate,
         template_key: selectedTemplate,
         createdAt: get().lastSaved?.toISOString() || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       const response = await resumeService.updateResume(currentResumeId, payload);
-      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), isDirty: false });
+      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), currentResumeTitle: response.title, isDirty: false });
     } catch (error) {
       set({ isSaving: false, error: 'Failed to save changes' });
       throw error;
@@ -307,7 +313,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   saveAIAnalysis: async (analysis) => {
-    const { currentResumeId, cvData, selectedTemplate, isSaving } = get();
+    const { currentResumeId, currentResumeTitle, cvData, selectedTemplate, isSaving } = get();
     if (!currentResumeId || isSaving) return;
 
     set({ isSaving: true, aiAnalysis: analysis });
@@ -315,6 +321,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       const payload = {
         ...cvData,
         id: currentResumeId,
+        title: currentResumeTitle ?? 'Untitled Resume',
         template_id: selectedTemplate,
         template_key: selectedTemplate,
         aiAnalysis: analysis,
@@ -322,7 +329,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
         updatedAt: new Date().toISOString(),
       };
       const response = await resumeService.updateResume(currentResumeId, payload);
-      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), isDirty: false });
+      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), currentResumeTitle: response.title, isDirty: false });
     } catch (error) {
       set({ isSaving: false, error: 'Failed to save AI analysis' });
       throw error;
@@ -457,6 +464,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       },
       selectedTemplate: updated.template_key,
       currentResumeId: updated.id,
+      currentResumeTitle: updated.title,
       lastSaved: new Date(updated.updatedAt),
       isDirty: false,
       error: null,

@@ -51,7 +51,7 @@ function EditorPageContent() {
     }
   }, [activeDocumentMode, templates, coverLetterTemplates, selectedTemplate, coverLetterTemplateKey]);
 
-  const [openSectionId, setOpenSectionId] = useState<string | null>('personal');
+  const [collapsedSectionIds, setCollapsedSectionIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
   const [showAdditionalSections, setShowAdditionalSections] = useState(false);
   const [isJobContextOpen, setIsJobContextOpen] = useState(false);
@@ -176,7 +176,7 @@ function EditorPageContent() {
   };
 
   const handleToggle = (id: string) => {
-      setOpenSectionId(openSectionId === id ? null : id);
+    setCollapsedSectionIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const orderedEditorSections = cvData.sections
@@ -362,7 +362,7 @@ function EditorPageContent() {
                             <SortableSectionItem
                               key={section.id}
                               section={section}
-                              isOpen={openSectionId === section.id}
+                              isOpen={!collapsedSectionIds.includes(section.id)}
                               onToggle={() => handleToggle(section.id)}
                               columnLabel="Main"
                             />
@@ -376,7 +376,7 @@ function EditorPageContent() {
                             <SortableSectionItem
                               key={section.id}
                               section={section}
-                              isOpen={openSectionId === section.id}
+                              isOpen={!collapsedSectionIds.includes(section.id)}
                               onToggle={() => handleToggle(section.id)}
                               columnLabel="Sidebar"
                             />
@@ -387,7 +387,7 @@ function EditorPageContent() {
                           <SortableSectionItem
                             key={section.id}
                             section={section}
-                            isOpen={openSectionId === section.id}
+                            isOpen={!collapsedSectionIds.includes(section.id)}
                             onToggle={() => handleToggle(section.id)}
                           />
                         ))

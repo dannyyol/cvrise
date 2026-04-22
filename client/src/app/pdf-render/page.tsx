@@ -23,24 +23,26 @@ function PdfRenderPageContent() {
 
   const data: TemplateProps | null = exportPayload?.data ?? null;
 
-  const templateType = useMemo<'resume' | 'cover-letter' | null>(() => {
-    if (!templateKey) return null;
-    if (isTemplateId(templateKey)) return 'resume';
-    if (isCoverLetterTemplateId(templateKey)) return 'cover-letter';
-    return null;
+  const templateInfo = useMemo<{ type: 'resume' | 'cover-letter' | null; key: string | null }>(() => {
+    if (!templateKey) return { type: null, key: null };
+    if (templateKey.startsWith('r_')) return { type: 'resume', key: templateKey.slice(2) };
+    if (templateKey.startsWith('cl_')) return { type: 'cover-letter', key: templateKey.slice(3) };
+    if (isCoverLetterTemplateId(templateKey)) return { type: 'cover-letter', key: templateKey };
+    if (isTemplateId(templateKey)) return { type: 'resume', key: templateKey };
+    return { type: null, key: null };
   }, [templateKey]);
 
   const ResumeTemplateComponent = useMemo(() => {
-    if (templateType !== 'resume' || !templateKey) return null;
-    return TEMPLATE_COMPONENTS[templateKey];
-  }, [templateKey, templateType]);
+    if (templateInfo.type !== 'resume' || !templateInfo.key) return null;
+    return TEMPLATE_COMPONENTS[templateInfo.key];
+  }, [templateInfo]);
 
   const CoverLetterTemplateComponent = useMemo(() => {
-    if (templateType !== 'cover-letter' || !templateKey) return null;
-    return COVER_LETTER_TEMPLATE_COMPONENTS[templateKey] ?? COVER_LETTER_TEMPLATE_COMPONENTS['soft-modern'];
-  }, [templateKey, templateType]);
+    if (templateInfo.type !== 'cover-letter' || !templateInfo.key) return null;
+    return COVER_LETTER_TEMPLATE_COMPONENTS[templateInfo.key] ?? COVER_LETTER_TEMPLATE_COMPONENTS['soft-modern'];
+  }, [templateInfo]);
 
-  if (!templateKey || !templateType) {
+  if (!templateInfo.key || !templateInfo.type) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-4">
         <div className="w-full max-w-md">
@@ -70,7 +72,7 @@ function PdfRenderPageContent() {
 
   const isExport = true;
 
-  if (templateType === 'resume') {
+  if (templateInfo.type === 'resume') {
     if (!ResumeTemplateComponent) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans p-4">
@@ -87,7 +89,7 @@ function PdfRenderPageContent() {
 
     return (
       <PaginatedPreview
-        templateId={templateKey}
+        templateId={templateInfo.key}
         accentColor={data.theme.primaryColor}
         fontFamily={data.theme.fontFamily}
         fontSize={data.theme.fontSize}
@@ -120,7 +122,7 @@ function PdfRenderPageContent() {
 
   return (
     <PaginatedPreview
-      templateId={templateKey}
+      templateId={templateInfo.key}
       accentColor={clTheme.primaryColor || data.theme.primaryColor}
       fontFamily={clTheme.fontFamily || data.theme.fontFamily}
       fontSize={clTheme.fontSize || data.theme.fontSize}

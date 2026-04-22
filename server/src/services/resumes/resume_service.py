@@ -447,10 +447,12 @@ class ResumeService:
             if "coverLetter" not in parsed_data:
                 parsed_data["coverLetter"] = None
                 
+            raw_filename = file.filename
+            display_filename = raw_filename[:-4] if raw_filename.lower().endswith(".pdf") else raw_filename
             new_resume = Resume(
                 id=resume_id,
                 user_id=self.user_id,
-                title=f"Uploaded: {file.filename}",
+                title=f"Uploaded: {display_filename}",
                 template_id=template_id_to_use,
                 resume_data=parsed_data,
                 create_and_tailor=True

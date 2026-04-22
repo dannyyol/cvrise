@@ -334,7 +334,7 @@
     hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 hover:scale-[1.02];
   }
   .empty-state-icon-dashed {
-    @apply w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600 shadow-sm;
+    @apply w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600;
   }
   .empty-state-icon-circle {
     @apply w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-600;
@@ -343,7 +343,7 @@
     @apply w-full py-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all duration-300 flex items-center justify-center gap-2 font-semibold;
   }
   .btn-cta-blue {
-    @apply inline-flex items-center gap-2 px-6 py-2.5 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-all duration-300 shadow-md hover:shadow-lg font-medium;
+    @apply inline-flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 shadow-none font-semibold;
   }
 
   /* Theme Settings Form Extras */

@@ -4,6 +4,7 @@ import type { AIReviewResponse } from './analysisService';
 
 export interface ResumeApiResponse extends TemplateProps {
   id: string;
+  title: string;
   template_id: string;
   template_key: TemplateId;
   aiAnalysis?: AIReviewResponse | null;

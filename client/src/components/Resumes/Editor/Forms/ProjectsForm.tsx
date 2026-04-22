@@ -211,13 +211,10 @@ export const ProjectsForm = () => {
                     title="No projects added yet"
                     description="Add projects to demonstrate your practical skills."
                     action={
-                        <Button
-                            onClick={() => addProject()}
-                            variant="primary"
-                            leftIcon={<Plus className="w-4 h-4" />}
-                        >
+                        <button onClick={() => addProject()} className="btn-cta-blue">
+                            <Plus className="w-4 h-4" />
                             Add Project
-                        </Button>
+                        </button>
                     }
                 />
             ) : (

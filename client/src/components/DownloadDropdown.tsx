@@ -14,11 +14,15 @@ interface DownloadDropdownProps {
 }
 
 export default function DownloadDropdown({ className = '', menuDirection = 'down', variant = 'dropdown' }: DownloadDropdownProps) {
-  const { cvData, selectedTemplate, activeDocumentMode } = useCVStore();
+  const { cvData, selectedTemplate, activeDocumentMode, currentResumeTitle } = useCVStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({ message: '', type: 'info', isVisible: false });
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const normalizeNameForFilename = (value: string): string => {
+    return value.trim().replace(/\.pdf$/i, '').replace(/\s*pdf$/i, '').trim() || 'CVRise';
+  };
 
   useEffect(() => {
     if (variant !== 'dropdown') return;
@@ -49,10 +53,18 @@ export default function DownloadDropdown({ className = '', menuDirection = 'down
     setIsDownloading(true);
     try {
       const isCoverLetter = activeDocumentMode === 'cover-letter';
-      const payload = isCoverLetter
+      const basePayload = isCoverLetter
         ? buildCoverLetterPayload(cvData)
         : buildCVPayload(cvData, selectedTemplate);
-      const filename = isCoverLetter ? 'cover-letter.pdf' : 'cv.pdf';
+      const prefix = isCoverLetter ? 'cl_' : 'r_';
+      const template =
+        basePayload.template.startsWith('r_') || basePayload.template.startsWith('cl_')
+          ? basePayload.template
+          : `${prefix}${basePayload.template}`;
+      const payload = { ...basePayload, template };
+      const baseName = currentResumeTitle?.trim() ? currentResumeTitle : cvData.personalDetails?.fullName ?? '';
+      const name = normalizeNameForFilename(baseName);
+      const filename = `${name}_CoverLetter.pdf`;
       await exportResumeToPDF(payload, filename);
       setToast({ message: `${isCoverLetter ? 'Cover letter' : 'Resume'} exported successfully!`, type: 'success', isVisible: true });
     } catch {
