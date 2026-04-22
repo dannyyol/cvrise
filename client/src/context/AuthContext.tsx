@@ -29,6 +29,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     let cancelled = false;
 
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/pdf-render')) {
+      setIsLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const init = async () => {
       try {
         const currentUser = await authService.me();

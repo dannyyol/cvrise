@@ -2,7 +2,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 
@@ -24,7 +23,6 @@ class AppSettings(BaseSettings):
 
     CLIENT_BASE_URL: str
     PDF_CLIENT_BASE_URL: Optional[str] = None
-    TOKEN_TTL_SECONDS: int = Field(default=300)
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str

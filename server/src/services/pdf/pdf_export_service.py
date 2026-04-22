@@ -1,30 +1,9 @@
-from fastapi import HTTPException
+import json
 from typing import Any, Dict
-import time
 from loguru import logger
 from playwright.async_api import async_playwright
 
-from src.config import get_settings
-
-_STORE: Dict[str, Dict[str, Any]] = {}
-
-def put_token(token: str, data: Dict[str, Any]) -> None:
-    settings = get_settings()
-    _STORE[token] = {
-        "data": data,
-        "expires": time.time() + int(settings.TOKEN_TTL_SECONDS),
-    }
-
-def get_token(token: str) -> Dict[str, Any]:
-    entry = _STORE.get(token)
-    if not entry:
-        raise HTTPException(status_code=404, detail="Not found")
-    if time.time() > entry["expires"]:
-        _STORE.pop(token, None)
-        raise HTTPException(status_code=410, detail="Expired")
-    return entry["data"]
-
-async def generate_pdf_from_preview(preview_url: str) -> bytes:
+async def generate_pdf_from_preview(preview_url: str, template: str, data: Dict[str, Any]) -> bytes:
     """
     Loads the Next.js PDF render route in a headless browser and prints it to PDF.
 
@@ -58,6 +37,8 @@ async def generate_pdf_from_preview(preview_url: str) -> bytes:
         page.on("pageerror", _on_page_error)
 
         try:
+            export_payload = json.dumps({"template": template, "data": data})
+            await page.add_init_script(f"window.__CV_EXPORT__ = {export_payload};")
             await page.emulate_media(media="screen")
             await page.goto(preview_url, wait_until="domcontentloaded", timeout=navigation_timeout_ms)
             try:
@@ -72,10 +53,6 @@ async def generate_pdf_from_preview(preview_url: str) -> bytes:
                 pass
 
             try:
-                """
-                Primary readiness signal is window.CV_PREVIEW_READY, set by the preview component.
-                Fallback condition: once at least one '.cv-page' exists and the loader icon is gone.
-                """
                 await page.wait_for_function(
                     """() => {
                       if (window.CV_PREVIEW_READY === true) return true;

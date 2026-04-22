@@ -2,7 +2,7 @@ from typing import List, Literal, Union
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.database import get_db
 from src.models.resume import Template
@@ -18,9 +18,7 @@ class ResumeTemplateResponse(BaseModel):
     thumbnail: str
     supports_accent: bool
     sidebar_section_keys: list[str] | None = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CoverLetterTemplateResponse(BaseModel):
     id: str
@@ -28,9 +26,7 @@ class CoverLetterTemplateResponse(BaseModel):
     name: str
     description: str
     guidelines: dict
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 @router.get("/", response_model=List[Union[ResumeTemplateResponse, CoverLetterTemplateResponse]])
 async def get_templates(

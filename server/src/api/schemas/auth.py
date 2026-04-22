@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from src.models.enums import UserRole
 
 class UserCreate(BaseModel):
@@ -19,9 +19,7 @@ class UserResponse(BaseModel):
     is_active: bool
     email_verified_at: datetime | None = None
     role: UserRole
-    
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):
     email: EmailStr

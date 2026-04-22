@@ -13,10 +13,6 @@ REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 RESET_TOKEN_EXPIRE_MINUTES = settings.RESET_TOKEN_EXPIRE_MINUTES
 VERIFY_TOKEN_EXPIRE_HOURS = settings.VERIFY_TOKEN_EXPIRE_HOURS
 
-"""
-Token helpers for auth flows.
-"""
-
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -26,10 +22,6 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-def create_refresh_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-    data = create_refresh_token_data(subject=subject, expires_delta=expires_delta)
-    return data["token"]
 
 def create_refresh_token_data(
     subject: Union[str, Any],

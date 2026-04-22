@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, List, Literal
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, Literal
 from datetime import datetime
 
 class TokenPlanResponse(BaseModel):
@@ -11,18 +11,14 @@ class TokenPlanResponse(BaseModel):
     is_popular: bool
     features: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserBalanceResponse(BaseModel):
     id: str
     user_id: Optional[str] = None
     balance: int
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TokenTransactionResponse(BaseModel):
     id: str
@@ -31,9 +27,7 @@ class TokenTransactionResponse(BaseModel):
     amount: int
     description: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SelectPlanRequest(BaseModel):
     plan_id: str

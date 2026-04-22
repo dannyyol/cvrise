@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Body, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Body, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_db
@@ -24,9 +24,17 @@ from src.utils.security import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+def _should_use_secure_cookies(request: Request) -> bool:
     settings = get_settings()
-    secure = not settings.DEBUG
+    if settings.DEBUG:
+        return False
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    scheme = forwarded_proto or request.url.scheme
+    return scheme == "https"
+
+def _set_auth_cookies(request: Request, response: Response, access_token: str, refresh_token: str) -> None:
+    settings = get_settings()
+    secure = _should_use_secure_cookies(request)
     response.set_cookie(
         key="token",
         value=access_token,
@@ -51,6 +59,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
 @router.post("/login", response_model=AuthSession)
 async def login(
     user_in: UserLogin,
+    request: Request,
     response: Response,
     session: AsyncSession = Depends(get_db)
 ):
@@ -59,12 +68,13 @@ async def login(
     """
     service = AuthService(session)
     token = await service.authenticate_user(user_in)
-    _set_auth_cookies(response, token.access_token, token.refresh_token)
+    _set_auth_cookies(request, response, token.access_token, token.refresh_token)
     return AuthSession(user=token.user)
 
 @router.post("/google", response_model=AuthSession)
 async def google_login(
     google_in: GoogleLoginRequest,
+    request: Request,
     response: Response,
     session: AsyncSession = Depends(get_db)
 ):
@@ -73,11 +83,12 @@ async def google_login(
     """
     service = AuthService(session)
     token = await service.authenticate_google_user(google_in)
-    _set_auth_cookies(response, token.access_token, token.refresh_token)
+    _set_auth_cookies(request, response, token.access_token, token.refresh_token)
     return AuthSession(user=token.user)
 
 @router.post("/refresh", response_model=AuthSession)
 async def refresh_token(
+    request: Request,
     response: Response,
     refresh_in: Optional[RefreshTokenRequest] = Body(default=None),
     refresh_token_cookie: Optional[str] = Cookie(default=None, alias="refresh_token"),
@@ -91,7 +102,7 @@ async def refresh_token(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing refresh token")
     service = AuthService(session)
     token: Token = await service.refresh_access_token(refresh_token_value)
-    _set_auth_cookies(response, token.access_token, token.refresh_token)
+    _set_auth_cookies(request, response, token.access_token, token.refresh_token)
     return AuthSession(user=token.user)
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -111,12 +122,13 @@ async def me(current_user=Depends(get_current_user)):
 
 @router.post("/logout")
 async def logout(
+    request: Request,
     response: Response,
     refresh_token_cookie: Optional[str] = Cookie(default=None, alias="refresh_token"),
     session: AsyncSession = Depends(get_db),
 ):
     settings = get_settings()
-    secure = not settings.DEBUG
+    secure = _should_use_secure_cookies(request)
     service = AuthService(session)
     await service.logout_session(refresh_token_cookie)
     response.delete_cookie(key="token", path="/", httponly=True, secure=secure, samesite="lax")
