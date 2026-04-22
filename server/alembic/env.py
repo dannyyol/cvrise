@@ -12,6 +12,7 @@ from src.config import get_settings
 from src.models.resume import Resume, Template
 from src.models.settings import Setting
 from src.models.ai_model import AIModel
+from src.models.refresh_token import RefreshToken
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

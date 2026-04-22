@@ -25,6 +25,13 @@ class AppSettings(BaseSettings):
     CLIENT_BASE_URL: str
     PDF_CLIENT_BASE_URL: Optional[str] = None
     TOKEN_TTL_SECONDS: int = Field(default=300)
+
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int
+    RESET_TOKEN_EXPIRE_MINUTES: int
+    VERIFY_TOKEN_EXPIRE_HOURS: int
     
     DATABASE_URL: str
     

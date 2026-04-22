@@ -36,6 +36,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
+    refresh_path = f"{settings.API_PREFIX}/auth/refresh"
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -43,7 +44,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         secure=secure,
         samesite="lax",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
+        path=refresh_path,
     )
 
 
@@ -109,11 +110,23 @@ async def me(current_user=Depends(get_current_user)):
     return current_user
 
 @router.post("/logout")
-async def logout(response: Response):
+async def logout(
+    response: Response,
+    refresh_token_cookie: Optional[str] = Cookie(default=None, alias="refresh_token"),
+    session: AsyncSession = Depends(get_db),
+):
     settings = get_settings()
     secure = not settings.DEBUG
+    service = AuthService(session)
+    await service.logout_session(refresh_token_cookie)
     response.delete_cookie(key="token", path="/", httponly=True, secure=secure, samesite="lax")
-    response.delete_cookie(key="refresh_token", path="/", httponly=True, secure=secure, samesite="lax")
+    response.delete_cookie(
+        key="refresh_token",
+        path=f"{settings.API_PREFIX}/auth/refresh",
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+    )
     return {"detail": "Logged out"}
 
 @router.post("/forgot-password")

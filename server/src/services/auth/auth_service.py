@@ -3,6 +3,7 @@ from sqlalchemy.future import select
 from fastapi import HTTPException, status
 import os
 import secrets
+import hashlib
 from datetime import datetime, timezone
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -14,8 +15,9 @@ from src.models.resume import Resume
 from src.models.billing import UserBalance
 from src.models.user import User
 from src.models.enums import UserRole
+from src.models.refresh_token import RefreshToken
 from src.api.schemas.auth import UserCreate, UserLogin, Token, GoogleLoginRequest
-from src.utils.security import get_password_hash, verify_password, create_access_token, create_refresh_token, SECRET_KEY, ALGORITHM, create_reset_token, verify_and_extract_reset_subject, create_verify_token, verify_and_extract_verify_subject
+from src.utils.security import get_password_hash, verify_password, create_access_token, create_refresh_token_data, SECRET_KEY, ALGORITHM, create_reset_token, verify_and_extract_reset_subject, create_verify_token, verify_and_extract_verify_subject
 import jwt
 from src.services.auth.email_service import send_email
 from src.services.auth.email_templates import render_template
@@ -27,6 +29,47 @@ class AuthService:
         self.resume_seeder = ResumeSeeder()
         self.resume_data_seeder = ResumeDataMigrationSeeder()
         self.billing_seeder = BillingSeeder()
+
+    @staticmethod
+    def _hash_token(token: str) -> str:
+        return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    async def _issue_refresh_token(self, user_id: str, session_id: str | None = None) -> tuple[str, RefreshToken]:
+        data = create_refresh_token_data(subject=user_id, session_id=session_id)
+        token = data["token"]
+        refresh = RefreshToken(
+            user_id=user_id,
+            session_id=data["sid"],
+            jti=data["jti"],
+            token_hash=self._hash_token(token),
+            issued_at=data["issued_at"].replace(tzinfo=timezone.utc),
+            expires_at=data["expires_at"].replace(tzinfo=timezone.utc),
+        )
+        self.db.add(refresh)
+        await self.db.flush()
+        return token, refresh
+
+    async def _revoke_refresh_session(self, user_id: str, session_id: str) -> None:
+        now = datetime.now(timezone.utc)
+        result = await self.db.execute(
+            select(RefreshToken).where(
+                RefreshToken.user_id == user_id,
+                RefreshToken.session_id == session_id,
+                RefreshToken.revoked_at.is_(None),
+            )
+        )
+        tokens = result.scalars().all()
+        for t in tokens:
+            t.revoked_at = now
+
+    async def _revoke_all_refresh_tokens_for_user(self, user_id: str) -> None:
+        now = datetime.now(timezone.utc)
+        result = await self.db.execute(
+            select(RefreshToken).where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
+        )
+        tokens = result.scalars().all()
+        for t in tokens:
+            t.revoked_at = now
 
     async def authenticate_user(self, user_in: UserLogin) -> Token:
         email = user_in.email.lower().strip()
@@ -58,7 +101,8 @@ class AuthService:
             await self._provision_user_workspace(user.id)
             
         access_token = create_access_token(subject=user.id)
-        refresh_token = create_refresh_token(subject=user.id)
+        refresh_token, _ = await self._issue_refresh_token(user.id)
+        await self.db.commit()
         
         return Token(
             access_token=access_token,
@@ -170,7 +214,8 @@ class AuthService:
                 await self._provision_user_workspace(user.id)
 
             access_token = create_access_token(subject=user.id)
-            refresh_token = create_refresh_token(subject=user.id)
+            refresh_token, _ = await self._issue_refresh_token(user.id)
+            await self.db.commit()
             
             return Token(
                 access_token=access_token,
@@ -196,8 +241,10 @@ class AuthService:
             payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id: str = payload.get("sub")
             token_type: str = payload.get("type")
+            jti: str = payload.get("jti")
+            session_id: str = payload.get("sid")
 
-            if user_id is None or token_type != "refresh":
+            if user_id is None or token_type != "refresh" or not jti or not session_id:
                 raise credentials_exception
 
         except jwt.ExpiredSignatureError:
@@ -209,6 +256,30 @@ class AuthService:
         except jwt.PyJWTError:
             raise credentials_exception
 
+        stmt = (
+            select(RefreshToken)
+            .where(RefreshToken.user_id == user_id, RefreshToken.jti == jti)
+            .with_for_update()
+        )
+        token_result = await self.db.execute(stmt)
+        stored_token = token_result.scalar_one_or_none()
+        if stored_token is None:
+            raise credentials_exception
+
+        now = datetime.now(timezone.utc)
+        if stored_token.token_hash != self._hash_token(refresh_token):
+            raise credentials_exception
+
+        if stored_token.revoked_at is not None:
+            await self._revoke_all_refresh_tokens_for_user(user_id)
+            await self.db.commit()
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token reuse detected")
+
+        if stored_token.expires_at <= now:
+            stored_token.revoked_at = now
+            await self.db.commit()
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+
         query = select(User).where(User.id == user_id)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
@@ -217,7 +288,10 @@ class AuthService:
             raise credentials_exception
 
         access_token = create_access_token(subject=user.id)
-        new_refresh_token = create_refresh_token(subject=user.id)
+        new_refresh_token, new_refresh_record = await self._issue_refresh_token(user.id, session_id=stored_token.session_id)
+        stored_token.revoked_at = now
+        stored_token.replaced_by_id = new_refresh_record.id
+        await self.db.commit()
 
         return Token(
             access_token=access_token,
@@ -225,6 +299,40 @@ class AuthService:
             token_type="bearer",
             user=user
         )
+
+    async def logout_session(self, refresh_token: str | None) -> None:
+        if not refresh_token:
+            return
+        try:
+            payload = jwt.decode(
+                refresh_token,
+                SECRET_KEY,
+                algorithms=[ALGORITHM],
+                options={"verify_exp": False},
+            )
+            user_id: str = payload.get("sub")
+            token_type: str = payload.get("type")
+            session_id: str = payload.get("sid")
+            jti: str = payload.get("jti")
+            if not user_id or token_type != "refresh" or not session_id or not jti:
+                return
+        except jwt.PyJWTError:
+            return
+
+        stmt = (
+            select(RefreshToken)
+            .where(RefreshToken.user_id == user_id, RefreshToken.jti == jti)
+            .with_for_update()
+        )
+        token_result = await self.db.execute(stmt)
+        stored_token = token_result.scalar_one_or_none()
+        if stored_token is None:
+            return
+        if stored_token.token_hash != self._hash_token(refresh_token):
+            return
+
+        await self._revoke_refresh_session(user_id=user_id, session_id=session_id)
+        await self.db.commit()
 
     async def request_password_reset(self, email: str):
         normalized = email.lower().strip()
@@ -264,6 +372,7 @@ class AuthService:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reset token")
 
         user.hashed_password = get_password_hash(new_password)
+        await self._revoke_all_refresh_tokens_for_user(user.id)
         await self.db.commit()
         return {"detail": "Password updated successfully"}
 

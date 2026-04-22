@@ -1,20 +1,20 @@
 import bcrypt
+import uuid
 from datetime import datetime, timedelta
 from typing import Optional, Union, Any
 import jwt
 
-SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_IN_PRODUCTION"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
-RESET_TOKEN_EXPIRE_MINUTES = 30
-VERIFY_TOKEN_EXPIRE_HOURS = 24
+from src.config import settings
+
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+RESET_TOKEN_EXPIRE_MINUTES = settings.RESET_TOKEN_EXPIRE_MINUTES
+VERIFY_TOKEN_EXPIRE_HOURS = settings.VERIFY_TOKEN_EXPIRE_HOURS
 
 """
 Token helpers for auth flows.
-
-SECRET_KEY is currently a static placeholder; production deployments should supply
-their own secret and rotate it carefully, since it invalidates existing tokens.
 """
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -28,14 +28,25 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     return encoded_jwt
 
 def create_refresh_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+    data = create_refresh_token_data(subject=subject, expires_delta=expires_delta)
+    return data["token"]
+
+def create_refresh_token_data(
+    subject: Union[str, Any],
+    expires_delta: Optional[timedelta] = None,
+    session_id: Optional[str] = None,
+) -> dict[str, Any]:
+    jti = str(uuid.uuid4())
+    sid = session_id or str(uuid.uuid4())
+    iat = datetime.utcnow()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     
-    to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
+    to_encode = {"exp": expire, "iat": iat, "sub": str(subject), "type": "refresh", "jti": jti, "sid": sid}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return {"token": encoded_jwt, "jti": jti, "sid": sid, "expires_at": expire, "issued_at": iat}
 
 def create_reset_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     if expires_delta:
