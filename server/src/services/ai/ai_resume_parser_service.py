@@ -3,7 +3,7 @@ import uuid
 import re
 from typing import Dict, Any, Optional
 from loguru import logger
-from src.services.ai.ai_clients import get_ai_client, TextProcessor, AsyncLLMClient
+from src.services.ai.ai_clients_service import get_ai_client, TextProcessor, AsyncLLMClient
 
 class AIResumeParser:
     @staticmethod

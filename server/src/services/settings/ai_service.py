@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional, Tuple
 from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.api.schemas.ai_settings import AISettingsUpdate
-from src.services.ai.ai_clients import (
+from src.services.ai.ai_clients_service import (
     AsyncLLMClient, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
 )
 from src.config import get_settings

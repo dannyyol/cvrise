@@ -4,7 +4,7 @@ import time
 from loguru import logger
 from playwright.async_api import async_playwright
 
-from ..config import get_settings
+from src.config import get_settings
 
 _STORE: Dict[str, Dict[str, Any]] = {}
 

@@ -16,10 +16,10 @@ from src.constants import DEFAULT_RESUME_SECTIONS
 from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate, TailorResumeRequest
 )
-from src.services.file_parser import FileParser
-from src.services.ai.ai_resume_parser import AIResumeParser
-from src.services.ai.ai_connection import AIConnectionService
-from src.services.ai.ai_clients import (
+from src.services.file_parser_service import FileParser
+from src.services.ai.ai_resume_parser_service import AIResumeParser
+from src.services.ai.ai_connection_service import AIConnectionService
+from src.services.ai.ai_clients_service import (
     OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor
 )
 from src.services.settings.ai_service import get_configured_ai_client

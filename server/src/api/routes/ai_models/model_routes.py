@@ -7,7 +7,7 @@ from src.config import get_settings
 from src.database import get_db
 from src.models.ai_model import AIModel
 from src.api.schemas.ai_model import AIModelResponse, TestConnectionRequest
-from src.services.ai.ai_connection import AIConnectionService
+from src.services.ai.ai_connection_service import AIConnectionService
 
 router = APIRouter()
 

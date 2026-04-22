@@ -13,8 +13,8 @@ from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.api.schemas.resume import CoverLetterItem, CoverLetterCreate, CoverLetterGenerateRequest
 from src.models.cover_letter_template import CoverLetterTemplate
-from src.services.ai.ai_clients import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
-from src.services.ai.ai_connection import AIConnectionService
+from src.services.ai.ai_clients_service import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
+from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
 from src.config import settings

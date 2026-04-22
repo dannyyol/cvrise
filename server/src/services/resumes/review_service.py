@@ -4,7 +4,7 @@ import json
 from typing import Dict, List, Optional, Protocol, Any
 import httpx
 from loguru import logger
-from src.services.ai.ai_clients import (
+from src.services.ai.ai_clients_service import (
     AsyncLLMClient, OllamaClient, OpenAIClient, 
     AnthropicClient, GoogleClient, TextProcessor
 )
