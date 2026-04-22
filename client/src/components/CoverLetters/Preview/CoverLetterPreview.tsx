@@ -9,7 +9,6 @@ interface CoverLetterPreviewProps {
 export const CoverLetterPreview = ({ scaleMode = "fit" }: CoverLetterPreviewProps) => {
   const { cvData } = useCVStore();
   const { coverLetter, coverLetterTheme, theme } = cvData;
-
   const templateKey = coverLetterTheme?.templateKey || coverLetter?.templateKey || 'soft-modern';
   const TemplateComponent =
     COVER_LETTER_TEMPLATE_COMPONENTS[templateKey] ?? COVER_LETTER_TEMPLATE_COMPONENTS['soft-modern'];

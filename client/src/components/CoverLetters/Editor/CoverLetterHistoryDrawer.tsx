@@ -19,7 +19,6 @@ export const CoverLetterHistoryDrawer: React.FC<CoverLetterHistoryDrawerProps> =
   }, [isOpen, fetchCoverLetterHistory]);
 
   if (!isOpen) return null;
-
   const formatDate = (date?: string) => {
     if (!date) return '';
     const d = new Date(date);
