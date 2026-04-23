@@ -158,10 +158,10 @@ export function FeaturesSection() {
           </span>
           <div className="fg-title">100% Open Source</div>
           <div className="fg-desc">
-            Self-host, extend, or contribute. MIT licensed — your data stays yours,
+            Self-host, extend, or contribute. GNU licensed — your data stays yours,
             forever. No vendor lock-in.
           </div>
-          <span className="fg-chip chip-free">MIT License</span>
+          <span className="fg-chip chip-free">GNU License</span>
         </div>
       </div>
     </section>
