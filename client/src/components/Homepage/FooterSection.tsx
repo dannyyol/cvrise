@@ -54,7 +54,7 @@ export function FooterSection() {
           <div className="f-col-h">Open Source</div>
           <ul className="f-links">
             <li>
-              <a href="#">MIT Licensed</a>
+              <a href="#">GNU Licensed</a>
             </li>
             <li>
               <a href="#">Self-hosting</a>
