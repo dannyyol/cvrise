@@ -34,10 +34,12 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
+    url = config.get_main_option("sqlalchemy.url") or ""
+    render_as_batch = "sqlite" in url
     context.configure(
         connection=connection, 
         target_metadata=target_metadata,
-        render_as_batch=True
+        render_as_batch=render_as_batch
     )
 
     with context.begin_transaction():

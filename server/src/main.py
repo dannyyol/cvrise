@@ -43,6 +43,8 @@ def create_app() -> FastAPI:
 
     async def _http_exc_handler(request: Request, exc: HTTPException):
         logger.error(f"HTTPException {exc.status_code} {request.method} {request.url} {exc.detail}")
+        if not settings.DEBUG and exc.status_code >= 500:
+            return JSONResponse(status_code=exc.status_code, content={"detail": "Internal Server Error"})
         return await http_exception_handler(request, exc)
 
     async def _validation_exc_handler(request: Request, exc: RequestValidationError):

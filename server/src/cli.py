@@ -31,6 +31,15 @@ SEEDERS = {
     "billing": BillingSeeder,
 }
 
+def _assert_mysql_database_url() -> None:
+    settings = get_settings()
+    db_url = settings.DATABASE_URL
+    if db_url.startswith("sqlite"):
+        raise typer.BadParameter(
+            "DATABASE_URL is set to SQLite, but this project expects MySQL. "
+            "Set DATABASE_URL to something like mysql+aiomysql://user:pass@host:3306/dbname"
+        )
+
 def get_alembic_config():
     """
     Get the Alembic configuration.
@@ -80,6 +89,7 @@ def refresh(seed_data: bool = typer.Option(True, help="Whether to seed the datab
     """
     Refresh the database (downgrade to base, upgrade to head, and optionally seed).
     """
+    _assert_mysql_database_url()
     try:
         alembic_cfg = get_alembic_config()
         
@@ -104,49 +114,23 @@ def reset():
     """
     Reset the database: Drop all tables and recreate them empty (no seeding).
     """
-    settings = get_settings()
-    if settings.DATABASE_URL.startswith("sqlite"):
-        path = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "").replace("sqlite:///", "")
-        if path.startswith("./"):
-            path = path[2:]
-        
-        if os.path.exists(path):
-            logger.info(f"Removing SQLite database file: {path}")
-            os.remove(path)
-        
-        logger.info("Upgrading database to heads...")
-        alembic_cfg = get_alembic_config()
-        command.upgrade(alembic_cfg, "heads")
-        logger.info("Database reset completed (empty tables).")
-    else:
-        refresh(seed_data=False)
+    _assert_mysql_database_url()
+    refresh(seed_data=False)
 
 @app.command()
 def drop():
     """
     Drop all tables from the database.
     """
-    settings = get_settings()
-    if settings.DATABASE_URL.startswith("sqlite"):
-        path = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "").replace("sqlite:///", "")
-        if path.startswith("./"):
-            path = path[2:]
-        
-        if os.path.exists(path):
-            logger.info(f"Removing SQLite database file: {path}")
-            os.remove(path)
-            logger.info("All tables dropped (file removed).")
-        else:
-            logger.info("Database file not found.")
-    else:
-        try:
-            alembic_cfg = get_alembic_config()
-            logger.info("Dropping all tables (downgrading to base)...")
-            command.downgrade(alembic_cfg, "base")
-            logger.info("All tables dropped.")
-        except Exception as e:
-            logger.error(f"Failed to drop tables: {e}")
-            raise
+    _assert_mysql_database_url()
+    try:
+        alembic_cfg = get_alembic_config()
+        logger.info("Dropping all tables (downgrading to base)...")
+        command.downgrade(alembic_cfg, "base")
+        logger.info("All tables dropped.")
+    except Exception as e:
+        logger.error(f"Failed to drop tables: {e}")
+        raise
 
 if __name__ == "__main__":
     app()
