@@ -645,7 +645,7 @@
   flex-shrink: 0;
 }
 
-.homepage .mosaic-wrap { position: relative; z-index: 1; margin-top: 48px; overflow: hidden; mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%); }
+.homepage .mosaic-wrap { position: relative; z-index: 1; overflow: hidden; mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%); }
 .homepage .mosaic-track { display: flex; align-items: flex-end; gap: 14px; animation: homepageScrollLeft 45s linear infinite; width: max-content; padding-bottom: 14px; }
 .homepage .mosaic-track.row2 { animation: homepageScrollLeft 55s linear infinite reverse; align-items: flex-start; margin-top: 0; }
 .homepage .mosaic-wrap:hover .mosaic-track { animation-play-state: paused; }
