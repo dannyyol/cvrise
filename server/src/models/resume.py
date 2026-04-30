@@ -1,13 +1,16 @@
 from typing import List, Optional
 from datetime import datetime
 import uuid
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from src.database import Base
 
 class Resume(Base):
     __tablename__ = "resumes"
+    __table_args__ = (
+        Index("ix_resumes_user_id_updated_at", "user_id", "updated_at"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     title: Mapped[str] = mapped_column(String, default="My Resume")
@@ -16,7 +19,7 @@ class Resume(Base):
     create_and_tailor: Mapped[bool] = mapped_column(Boolean, default=False)
     resume_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     ai_analysis: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 

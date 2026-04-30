@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, func, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, func, ForeignKey, Index
 from src.database import Base
 import uuid
 
@@ -24,6 +24,9 @@ class UserBalance(Base):
 
 class TokenTransaction(Base):
     __tablename__ = "token_transactions"
+    __table_args__ = (
+        Index("ix_token_transactions_user_id_created_at", "user_id", "created_at"),
+    )
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"), nullable=True)

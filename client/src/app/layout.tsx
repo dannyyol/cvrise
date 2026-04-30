@@ -13,25 +13,41 @@ const siteUrl = (() => {
   }
 })();
 
+const title = "CVRise | Build ATS-Ready Resume & Cover Letter";
+const description =
+  "Create, tailor, and export professional resumes and cover letters with live preview and AI-powered optimization.";
+
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: {
-    default: "CVRise | Build ATS-Ready Resume & Cover Letter",
+    default: title,
     template: "%s | CVRise",
   },
-  description: "Create, tailor, and export professional resumes and cover letters with live preview and AI-powered optimization.",
+  description,
   applicationName: "CVRise",
   keywords: [
     "CV builder",
     "resume builder",
-    "cover letter",
+    "cover letter generator",
     "ATS resume",
-    "AI resume",
+    "AI resume builder",
     "job application",
+    "free CV builder",
+    "professional resume",
+    "resume optimizer",
   ],
+  authors: [{ name: "CVRise" }],
+  creator: "CVRise",
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
   },
   alternates: {
     canonical: "/",
@@ -42,7 +58,7 @@ export const metadata: Metadata = {
     ],
     shortcut: "/favicon.png",
     apple: "/favicon.png",
-  }
+  },
 };
 
 export default function RootLayout({

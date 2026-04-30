@@ -17,6 +17,7 @@ services:
     image: mysql:8.4
     profiles: ["dev", "prod"]
     env_file: *server_env
+    command: --sort-buffer-size=4M
     volumes:
       - mysql-data:/var/lib/mysql
     ports:

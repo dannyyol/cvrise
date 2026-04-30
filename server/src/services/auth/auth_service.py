@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 import os
 import secrets
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
@@ -275,7 +275,10 @@ class AuthService:
             await self.db.commit()
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token reuse detected")
 
-        if stored_token.expires_at <= now:
+        expires_at = stored_token.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= now:
             stored_token.revoked_at = now
             await self.db.commit()
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
