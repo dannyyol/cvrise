@@ -1,6 +1,7 @@
-"use client"; 
+"use client";
 
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, type ChangeEvent, Suspense } from "react";
+
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,6 +20,14 @@ import { GitHubIcon } from "../components/ui/SocialIcons";
 import { ROUTES } from "../lib/routes";
 
 export default function Home() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "CVRise";
   const githubUrl = "https://github.com/dannyyol/cvrise";
 
@@ -297,3 +306,4 @@ export default function Home() {
     </div>
   );
 }
+
