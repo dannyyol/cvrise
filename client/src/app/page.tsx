@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { resumeService } from "../services/resumeService";
 import { useCVStore } from "../store/useCVStore";
@@ -27,12 +27,26 @@ export default function Home() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const homeRef = useRef<HTMLDivElement | null>(null);
   const navigate = useRouter();
-  const { isAuthenticated } = useAuth();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, isLoading } = useAuth();
   const { setCurrentResumeId } = useCVStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const nextPath = searchParams.get("next");
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (nextPath) {
+      if (isAuthenticated) {
+        navigate.replace(nextPath);
+      } else {
+        setIsLoginOpen(true);
+      }
+    }
+  }, [isLoading, isAuthenticated, nextPath, navigate]);
 
   const openGetStarted = () => {
     if (isAuthenticated) {
@@ -44,7 +58,7 @@ export default function Home() {
 
   const onLoginSuccess = () => {
     setIsLoginOpen(false);
-    navigate.push("/dashboard");
+    navigate.push(nextPath ?? "/dashboard");
   };
 
   const handleUploadResumeClick = () => {

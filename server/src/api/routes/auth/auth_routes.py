@@ -35,6 +35,7 @@ def _should_use_secure_cookies(request: Request) -> bool:
 def _set_auth_cookies(request: Request, response: Response, access_token: str, refresh_token: str) -> None:
     settings = get_settings()
     secure = _should_use_secure_cookies(request)
+    cookie_domain = settings.COOKIE_DOMAIN or None
     refresh_max_age = REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     response.set_cookie(
         key="token",
@@ -44,6 +45,7 @@ def _set_auth_cookies(request: Request, response: Response, access_token: str, r
         samesite="lax",
         max_age=refresh_max_age,
         path="/",
+        domain=cookie_domain,
     )
     refresh_path = f"{settings.API_PREFIX}/auth/refresh"
     response.set_cookie(
@@ -54,6 +56,7 @@ def _set_auth_cookies(request: Request, response: Response, access_token: str, r
         samesite="lax",
         max_age=refresh_max_age,
         path=refresh_path,
+        domain=cookie_domain,
     )
 
 

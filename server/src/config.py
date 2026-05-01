@@ -23,6 +23,7 @@ class AppSettings(BaseSettings):
 
     CLIENT_BASE_URL: str
     PDF_CLIENT_BASE_URL: Optional[str] = None
+    COOKIE_DOMAIN: Optional[str] = None
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
