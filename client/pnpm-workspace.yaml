@@ -1,6 +1,7 @@
 packages:
   - "."
 
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+allowBuilds:
+  puppeteer: true
+  sharp: false
+  unrs-resolver: false

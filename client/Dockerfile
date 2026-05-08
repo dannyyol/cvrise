@@ -1,21 +1,21 @@
-FROM node:20-bookworm-slim AS deps
+FROM node:22-bookworm-slim AS deps
 
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.0.8 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml* /app/
 RUN pnpm install --no-frozen-lockfile
 
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.0.8 --activate
 
 COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=deps /app/package.json /app/package.json
@@ -30,7 +30,7 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_PUBLIC_GITHUB_URL=$NEXT_PUBLIC_GITHUB_URL
 RUN pnpm run generate:templates && pnpm run build
 
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.0.8 --activate
 
 COPY --from=builder /app/.next /app/.next
 COPY --from=builder /app/public /app/public
