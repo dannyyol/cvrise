@@ -4,12 +4,6 @@ from loguru import logger
 from playwright.async_api import async_playwright
 
 async def generate_pdf_from_preview(preview_url: str, template: str, data: Dict[str, Any]) -> bytes:
-    """
-    Loads the Next.js PDF render route in a headless browser and prints it to PDF.
-
-    This runs inside the server container, so preview_url should usually be an
-    internal Docker DNS name (e.g. http://client:3000/) rather than the public domain.
-    """
     ready_timeout_ms = 120000
     navigation_timeout_ms = 60000
 
