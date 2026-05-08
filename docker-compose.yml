@@ -48,6 +48,7 @@ services:
   client:
     profiles: ["prod"]
     image: ghcr.io/dannyyol/cvrise-client:${IMAGE_TAG:-latest}
+    command: ["pnpm", "exec", "next", "start", "-p", "3000"]
     ports:
       - "3000:3000"
     env_file: *client_env
