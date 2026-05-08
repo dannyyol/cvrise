@@ -43,8 +43,10 @@ RUN corepack enable && corepack prepare pnpm@11.0.8 --activate
 COPY --from=builder /app/.next /app/.next
 COPY --from=builder /app/public /app/public
 COPY --from=builder /app/package.json /app/package.json
+COPY --from=builder /app/pnpm-lock.yaml /app/pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 COPY --from=deps /app/node_modules /app/node_modules
 
 EXPOSE 3000
 
-CMD ["pnpm", "exec", "next", "start", "-p", "3000"]
+CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
