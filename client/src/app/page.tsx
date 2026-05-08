@@ -204,7 +204,17 @@ function HomeContent() {
             <a href={githubUrl} target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>GitHub</a>
             <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
             <div className="nav-mobile-actions">
-              <a className="btn-login" href="#" onClick={() => setMenuOpen(false)}>Log in</a>
+              <a
+                className="btn-login"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMenuOpen(false);
+                  setIsLoginOpen(true);
+                }}
+              >
+                Log in
+              </a>
               <a
                 className="btn-nav-cta"
                 href="#"

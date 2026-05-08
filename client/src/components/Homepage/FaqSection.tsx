@@ -14,7 +14,7 @@ const faqData: FaqItem[] = [
   },
   {
     q: "Is CVRise really free?",
-    a: "Yes — CVRise is completely free. It's MIT-licensed open source software, meaning you can use it, fork it, or self-host it at no cost. There are no hidden fees, no premium tiers for core features, and no data selling.",
+    a: "Yes — CVRise is completely free. It's GNU-licensed open source software, meaning you can use it, fork it, or self-host it at no cost. There are no hidden fees, no premium tiers for core features, and no data selling.",
   },
   {
     q: "How does the AI job tailoring work?",
@@ -22,7 +22,7 @@ const faqData: FaqItem[] = [
   },
   {
     q: "Can I self-host CVRise?",
-    a: "Absolutely. CVRise is MIT-licensed and built for self-hosting. Clone the repo, follow the setup guide in the docs, and have your own instance running in minutes. Your data stays on your own infrastructure.",
+    a: "Absolutely. CVRise is GNU-licensed and built for self-hosting. Clone the repo, follow the setup guide in the docs, and have your own instance running in minutes. Your data stays on your own infrastructure.",
   },
   {
     q: "What CV formats can I export?",

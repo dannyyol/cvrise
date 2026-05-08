@@ -102,7 +102,7 @@ export function HeroSection({
           <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
           <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
           <div className="mc mc-quote"><div className="mc-quote-text">{`"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."`}</div><div className="mc-quote-author">— Version Control</div></div>
-          <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
+          <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">GNU</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
           <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
           <div className="mc mc-cv">
             <div className="mini-cv-name">Open Source</div><div className="mini-cv-role">Community Driven</div>
@@ -118,7 +118,7 @@ export function HeroSection({
           <div className="mc mc-feat"><div><div className="mc-feat-icon">⚡</div><div className="mc-feat-title">Live Preview</div><div className="mc-feat-desc">Watch your CV update in real-time as you type — no surprises</div></div></div>
           <div className="mc mc-person g7"><div className="mc-person-emoji">�</div><div className="mc-person-name">Drag & Drop</div><div className="mc-person-role">Easily reorder sections and items</div></div>
           <div className="mc mc-quote"><div className="mc-quote-text">{`"Easily duplicate, translate, and manage multiple versions of your resume for different job applications."`}</div><div className="mc-quote-author">— Version Control</div></div>
-          <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">MIT</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
+          <div className="mc mc-stat" style={{ background: "linear-gradient(135deg,#0d9e6e,#059669)" }}><div className="mc-stat-num">GNU</div><div className="mc-stat-label">Licensed — free to use, fork and self-host</div></div>
           <div className="mc mc-person g8"><div className="mc-person-emoji">�</div><div className="mc-person-name">Multiple Formats</div><div className="mc-person-role">Export to PDF or JSON</div></div>
           <div className="mc mc-cv">
             <div className="mini-cv-name">Open Source</div><div className="mini-cv-role">Community Driven</div>
