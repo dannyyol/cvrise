@@ -126,6 +126,9 @@ export interface TemplateProps {
   languages: CustomSectionItem[];
   interests: CustomSectionItem[];
   websites: CustomSectionItem[];
+  volunteering: CustomSectionItem[];
+  references: CustomSectionItem[];
+  custom: CustomSectionItem[];
   coverLetter?: CoverLetter;
   sections: CVSection[];
   theme: ThemeConfig;

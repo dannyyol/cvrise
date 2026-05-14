@@ -48,6 +48,7 @@ class AppSettings(BaseSettings):
     COST_GENERATE_COVER_LETTER: int = 10
     COST_TAILOR_RESUME: int = 15
     COST_PARSE_RESUME: int = 15
+    COST_JOB_MATCH: int = 10
 
     @field_validator("CORS_ALLOWED_ORIGINS", mode="before")
     def _split_csv(cls, v):

@@ -137,6 +137,9 @@ export const initialCVData: TemplateProps = {
   languages: [],
   interests: [],
   websites: [],
+  volunteering: [],
+  references: [],
+  custom: [],
   coverLetter: {
     recipientName: '',
     recipientTitle: '',
@@ -338,10 +341,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
   
   setTemplate: (id) => {
     set({ selectedTemplate: id, isDirty: true });
-    const { currentResumeId } = get();
-    if (currentResumeId) {
-      get().saveResume();
-    }
   },
   
   updateTheme: (theme) => set((state) => ({

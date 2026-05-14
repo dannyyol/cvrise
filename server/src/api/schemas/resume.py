@@ -146,6 +146,22 @@ class TailorResumeRequest(BaseSchema):
     job_description: str = ""
     tone: str = "professional"
 
+class JobMatchRequest(BaseSchema):
+    job_title: str
+    job_description: str
+
+class JobMatchSuggestion(BaseSchema):
+    section: str
+    suggestion: str
+    priority: str  # "high" | "medium" | "low"
+
+class JobMatchResponse(BaseSchema):
+    match_score: float
+    summary: str
+    matched_keywords: List[str]
+    missing_keywords: List[str]
+    suggestions: List[JobMatchSuggestion]
+
 class SectionConfig(BaseSchema):
     id: str
     type: str
@@ -174,21 +190,21 @@ class ResumeResponse(BaseSchema):
     create_and_tailor: bool = False
     personal_details: PersonalDetails
     professional_summary: ProfessionalSummary
-    work_experiences: List[WorkExperience]
-    education: List[Education]
-    skills: List[Skill]
-    projects: List[Project]
-    certifications: List[Certification]
-    awards: List[Award]
-    publications: List[Publication]
-    interests: List[CustomSectionItem]
-    languages: List[CustomSectionItem]
-    websites: List[CustomSectionItem]
-    volunteering: List[CustomSectionItem]
-    references: List[CustomSectionItem]
-    custom: List[CustomSectionItem]
+    work_experiences: List[WorkExperience] = []
+    education: List[Education] = []
+    skills: List[Skill] = []
+    projects: List[Project] = []
+    certifications: List[Certification] = []
+    awards: List[Award] = []
+    publications: List[Publication] = []
+    interests: List[CustomSectionItem] = []
+    languages: List[CustomSectionItem] = []
+    websites: List[CustomSectionItem] = []
+    volunteering: List[CustomSectionItem] = []
+    references: List[CustomSectionItem] = []
+    custom: List[CustomSectionItem] = []
     cover_letter: Optional[CoverLetter] = None
-    sections: List[SectionConfig]
+    sections: List[SectionConfig] = []
     theme: ThemeConfig
     cover_letter_theme: ThemeConfig
     template_id: str = Field(..., alias="template_id")

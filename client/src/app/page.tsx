@@ -62,7 +62,7 @@ function HomeContent() {
       navigate.push('/dashboard');
       return;
     }
-    setIsLoginOpen(true);
+    navigate.push('/editor');
   };
 
   const onLoginSuccess = () => {
@@ -169,6 +169,18 @@ function HomeContent() {
               <li><a href="#faq">FAQ</a></li>
             </ul>
             <div className="nav-right">
+              {!isAuthenticated && !isLoading && (
+                <a
+                  className="btn-login"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsLoginOpen(true);
+                  }}
+                >
+                  Log in
+                </a>
+              )}
               <a className="btn-login inline-flex items-center gap-1.5" href={githubUrl} target="_blank" rel="noreferrer">
                 <GitHubIcon className="w-3.5 h-3.5" /> GitHub
               </a>

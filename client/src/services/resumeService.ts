@@ -66,6 +66,10 @@ export interface CoverLetterTemplate {
 }
 
 export const resumeService = {
+  getSampleData: async (): Promise<Partial<ResumeApiResponse>> => {
+    return api.get<Partial<ResumeApiResponse>>('/resumes/sample');
+  },
+
   getAllResumes: async (): Promise<ResumeSummary[]> => {
     return api.get<ResumeSummary[]>('/resumes/');
   },
@@ -136,4 +140,26 @@ export const resumeService = {
       }
     );
   },
+
+  matchJob: async (
+    resumeId: string,
+    data: { jobTitle: string; jobDescription: string }
+  ): Promise<JobMatchApiResponse> => {
+    return api.post<{ jobTitle: string; jobDescription: string }, JobMatchApiResponse>(
+      `/resumes/${resumeId}/match`,
+      { jobTitle: data.jobTitle, jobDescription: data.jobDescription }
+    );
+  },
 };
+
+export interface JobMatchApiResponse {
+  matchScore: number;
+  summary: string;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  suggestions: Array<{
+    section: string;
+    suggestion: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}

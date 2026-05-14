@@ -6,7 +6,8 @@ from src.database import get_db
 from src.api.dependencies import get_current_user
 from src.models.user import User
 from src.api.schemas.resume import (
-    ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate, TailorResumeRequest
+    ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
+    TailorResumeRequest, JobMatchRequest, JobMatchResponse,
 )
 from src.services.resumes import ResumeService
 
@@ -78,6 +79,18 @@ async def delete_resume(
     """Delete a resume by ID."""
     service = ResumeService(session, user)
     await service.delete_resume(resume_id)
+
+@router.post("/{resume_id}/match", response_model=JobMatchResponse)
+async def match_resume_to_job(
+    resume_id: str,
+    body: JobMatchRequest,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Analyse how well a resume matches a job description."""
+    service = ResumeService(session, user)
+    return await service.analyse_job_match(resume_id, body)
+
 
 @router.get("/{resume_id}", response_model=ResumeResponse)
 async def get_resume_by_id(

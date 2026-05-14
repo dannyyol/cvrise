@@ -83,6 +83,16 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
   if (isLoading || !isAuthenticated) return null;
 
+  const isEditorPage = pathname.startsWith(ROUTES.EDITOR);
+
+  if (isEditorPage) {
+    return (
+      <div className="h-screen flex flex-col overflow-hidden font-sans bg-slate-50/50">
+        <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-slate-50/50 flex flex-col overflow-hidden font-sans">
       <div className="lg:hidden bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 flex items-center justify-between shrink-0 z-30 sticky top-0">

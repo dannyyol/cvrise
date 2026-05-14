@@ -18,7 +18,6 @@ export const useNavItems = (): NavItem[] => {
       icon: Layout,
       label: 'Editor',
     },
-    { to: ROUTES.TEMPLATES, icon: Award, label: 'Customise Design' },
     { to: ROUTES.SETTINGS, icon: Settings, label: 'Settings' },
   ];
 };

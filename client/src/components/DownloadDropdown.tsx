@@ -64,7 +64,7 @@ export default function DownloadDropdown({ className = '', menuDirection = 'down
       const payload = { ...basePayload, template };
       const baseName = currentResumeTitle?.trim() ? currentResumeTitle : cvData.personalDetails?.fullName ?? '';
       const name = normalizeNameForFilename(baseName);
-      const filename = `${name}_CoverLetter.pdf`;
+      const filename = `${name}_${isCoverLetter ? 'CoverLetter' : 'Resume'}.pdf`;
       await exportResumeToPDF(payload, filename);
       setToast({ message: `${isCoverLetter ? 'Cover letter' : 'Resume'} exported successfully!`, type: 'success', isVisible: true });
     } catch {

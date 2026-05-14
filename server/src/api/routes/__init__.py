@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from src.api.dependencies import get_current_user
 from .resumes import review_router
 from .pdf.pdf_route import router as pdf_router
-from .resumes import resumes_router
+from .resumes import resumes_router, sample_router
 from .cover_letters import router as cover_letters_router
 from .template.templates_route import router as templates_router
 from .cover_letters.cover_letter_template_route import router as cl_templates_router
@@ -19,9 +19,10 @@ def get_routes_router() -> APIRouter:
 
     router.include_router(review_router, tags=["review"], dependencies=protected)
     router.include_router(pdf_router, tags=["export"])
+    router.include_router(sample_router, prefix="/resumes", tags=["resumes"])
     router.include_router(resumes_router, prefix="/resumes", tags=["resumes"], dependencies=protected)
     router.include_router(cover_letters_router, prefix="/resumes/{resume_id}/cover-letters", tags=["cover-letters"], dependencies=protected)
-    router.include_router(templates_router, prefix="/templates", tags=["templates"], dependencies=protected)
+    router.include_router(templates_router, prefix="/templates", tags=["templates"])
     router.include_router(cl_templates_router, prefix="/cover-letter-templates", tags=["cover-letter-templates"], dependencies=protected)
     router.include_router(plan_router, prefix="/settings/plans", tags=["plans"])
     router.include_router(ai_router, prefix="/settings/ai", tags=["ai-settings"], dependencies=protected)
