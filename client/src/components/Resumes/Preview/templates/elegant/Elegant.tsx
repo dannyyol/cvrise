@@ -23,6 +23,8 @@ const HTMLContent = ({ content }: { content: string }) => (
 
 const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
   const { address, phone, email, website, linkedin, github } = personalDetails;
+  const hasAny = Boolean(address || phone || email || website || linkedin || github);
+  if (!hasAny) return null;
   
   const renderItem = (label: string, value: string, isLink: boolean = false) => {
     if (!value) return null;

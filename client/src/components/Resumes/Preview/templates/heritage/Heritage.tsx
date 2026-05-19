@@ -9,6 +9,8 @@ const HTMLContent = ({ content }: { content: string }) => (
 
 const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
   const { address, phone, email, website } = personalDetails;
+  const hasAny = Boolean(address || phone || email || website);
+  if (!hasAny) return null;
   
   return (
     <section className="cv-heritage-side-group" data-cv-section data-section-id="contact">

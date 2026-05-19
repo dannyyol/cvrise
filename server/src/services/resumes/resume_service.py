@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig
+from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig, JobMatchHistory
 from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.models.cover_letter import CoverLetter as DBCoverLetter
@@ -16,7 +16,9 @@ from src.constants import DEFAULT_RESUME_SECTIONS
 from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
     TailorResumeRequest, JobMatchRequest, JobMatchResponse,
+    JobMatchHistorySummary, JobMatchHistoryItem,
 )
+from src.api.schemas.common import PaginatedResponse
 from src.services.file_parser_service import FileParser
 from src.services.ai.ai_resume_parser_service import AIResumeParser
 from src.services.ai.ai_connection_service import AIConnectionService
@@ -25,6 +27,7 @@ from src.services.ai.ai_clients_service import (
 )
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
+from src.utils.pagination import paginate
 from src.config import settings
 
 from src.models.user import User
@@ -771,7 +774,68 @@ class ResumeService:
         if is_platform_mode:
             await plan_service.deduct_tokens(cost, "Job Match Analysis")
 
+        job_title = (body.job_title or "").strip()[:255]
+        job_description = (body.job_description or "").strip()
+        if len(job_description) > 20000:
+            job_description = job_description[:20000]
+
+        history = JobMatchHistory(
+            user_id=self.user_id,
+            resume_id=resume.id,
+            job_title=job_title,
+            job_description=job_description,
+            match_score=float(data.get("match_score") or 0.0),
+            summary=str(data.get("summary") or ""),
+            matched_keywords=data.get("matched_keywords") or [],
+            missing_keywords=data.get("missing_keywords") or [],
+            suggestions=data.get("suggestions") or [],
+        )
+        self.db.add(history)
+        try:
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
+            raise
+
         return JobMatchResponse(**data)
+
+    async def list_job_match_history(
+        self, resume_id: str, page: int = 1, size: int = 5
+    ) -> PaginatedResponse[JobMatchHistorySummary]:
+        query = (
+            select(JobMatchHistory)
+            .where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.resume_id == resume_id)
+            .order_by(JobMatchHistory.created_at.desc(), JobMatchHistory.id.desc())
+        )
+        return await paginate(self.db, query, page, size, schema=JobMatchHistorySummary)
+
+    async def get_job_match_history_item(self, job_match_id: str) -> JobMatchHistoryItem:
+        stmt = select(JobMatchHistory).where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.id == job_match_id)
+        result = await self.db.execute(stmt)
+        row = result.scalar_one_or_none()
+        if not row:
+            raise HTTPException(status_code=404, detail="Job match not found")
+        return JobMatchHistoryItem(
+            id=row.id,
+            resume_id=row.resume_id,
+            job_title=row.job_title,
+            job_description=row.job_description,
+            match_score=row.match_score,
+            summary=row.summary,
+            matched_keywords=row.matched_keywords or [],
+            missing_keywords=row.missing_keywords or [],
+            suggestions=row.suggestions or [],
+            created_at=row.created_at,
+        )
+
+    async def delete_job_match_history_item(self, job_match_id: str) -> None:
+        stmt = select(JobMatchHistory).where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.id == job_match_id)
+        result = await self.db.execute(stmt)
+        row = result.scalar_one_or_none()
+        if not row:
+            return
+        await self.db.delete(row)
+        await self.db.commit()
 
     async def get_default_resume(self) -> ResumeResponse:
         stmt = select(Resume).where(Resume.user_id == self.user_id).order_by(Resume.updated_at.desc()).limit(1)

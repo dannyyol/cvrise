@@ -5,11 +5,11 @@ import { useCVStore } from "@/src/store/useCVStore";
 import { buildCVPayload } from "@/src/lib/payloadBuilder";
 import { submitCVForReview, type AIReviewResponse } from "@/src/services/analysisService";
 import { resumeService } from "@/src/services/resumeService";
-import type { JobMatchApiResponse } from "@/src/services/resumeService";
+import type { JobMatchApiResponse, JobMatchHistorySummary } from "@/src/services/resumeService";
 import {
   Sparkles, Target, RefreshCw, Loader2, CheckCircle, AlertCircle,
   TrendingUp, TrendingDown, ChevronDown,
-  CheckCircle2, XCircle,
+  CheckCircle2, XCircle, Trash2,
 } from "lucide-react";
 import { Badge } from "@/src/components/ui/Badge";
 import { Button } from "@/src/components/ui/Button";
@@ -339,12 +339,53 @@ const priorityConfig = {
 
 function JobMatchSection() {
   const { currentResumeId, tailorResume } = useCVStore();
-  const [jobTitle, setJobTitle]             = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
-  const [result, setResult]                 = useState<JobMatchApiResponse | null>(null);
-  const [isAnalyzing, setIsAnalyzing]       = useState(false);
-  const [isTailoring, setIsTailoring]       = useState(false);
-  const [errorMsg, setErrorMsg]             = useState<string | null>(null);
+  const [result, setResult] = useState<JobMatchApiResponse | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isTailoring, setIsTailoring] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [history, setHistory] = useState<JobMatchHistorySummary[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPages, setHistoryPages] = useState(1);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
+
+  const refreshHistory = async () => {
+    if (!currentResumeId) return;
+    setIsHistoryLoading(true);
+    try {
+      const res = await resumeService.getJobMatchHistory(currentResumeId, 1, 5);
+      setHistory(res.items);
+      setHistoryPage(res.page);
+      setHistoryPages(res.pages);
+    } catch {
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const loadMoreHistory = async () => {
+    if (!currentResumeId) return;
+    if (isHistoryLoading) return;
+    if (historyPage >= historyPages) return;
+    setIsHistoryLoading(true);
+    try {
+      const nextPage = historyPage + 1;
+      const res = await resumeService.getJobMatchHistory(currentResumeId, nextPage, 5);
+      setHistory((prev) => [...prev, ...res.items]);
+      setHistoryPage(res.page);
+      setHistoryPages(res.pages);
+    } catch {
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentResumeId) return;
+    refreshHistory();
+  }, [currentResumeId]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -353,6 +394,7 @@ function JobMatchSection() {
     setErrorMsg(null);
     try {
       setResult(await resumeService.matchJob(currentResumeId, { jobTitle, jobDescription }));
+      refreshHistory();
     } catch (err: unknown) {
       setErrorMsg(
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
@@ -371,6 +413,42 @@ function JobMatchSection() {
   };
 
   const reset = () => { setResult(null); setErrorMsg(null); };
+
+  const handleLoadHistory = async (id: string) => {
+    if (!currentResumeId) return;
+    setIsAnalyzing(true);
+    setErrorMsg(null);
+    try {
+      const item = await resumeService.getJobMatchHistoryItem(id);
+      setJobTitle(item.jobTitle ?? "");
+      setJobDescription(item.jobDescription ?? "");
+      setResult({
+        matchScore: item.matchScore,
+        summary: item.summary,
+        matchedKeywords: item.matchedKeywords,
+        missingKeywords: item.missingKeywords,
+        suggestions: item.suggestions,
+      });
+    } catch {
+      setErrorMsg("Failed to load job match history.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleDeleteHistory = async (id: string) => {
+    if (!currentResumeId) return;
+    if (!confirm("Delete this job match from history?")) return;
+    setDeletingHistoryId(id);
+    try {
+      await resumeService.deleteJobMatchHistoryItem(id);
+      await refreshHistory();
+    } catch {
+      setErrorMsg("Failed to delete job match history item.");
+    } finally {
+      setDeletingHistoryId(null);
+    }
+  };
 
   return (
     <Card variant="accordion" topBorder shadow={false}>
@@ -554,6 +632,84 @@ function JobMatchSection() {
             </Button>
           </div>
         )}
+
+        <div className="border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2 mb-2.5">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+              History
+            </span>
+            <button
+              type="button"
+              onClick={refreshHistory}
+              disabled={isHistoryLoading}
+              className="ml-auto text-xs font-medium text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+            >
+              {isHistoryLoading ? "Loading…" : "Refresh"}
+            </button>
+          </div>
+
+          {history.length > 0 ? (
+            <div className="space-y-2">
+              {history.map((h) => (
+                <div
+                  key={h.id}
+                  className="group w-full rounded-xl bg-white border border-gray-100 hover:border-gray-200 px-3.5 py-3 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadHistory(h.id)}
+                      className="text-left flex-1 min-w-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-gray-800 truncate flex-1">
+                          {h.jobTitle || "Untitled job"}
+                        </span>
+                        <span className="text-xs font-bold tabular-nums text-gray-500">
+                          {Math.round(h.matchScore)}
+                        </span>
+                      </div>
+                      {h.createdAt && (
+                        <div className="text-[11px] text-gray-400 mt-1">
+                          {new Date(h.createdAt).toLocaleString()}
+                        </div>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteHistory(h.id)}
+                      disabled={deletingHistoryId === h.id || isHistoryLoading}
+                      className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                      aria-label="Delete job match"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px] text-gray-400">
+                  Page {historyPage} of {historyPages}
+                </span>
+                {historyPage < historyPages && (
+                  <button
+                    type="button"
+                    onClick={loadMoreHistory}
+                    disabled={isHistoryLoading}
+                    className="ml-auto text-xs font-semibold text-[#04659A] hover:bg-[#04659A]/5 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-60 disabled:hover:bg-transparent"
+                  >
+                    {isHistoryLoading ? "Loading…" : "Load more"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-gray-50 border border-dashed border-gray-200 px-3.5 py-3 text-xs text-gray-400">
+              No saved job matches yet.
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

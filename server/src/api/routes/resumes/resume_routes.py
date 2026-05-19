@@ -8,7 +8,9 @@ from src.models.user import User
 from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
     TailorResumeRequest, JobMatchRequest, JobMatchResponse,
+    JobMatchHistorySummary, JobMatchHistoryItem,
 )
+from src.api.schemas.common import PaginatedResponse
 from src.services.resumes import ResumeService
 
 router = APIRouter()
@@ -90,6 +92,35 @@ async def match_resume_to_job(
     """Analyse how well a resume matches a job description."""
     service = ResumeService(session, user)
     return await service.analyse_job_match(resume_id, body)
+
+@router.get("/{resume_id}/job-matches", response_model=PaginatedResponse[JobMatchHistorySummary])
+async def list_job_match_history(
+    resume_id: str,
+    page: int = 1,
+    size: int = 5,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    return await service.list_job_match_history(resume_id, page=page, size=size)
+
+@router.get("/job-matches/{job_match_id}", response_model=JobMatchHistoryItem)
+async def get_job_match_history_item(
+    job_match_id: str,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    return await service.get_job_match_history_item(job_match_id)
+
+@router.delete("/job-matches/{job_match_id}", status_code=204)
+async def delete_job_match_history_item(
+    job_match_id: str,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    await service.delete_job_match_history_item(job_match_id)
 
 
 @router.get("/{resume_id}", response_model=ResumeResponse)

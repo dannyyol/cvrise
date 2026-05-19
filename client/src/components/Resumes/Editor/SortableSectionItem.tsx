@@ -57,7 +57,7 @@ export const SortableSectionItem = ({ section, isOpen, onToggle, columnLabel }: 
     <div ref={setNodeRef} style={style}>
       <Card variant="accordion" topBorder shadow={false} className="group mb-4">
         <CardHeader className="editor-section-header">
-          <div {...attributes} {...listeners} className="cursor-move text-slate-300 hover:text-slate-500 mr-2 transition-colors outline-none p-1.5 rounded-lg hover:bg-slate-100">
+          <div {...attributes} {...listeners} className="cursor-move touch-none select-none text-slate-300 hover:text-slate-500 mr-2 transition-colors outline-none p-1.5 rounded-lg hover:bg-slate-100">
             <GripVertical className="w-5 h-5" />
           </div>
 

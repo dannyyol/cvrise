@@ -1,4 +1,5 @@
 import { api } from '../lib/apiClient';
+import type { PaginatedResponse } from './planService';
 import type { TemplateProps, TemplateId, Template } from '../types/resume';
 import type { AIReviewResponse } from './analysisService';
 
@@ -150,6 +151,24 @@ export const resumeService = {
       { jobTitle: data.jobTitle, jobDescription: data.jobDescription }
     );
   },
+
+  getJobMatchHistory: async (
+    resumeId: string,
+    page: number = 1,
+    size: number = 10
+  ): Promise<PaginatedResponse<JobMatchHistorySummary>> => {
+    return api.get<PaginatedResponse<JobMatchHistorySummary>>(
+      `/resumes/${resumeId}/job-matches?page=${page}&size=${size}`
+    );
+  },
+
+  getJobMatchHistoryItem: async (jobMatchId: string): Promise<JobMatchHistoryItem> => {
+    return api.get<JobMatchHistoryItem>(`/resumes/job-matches/${jobMatchId}`);
+  },
+
+  deleteJobMatchHistoryItem: async (jobMatchId: string): Promise<void> => {
+    return api.delete(`/resumes/job-matches/${jobMatchId}`);
+  },
 };
 
 export interface JobMatchApiResponse {
@@ -162,4 +181,20 @@ export interface JobMatchApiResponse {
     suggestion: string;
     priority: 'high' | 'medium' | 'low';
   }>;
+}
+
+export interface JobMatchHistorySummary {
+  id: string;
+  resumeId: string;
+  jobTitle: string;
+  matchScore: number;
+  createdAt?: string | null;
+}
+
+export interface JobMatchHistoryItem extends JobMatchApiResponse {
+  id: string;
+  resumeId: string;
+  jobTitle: string;
+  jobDescription: string;
+  createdAt?: string | null;
 }

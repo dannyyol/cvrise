@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from pydantic.alias_generators import to_camel
 
@@ -157,6 +158,20 @@ class JobMatchSuggestion(BaseSchema):
 
 class JobMatchResponse(BaseSchema):
     match_score: float
+    summary: str
+    matched_keywords: List[str]
+    missing_keywords: List[str]
+    suggestions: List[JobMatchSuggestion]
+
+class JobMatchHistorySummary(BaseSchema):
+    id: str
+    resume_id: str
+    job_title: str
+    match_score: float
+    created_at: Optional[datetime] = None
+
+class JobMatchHistoryItem(JobMatchHistorySummary):
+    job_description: str
     summary: str
     matched_keywords: List[str]
     missing_keywords: List[str]
