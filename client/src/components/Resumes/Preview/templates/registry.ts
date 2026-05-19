@@ -55,7 +55,7 @@ export function mapCVDataToTemplateProps(data: TemplateProps): TemplateProps {
       github: data.personalDetails.github,
     },
     professionalSummary: {
-      content: data.professionalSummary?.content,
+      content: data.professionalSummary.content,
     },
     workExperiences: (data.workExperiences ?? []).map(exp => ({
       id: exp.id,
@@ -138,6 +138,30 @@ export function mapCVDataToTemplateProps(data: TemplateProps): TemplateProps {
       date: web.date,
       location: web.location,
       url: web.url,
+    })),
+    volunteering: (data.volunteering ?? []).map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      date: item.date,
+      location: item.location,
+      url: item.url,
+    })),
+    references: (data.references ?? []).map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      date: item.date,
+      location: item.location,
+      url: item.url,
+    })),
+    custom: (data.custom ?? []).map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      date: item.date,
+      location: item.location,
+      url: item.url,
     })),
     sections: (data.sections ?? [])
       .filter(sec => sec.isVisible)
