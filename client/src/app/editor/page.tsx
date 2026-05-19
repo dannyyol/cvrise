@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { useAuth } from '@/src/context/AuthContext';
 import { useCVStore, initialCVData } from '@/src/store/useCVStore';
@@ -39,7 +40,7 @@ function GuestEditorTopBar({
       style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <a
+        <Link
           href="/"
           className="flex items-center gap-0 text-gray-900 hover:text-[#04659A] transition-colors shrink-0"
         >
@@ -54,7 +55,7 @@ function GuestEditorTopBar({
           <span className="text-[1.2rem] font-extrabold tracking-[-0.03em]">
             CV<span className="text-primary-500">Rise</span>
           </span>
-        </a>
+        </Link>
         <div className="h-4 w-px bg-gray-200 shrink-0" />
         <span className="text-sm text-gray-400 truncate">Guest Editor</span>
       </div>
@@ -138,7 +139,7 @@ function GuestEditorContent() {
         aiAnalysis: null,
       });
     }
-  }, [isAuthenticated, authLoading, isSavingDraft, router]);
+  }, [isAuthenticated, authLoading, isSavingDraft, router, cvData.sections.length]);
 
   useEffect(() => {
     useCVStore.setState({
@@ -153,7 +154,7 @@ function GuestEditorContent() {
     });
     fetchTemplates();
     fetchCoverLetterTemplates();
-  }, []);
+  }, [fetchTemplates, fetchCoverLetterTemplates]);
 
   if (authLoading || cvData.sections.length === 0) {
     return <EditorPageSkeleton activeTab={activeTab} activeDocumentMode={activeDocumentMode} />;
@@ -225,12 +226,12 @@ function GuestEditorContent() {
 
       {/* Mobile tab bar */}
       <div className="lg:hidden bg-white border-b border-gray-200 p-2 flex items-center gap-2 shrink-0 z-20 shadow-sm">
-        <a
+        <Link
           href="/"
           className="flex items-center justify-center w-9 h-9 rounded-md text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
-        </a>
+        </Link>
         <button
           onClick={() => setActiveTab('editor')}
           className={clsx(

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useCVStore } from "@/src/store/useCVStore";
 import { buildCVPayload } from "@/src/lib/payloadBuilder";
 import { submitCVForReview, type AIReviewResponse } from "@/src/services/analysisService";
@@ -351,7 +351,7 @@ function JobMatchSection() {
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [deletingHistoryId, setDeletingHistoryId] = useState<string | null>(null);
 
-  const refreshHistory = async () => {
+  const refreshHistory = useCallback(async () => {
     if (!currentResumeId) return;
     setIsHistoryLoading(true);
     try {
@@ -363,9 +363,9 @@ function JobMatchSection() {
     } finally {
       setIsHistoryLoading(false);
     }
-  };
+  }, [currentResumeId]);
 
-  const loadMoreHistory = async () => {
+  const loadMoreHistory = useCallback(async () => {
     if (!currentResumeId) return;
     if (isHistoryLoading) return;
     if (historyPage >= historyPages) return;
@@ -380,12 +380,11 @@ function JobMatchSection() {
     } finally {
       setIsHistoryLoading(false);
     }
-  };
+  }, [currentResumeId, historyPage, historyPages, isHistoryLoading]);
 
   useEffect(() => {
-    if (!currentResumeId) return;
     refreshHistory();
-  }, [currentResumeId]);
+  }, [refreshHistory]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();

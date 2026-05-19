@@ -60,8 +60,11 @@ function EditorPageContent() {
   }, [fetchTemplates, fetchCoverLetterTemplates, source, currentResumeId, fetchResumeById, fetchDefaultResume]);
 
   const isDirtyRef = useRef(isDirty);
-  isDirtyRef.current = isDirty;
   const lastEditStartRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
 
   useEffect(() => {
     if (!currentResumeId || !isDirtyRef.current) return;
