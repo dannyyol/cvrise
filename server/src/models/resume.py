@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 import uuid
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON, Index
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON, Index, Text, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -67,3 +67,26 @@ class CoverLetterThemeConfig(Base):
     template_key: Mapped[str] = mapped_column(String, default="soft-modern")
 
     resume: Mapped["Resume"] = relationship("Resume", back_populates="cover_letter_theme")
+
+class JobMatchHistory(Base):
+    __tablename__ = "job_match_history"
+    __table_args__ = (
+        Index("ix_job_match_history_user_id_created_at", "user_id", "created_at"),
+        Index("ix_job_match_history_resume_id_created_at", "resume_id", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    resume_id: Mapped[str] = mapped_column(ForeignKey("resumes.id"))
+
+    job_title: Mapped[str] = mapped_column(String(255), default="")
+    job_description: Mapped[str] = mapped_column(Text, default="")
+
+    match_score: Mapped[float] = mapped_column(Float, default=0.0)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    matched_keywords: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    missing_keywords: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    suggestions: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

@@ -24,6 +24,11 @@ export default function Chronicle({
 }: TemplateProps) {
   const appliedFont = theme.fontFamily || 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   const dateLocale = theme.dateLocale || 'en-US';
+  const personalSection = sections.find((s) => s.id === 'personal');
+  const contactTitle = personalSection?.title || 'Contact';
+  const hasAnyContactDetail = Boolean(
+    personalDetails.phone || personalDetails.email || personalDetails.address || personalDetails.website
+  );
 
   // Helper to get Icon for section
   const getSectionIcon = (id: string) => {
@@ -270,35 +275,37 @@ export default function Chronicle({
         {/* Sidebar */}
         <aside className="cv-chronicle-aside" data-parallel-column="true">
           {/* Contact Details (Fixed at top of sidebar) */}
-          <div className="cv-chronicle-sidebar-section">
-            <div className="cv-chronicle-sidebar-section-title">Contact</div>
-            <div className="cv-chronicle-contact-list">
-              {personalDetails.phone && (
-                <div className="cv-chronicle-contact-item">
-                  <Phone className="cv-chronicle-contact-icon" />
-                  <span>{personalDetails.phone}</span>
-                </div>
-              )}
-              {personalDetails.email && (
-                <div className="cv-chronicle-contact-item">
-                  <Mail className="cv-chronicle-contact-icon" />
-                  <span>{personalDetails.email}</span>
-                </div>
-              )}
-              {personalDetails.address && (
-                <div className="cv-chronicle-contact-item">
-                  <MapPin className="cv-chronicle-contact-icon" />
-                  <span>{personalDetails.address}</span>
-                </div>
-              )}
-              {personalDetails.website && (
-                <div className="cv-chronicle-contact-item">
-                  <Globe className="cv-chronicle-contact-icon" />
-                  <span>{personalDetails.website}</span>
-                </div>
-              )}
+          {personalSection?.isVisible !== false && hasAnyContactDetail && (
+            <div className="cv-chronicle-sidebar-section" data-cv-section data-section-id="contact">
+              <div className="cv-chronicle-sidebar-section-title">{contactTitle}</div>
+              <div className="cv-chronicle-contact-list">
+                {personalDetails.phone && (
+                  <div className="cv-chronicle-contact-item">
+                    <Phone className="cv-chronicle-contact-icon" />
+                    <span>{personalDetails.phone}</span>
+                  </div>
+                )}
+                {personalDetails.email && (
+                  <div className="cv-chronicle-contact-item">
+                    <Mail className="cv-chronicle-contact-icon" />
+                    <span>{personalDetails.email}</span>
+                  </div>
+                )}
+                {personalDetails.address && (
+                  <div className="cv-chronicle-contact-item">
+                    <MapPin className="cv-chronicle-contact-icon" />
+                    <span>{personalDetails.address}</span>
+                  </div>
+                )}
+                {personalDetails.website && (
+                  <div className="cv-chronicle-contact-item">
+                    <Globe className="cv-chronicle-contact-icon" />
+                    <span>{personalDetails.website}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Other Sidebar Sections */}
           {sidebarSections.map(section => {

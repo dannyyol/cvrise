@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Layout, Award, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, Layout, Settings } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ROUTES } from '@/src/lib/routes';
 
@@ -18,7 +18,6 @@ export const useNavItems = (): NavItem[] => {
       icon: Layout,
       label: 'Editor',
     },
-    { to: ROUTES.TEMPLATES, icon: Award, label: 'Customise Design' },
     { to: ROUTES.SETTINGS, icon: Settings, label: 'Settings' },
   ];
 };

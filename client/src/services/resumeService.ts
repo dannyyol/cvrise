@@ -1,4 +1,5 @@
 import { api } from '../lib/apiClient';
+import type { PaginatedResponse } from './planService';
 import type { TemplateProps, TemplateId, Template } from '../types/resume';
 import type { AIReviewResponse } from './analysisService';
 
@@ -66,6 +67,10 @@ export interface CoverLetterTemplate {
 }
 
 export const resumeService = {
+  getSampleData: async (): Promise<Partial<ResumeApiResponse>> => {
+    return api.get<Partial<ResumeApiResponse>>('/resumes/sample');
+  },
+
   getAllResumes: async (): Promise<ResumeSummary[]> => {
     return api.get<ResumeSummary[]>('/resumes/');
   },
@@ -136,4 +141,60 @@ export const resumeService = {
       }
     );
   },
+
+  matchJob: async (
+    resumeId: string,
+    data: { jobTitle: string; jobDescription: string }
+  ): Promise<JobMatchApiResponse> => {
+    return api.post<{ jobTitle: string; jobDescription: string }, JobMatchApiResponse>(
+      `/resumes/${resumeId}/match`,
+      { jobTitle: data.jobTitle, jobDescription: data.jobDescription }
+    );
+  },
+
+  getJobMatchHistory: async (
+    resumeId: string,
+    page: number = 1,
+    size: number = 10
+  ): Promise<PaginatedResponse<JobMatchHistorySummary>> => {
+    return api.get<PaginatedResponse<JobMatchHistorySummary>>(
+      `/resumes/${resumeId}/job-matches?page=${page}&size=${size}`
+    );
+  },
+
+  getJobMatchHistoryItem: async (jobMatchId: string): Promise<JobMatchHistoryItem> => {
+    return api.get<JobMatchHistoryItem>(`/resumes/job-matches/${jobMatchId}`);
+  },
+
+  deleteJobMatchHistoryItem: async (jobMatchId: string): Promise<void> => {
+    return api.delete(`/resumes/job-matches/${jobMatchId}`);
+  },
 };
+
+export interface JobMatchApiResponse {
+  matchScore: number;
+  summary: string;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  suggestions: Array<{
+    section: string;
+    suggestion: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}
+
+export interface JobMatchHistorySummary {
+  id: string;
+  resumeId: string;
+  jobTitle: string;
+  matchScore: number;
+  createdAt?: string | null;
+}
+
+export interface JobMatchHistoryItem extends JobMatchApiResponse {
+  id: string;
+  resumeId: string;
+  jobTitle: string;
+  jobDescription: string;
+  createdAt?: string | null;
+}

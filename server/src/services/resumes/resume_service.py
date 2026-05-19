@@ -8,14 +8,17 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig
+from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig, JobMatchHistory
 from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.models.cover_letter import CoverLetter as DBCoverLetter
 from src.constants import DEFAULT_RESUME_SECTIONS
 from src.api.schemas.resume import (
-    ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate, TailorResumeRequest
+    ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
+    TailorResumeRequest, JobMatchRequest, JobMatchResponse,
+    JobMatchHistorySummary, JobMatchHistoryItem,
 )
+from src.api.schemas.common import PaginatedResponse
 from src.services.file_parser_service import FileParser
 from src.services.ai.ai_resume_parser_service import AIResumeParser
 from src.services.ai.ai_connection_service import AIConnectionService
@@ -24,9 +27,11 @@ from src.services.ai.ai_clients_service import (
 )
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
+from src.utils.pagination import paginate
 from src.config import settings
 
 from src.models.user import User
+from src.services.resumes.job_match_service import JobMatchService
 
 class ResumeService:
     def __init__(self, db: AsyncSession, user: Optional[User] = None):
@@ -531,36 +536,202 @@ class ResumeService:
                 raise HTTPException(status_code=402, detail=f"Insufficient tokens. This action requires at least {cost} tokens.")
         
         resume_text = self._compose_resume_text(resume)
+
+        job_match = await JobMatchService(client, model_id).analyse(
+            body.job_title,
+            body.job_description,
+            resume_text,
+        )
+        suggestions = job_match.get("suggestions") or []
+        missing_keywords = job_match.get("missing_keywords") or []
+
+        rd = resume.resume_data or {}
+        if not isinstance(rd, dict):
+            rd = {}
+
+        def _set_section_visible(section_type: str) -> None:
+            sections = rd.get("sections")
+            if not isinstance(sections, list):
+                return
+            for item in sections:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("type", "")).strip().lower() == section_type.lower():
+                    item["is_visible"] = True
+                    item["isVisible"] = True
+                    return
+
+        raw_work_experiences = rd.get("workExperiences", [])
+        work_experiences_context = []
+        if isinstance(raw_work_experiences, list):
+            for item in raw_work_experiences:
+                if not isinstance(item, dict):
+                    continue
+                wid = str(item.get("id", "")).strip()
+                if not wid:
+                    continue
+                work_experiences_context.append(
+                    {
+                        "id": wid,
+                        "position": str(item.get("position", "")).strip(),
+                        "company": str(item.get("company", "")).strip(),
+                        "description": str(item.get("description", "")).strip(),
+                    }
+                )
+
+        raw_projects = rd.get("projects", [])
+        projects_context = []
+        if isinstance(raw_projects, list):
+            for item in raw_projects:
+                if not isinstance(item, dict):
+                    continue
+                pid = str(item.get("id", "")).strip()
+                if not pid:
+                    continue
+                projects_context.append(
+                    {
+                        "id": pid,
+                        "name": str(item.get("name", "")).strip(),
+                        "description": str(item.get("description", "")).strip(),
+                        "technologies": item.get("technologies", []),
+                        "link": str(item.get("link", "")).strip(),
+                    }
+                )
+
+        existing_skill_names: set[str] = set()
+        if isinstance(rd.get("skills"), list):
+            for s in rd["skills"]:
+                if isinstance(s, dict):
+                    name = str(s.get("name", "")).strip().lower()
+                    if name:
+                        existing_skill_names.add(name)
+
         prompt = (
-            "Rewrite the resume's professional summary and extract top skills aligned to the job.\n\n"
-            "Return ONLY valid JSON:\n"
+            "You are an expert resume writer.\n"
+            "Generate a machine-applicable list of actions that apply the job-match suggestions to the resume data.\n\n"
+            "Hard rules:\n"
+            "- Do not fabricate experience, projects, employers, dates, or achievements.\n"
+            "- Only update existing experiences/projects by using an existing id from the provided lists.\n"
+            "- You may add missing keywords as Skills, but keep the level conservative (e.g. \"Familiar\").\n"
+            "- Keep output concise and ATS-friendly.\n\n"
+            "Return ONLY valid JSON with exactly this structure (no markdown, no extra keys):\n"
             "{\n"
-            '  "summary": string,\n'
-            '  "skills": [string]\n'
+            '  "actions": [\n'
+            '    { "type": "update_summary", "content": string },\n'
+            '    { "type": "add_skill", "name": string, "level": "Familiar" | "Good" | "Expert" },\n'
+            '    { "type": "update_experience_description", "experienceId": string, "description": string },\n'
+            '    { "type": "update_project_description", "projectId": string, "description": string },\n'
+            '    { "type": "add_project", "name": string, "description": string, "technologies": [string], "link": string }\n'
+            "  ]\n"
             "}\n\n"
             f"Tone: {body.tone}\n"
-            f"Role: {body.job_title}\n"
+            f"Role: {body.job_title}\n\n"
             "Job Description:\n"
             f"\"\"\"\n{body.job_description}\n\"\"\"\n\n"
-            "Resume:\n"
-            f"\"\"\"\n{resume_text}\n\"\"\"\n"
+            "Job Match Suggestions:\n"
+            f"{suggestions}\n\n"
+            "Missing Keywords:\n"
+            f"{missing_keywords}\n\n"
+            "Resume (plain text):\n"
+            f"\"\"\"\n{resume_text}\n\"\"\"\n\n"
+            "Existing Skills (names only):\n"
+            f"{sorted(existing_skill_names)}\n\n"
+            "Work Experiences (allowed ids):\n"
+            f"{work_experiences_context}\n\n"
+            "Projects (allowed ids):\n"
+            f"{projects_context}\n"
         )
         generated = await client.generate(prompt, model_id)
         parsed = TextProcessor.extract_json(generated) or {}
-        new_summary = str(parsed.get("summary", "")).strip()
-        new_skills = [str(s).strip() for s in (parsed.get("skills", []) or []) if str(s).strip()]
-        if not new_summary:
-            new_summary = TextProcessor.strip_code_fences(generated).strip()
-        
-        rd = resume.resume_data or {}
-        
-        if "professionalSummary" not in rd:
+        actions = parsed.get("actions") or []
+        if not isinstance(actions, list):
+            actions = []
+
+        if "professionalSummary" not in rd or not isinstance(rd.get("professionalSummary"), dict):
             rd["professionalSummary"] = {}
-        rd["professionalSummary"]["content"] = new_summary or (rd["professionalSummary"].get("content", "") or "")
-        
-        if new_skills:
-            new_skill_objs = [{"id": str(uuid.uuid4()), "name": s, "level": "Good"} for s in new_skills]
-            rd["skills"] = new_skill_objs
+        if "skills" not in rd or not isinstance(rd.get("skills"), list):
+            rd["skills"] = []
+        if "projects" not in rd or not isinstance(rd.get("projects"), list):
+            rd["projects"] = []
+
+        exp_by_id: dict[str, dict] = {}
+        if isinstance(rd.get("workExperiences"), list):
+            for exp in rd["workExperiences"]:
+                if isinstance(exp, dict):
+                    eid = str(exp.get("id", "")).strip()
+                    if eid:
+                        exp_by_id[eid] = exp
+
+        project_by_id: dict[str, dict] = {}
+        if isinstance(rd.get("projects"), list):
+            for proj in rd["projects"]:
+                if isinstance(proj, dict):
+                    pid = str(proj.get("id", "")).strip()
+                    if pid:
+                        project_by_id[pid] = proj
+
+        for action in actions:
+            if not isinstance(action, dict):
+                continue
+            t = str(action.get("type", "")).strip()
+
+            if t == "update_summary":
+                content = str(action.get("content", "")).strip()
+                if content:
+                    rd["professionalSummary"]["content"] = content
+                continue
+
+            if t == "add_skill":
+                name = str(action.get("name", "")).strip()
+                if not name:
+                    continue
+                if name.lower() in existing_skill_names:
+                    continue
+                level = str(action.get("level", "Familiar")).strip() or "Familiar"
+                rd["skills"].append({"id": str(uuid.uuid4()), "name": name, "level": level})
+                existing_skill_names.add(name.lower())
+                _set_section_visible("skills")
+                continue
+
+            if t == "update_experience_description":
+                eid = str(action.get("experienceId", "")).strip()
+                desc = str(action.get("description", "")).strip()
+                if eid and desc and eid in exp_by_id:
+                    exp_by_id[eid]["description"] = desc
+                    _set_section_visible("experience")
+                continue
+
+            if t == "update_project_description":
+                pid = str(action.get("projectId", "")).strip()
+                desc = str(action.get("description", "")).strip()
+                if pid and desc and pid in project_by_id:
+                    project_by_id[pid]["description"] = desc
+                    _set_section_visible("projects")
+                continue
+
+            if t == "add_project":
+                name = str(action.get("name", "")).strip()
+                desc = str(action.get("description", "")).strip()
+                if not name or not desc:
+                    continue
+                technologies_raw = action.get("technologies", [])
+                technologies = []
+                if isinstance(technologies_raw, list):
+                    technologies = [str(x).strip() for x in technologies_raw if str(x).strip()]
+                link = str(action.get("link", "")).strip()
+                rd["projects"].append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "name": name,
+                        "description": desc,
+                        "technologies": technologies,
+                        "link": link,
+                        "startDate": "",
+                        "endDate": "",
+                    }
+                )
+                _set_section_visible("projects")
+                continue
 
         resume.resume_data = dict(rd)
         flag_modified(resume, "resume_data")
@@ -569,6 +740,102 @@ class ResumeService:
             await plan_service.deduct_tokens(cost, "Resume Tailoring")
         await self.db.commit()
         return await self.get_resume_by_id(resume_id)
+
+    async def analyse_job_match(self, resume_id: str, body: JobMatchRequest) -> JobMatchResponse:
+        from src.services.resumes.job_match_service import JobMatchService
+
+        stmt = select(Resume).where(
+            Resume.id == resume_id,
+            Resume.user_id == self.user_id,
+        ).options(
+            selectinload(Resume.template),
+            selectinload(Resume.theme),
+        )
+        result = await self.db.execute(stmt)
+        resume = result.scalar_one_or_none()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+
+        client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+        plan_service = PlanService(self.db, self.user)
+        cost = settings.COST_JOB_MATCH
+
+        if is_platform_mode and not await plan_service.has_sufficient_balance(cost):
+            raise HTTPException(
+                status_code=402,
+                detail=f"Insufficient tokens.",
+            )
+
+        resume_text = self._compose_resume_text(resume)
+        data = await JobMatchService(client, model_id).analyse(
+            body.job_title, body.job_description, resume_text
+        )
+
+        if is_platform_mode:
+            await plan_service.deduct_tokens(cost, "Job Match Analysis")
+
+        job_title = (body.job_title or "").strip()[:255]
+        job_description = (body.job_description or "").strip()
+        if len(job_description) > 20000:
+            job_description = job_description[:20000]
+
+        history = JobMatchHistory(
+            user_id=self.user_id,
+            resume_id=resume.id,
+            job_title=job_title,
+            job_description=job_description,
+            match_score=float(data.get("match_score") or 0.0),
+            summary=str(data.get("summary") or ""),
+            matched_keywords=data.get("matched_keywords") or [],
+            missing_keywords=data.get("missing_keywords") or [],
+            suggestions=data.get("suggestions") or [],
+        )
+        self.db.add(history)
+        try:
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
+            raise
+
+        return JobMatchResponse(**data)
+
+    async def list_job_match_history(
+        self, resume_id: str, page: int = 1, size: int = 5
+    ) -> PaginatedResponse[JobMatchHistorySummary]:
+        query = (
+            select(JobMatchHistory)
+            .where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.resume_id == resume_id)
+            .order_by(JobMatchHistory.created_at.desc(), JobMatchHistory.id.desc())
+        )
+        return await paginate(self.db, query, page, size, schema=JobMatchHistorySummary)
+
+    async def get_job_match_history_item(self, job_match_id: str) -> JobMatchHistoryItem:
+        stmt = select(JobMatchHistory).where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.id == job_match_id)
+        result = await self.db.execute(stmt)
+        row = result.scalar_one_or_none()
+        if not row:
+            raise HTTPException(status_code=404, detail="Job match not found")
+        return JobMatchHistoryItem(
+            id=row.id,
+            resume_id=row.resume_id,
+            job_title=row.job_title,
+            job_description=row.job_description,
+            match_score=row.match_score,
+            summary=row.summary,
+            matched_keywords=row.matched_keywords or [],
+            missing_keywords=row.missing_keywords or [],
+            suggestions=row.suggestions or [],
+            created_at=row.created_at,
+        )
+
+    async def delete_job_match_history_item(self, job_match_id: str) -> None:
+        stmt = select(JobMatchHistory).where(JobMatchHistory.user_id == self.user_id, JobMatchHistory.id == job_match_id)
+        result = await self.db.execute(stmt)
+        row = result.scalar_one_or_none()
+        if not row:
+            return
+        await self.db.delete(row)
+        await self.db.commit()
 
     async def get_default_resume(self) -> ResumeResponse:
         stmt = select(Resume).where(Resume.user_id == self.user_id).order_by(Resume.updated_at.desc()).limit(1)

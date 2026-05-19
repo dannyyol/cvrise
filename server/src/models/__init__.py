@@ -1,4 +1,4 @@
-from .resume import Resume, Template
+from .resume import Resume, Template, JobMatchHistory
 from .cover_letter import CoverLetter
 from .settings import Setting
 from .ai_model import AIModel
