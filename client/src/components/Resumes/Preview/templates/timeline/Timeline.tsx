@@ -20,6 +20,7 @@ import {
   Globe
 } from 'lucide-react';
 import { formatDateRange } from '@/src/lib/dateFormatting';
+import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 const SIDEBAR_IDS = ['skills', 'languages', 'interests', 'websites', 'awards', 'certifications'];
@@ -54,7 +55,7 @@ const renderMainSectionContent = (
       return (
         <div
           className="cv-timeline-paragraph"
-          dangerouslySetInnerHTML={{ __html: professionalSummary.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(professionalSummary.content) }}
         />
       );
 
@@ -79,7 +80,7 @@ const renderMainSectionContent = (
               {exp.description && (
                 <div
                   className="cv-timeline-paragraph"
-                  dangerouslySetInnerHTML={{ __html: exp.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(exp.description) }}
                 />
               )}
             </div>
@@ -108,7 +109,7 @@ const renderMainSectionContent = (
               {ed.description && (
                 <div
                   className="cv-timeline-paragraph"
-                  dangerouslySetInnerHTML={{ __html: ed.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(ed.description) }}
                 />
               )}
             </div>
@@ -138,7 +139,7 @@ const renderMainSectionContent = (
               {proj.description && (
                 <div
                   className="cv-timeline-paragraph"
-                  dangerouslySetInnerHTML={{ __html: proj.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(proj.description) }}
                 />
               )}
             </div>
@@ -169,7 +170,7 @@ const renderMainSectionContent = (
               {pub.description ? (
                 <div
                   className="cv-timeline-paragraph"
-                  dangerouslySetInnerHTML={{ __html: pub.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(pub.description) }}
                 />
               ) : null}
             </div>

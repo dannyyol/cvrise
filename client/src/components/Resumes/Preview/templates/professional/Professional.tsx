@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css'
 
 export default function Professional({
@@ -72,7 +73,7 @@ export default function Professional({
                 <h2 className="cv-professional-section-title">{section.title}</h2>
                 <div
                   className="cv-professional-paragraph"
-                  dangerouslySetInnerHTML={{ __html: professionalSummary.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(professionalSummary.content) }}
                 />
               </section>
             );
@@ -105,7 +106,7 @@ export default function Professional({
                       {exp.description ? (
                         <div
                           className="cv-professional-paragraph"
-                          dangerouslySetInnerHTML={{ __html: exp.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(exp.description) }}
                         />
                       ) : null}
                     </li>
@@ -141,7 +142,7 @@ export default function Professional({
                       {ed.description ? (
                         <div
                           className="cv-professional-paragraph"
-                          dangerouslySetInnerHTML={{ __html: ed.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(ed.description) }}
                         />
                       ) : null}
                     </li>
@@ -198,7 +199,7 @@ export default function Professional({
                       {p.description ? (
                         <div
                           className="cv-professional-paragraph"
-                          dangerouslySetInnerHTML={{ __html: p.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                         />
                       ) : null}
                     </li>
@@ -249,7 +250,7 @@ export default function Professional({
                       {a.description ? (
                         <div
                           className="cv-professional-paragraph"
-                          dangerouslySetInnerHTML={{ __html: a.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(a.description) }}
                         />
                       ) : null}
                     </li>
@@ -280,7 +281,7 @@ export default function Professional({
                       {p.description ? (
                         <div
                           className="cv-professional-paragraph"
-                          dangerouslySetInnerHTML={{ __html: p.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                         />
                       ) : null}
                     </li>
@@ -355,9 +356,18 @@ export default function Professional({
                       <div className="cv-professional-item-title">{web.name}</div>
                       {web.url ? (
                         <div className="cv-professional-item-meta">
-                          <a href={web.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                            {web.url}
-                          </a>
+                          {safeExternalHref(web.url) ? (
+                            <a
+                              href={safeExternalHref(web.url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'inherit', textDecoration: 'none' }}
+                            >
+                              {web.url}
+                            </a>
+                          ) : (
+                            <span>{web.url}</span>
+                          )}
                         </div>
                       ) : null}
                     </li>

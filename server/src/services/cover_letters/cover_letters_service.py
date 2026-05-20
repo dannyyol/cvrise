@@ -19,6 +19,7 @@ from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
 from src.config import settings
 from src.models.user import User
+from src.utils.html_sanitizer import sanitize_rich_text_html
 
 class CoverLetterService:
     def __init__(self, db: AsyncSession, user: Optional[User] = None):
@@ -222,7 +223,7 @@ class CoverLetterService:
                     recipient_title=cl.recipient_title,
                     company_name=cl.company_name,
                     company_address=cl.company_address,
-                    content=cl.content,
+                    content=sanitize_rich_text_html(cl.content or ""),
                     job_title=cl.job_title,
                     job_description=cl.job_description,
                     template_key=cl.template_key,
@@ -245,6 +246,7 @@ class CoverLetterService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
         name = body.title or (f"{body.job_title} @ {body.company_name}".strip() if body.job_title or body.company_name else "Cover Letter")
+        safe_content = sanitize_rich_text_html(body.content or "")
         cl = DBCoverLetter(
             id=str(uuid.uuid4()),
             resume_id=resume.id,
@@ -253,7 +255,7 @@ class CoverLetterService:
             recipient_title=body.recipient_title or "",
             company_name=body.company_name or "",
             company_address=body.company_address or "",
-            content=body.content or "",
+            content=safe_content,
             job_title=body.job_title or "",
             job_description=body.job_description or "",
             template_key=body.template_key or "soft-modern",
@@ -308,7 +310,7 @@ class CoverLetterService:
             length_hint = body.length or "medium"
             prompt = self._compose_cover_letter_prompt(resume_text, body, template.guidelines or {}, length_hint)
             generated = await client.generate(prompt, model_id)
-            content = TextProcessor.strip_code_fences(generated)
+            content = sanitize_rich_text_html(TextProcessor.strip_code_fences(generated))
             name = body.title or (f"{body.job_title} @ {body.company_name}".strip() if body.job_title or body.company_name else "Cover Letter")
             cl = DBCoverLetter(
                 id=str(uuid.uuid4()),

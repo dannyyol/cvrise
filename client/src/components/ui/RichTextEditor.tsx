@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { cn } from './Form';
+import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 
 export interface RichTextEditorProps {
   label?: string;
@@ -32,13 +33,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       },
     },
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      onChange(sanitizeRichTextHtml(editor.getHTML()));
     },
   });
 
   useEffect(() => {
     if (!editor) return;
-    const next = value || '';
+    const next = sanitizeRichTextHtml(value || '');
     if (editor.getHTML() === next) return;
     editor.commands.setContent(next, { emitUpdate: false });
   }, [editor, value]);

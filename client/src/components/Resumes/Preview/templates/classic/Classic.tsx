@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css'
 
 export default function Classic({
@@ -74,7 +75,7 @@ export default function Classic({
                 <h2 className="cv-classic-section-title">{section.title}</h2>
                 <div
                   className="cv-classic-paragraph"
-                  dangerouslySetInnerHTML={{ __html: professionalSummary.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(professionalSummary.content) }}
                 />
               </section>
             );
@@ -103,7 +104,7 @@ export default function Classic({
                       {exp.description ? (
                         <div
                           className="cv-classic-paragraph"
-                          dangerouslySetInnerHTML={{ __html: exp.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(exp.description) }}
                         />
                       ) : null}
                     </li>
@@ -135,7 +136,7 @@ export default function Classic({
                       {ed.description ? (
                         <div
                           className="cv-classic-paragraph"
-                          dangerouslySetInnerHTML={{ __html: ed.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(ed.description) }}
                         />
                       ) : null}
                     </li>
@@ -183,7 +184,7 @@ export default function Classic({
                       {p.description ? (
                         <div
                           className="cv-classic-paragraph"
-                          dangerouslySetInnerHTML={{ __html: p.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                         />
                       ) : null}
                     </li>
@@ -232,7 +233,7 @@ export default function Classic({
                       {a.description ? (
                         <div
                           className="cv-classic-paragraph"
-                          dangerouslySetInnerHTML={{ __html: a.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(a.description) }}
                         />
                       ) : null}
                     </li>
@@ -261,7 +262,7 @@ export default function Classic({
                       {p.description ? (
                         <div
                           className="cv-classic-paragraph"
-                          dangerouslySetInnerHTML={{ __html: p.description }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                         />
                       ) : null}
                     </li>
@@ -327,9 +328,18 @@ export default function Classic({
                       <div className="cv-classic-item-title">{web.name}</div>
                       {web.url ? (
                         <div className="cv-classic-item-meta">
-                          <a href={web.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                            {web.url}
-                          </a>
+                          {safeExternalHref(web.url) ? (
+                            <a
+                              href={safeExternalHref(web.url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'inherit', textDecoration: 'none' }}
+                            >
+                              {web.url}
+                            </a>
+                          ) : (
+                            <span>{web.url}</span>
+                          )}
                         </div>
                       ) : null}
                     </li>
