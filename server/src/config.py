@@ -50,6 +50,14 @@ class AppSettings(BaseSettings):
     COST_PARSE_RESUME: int = 15
     COST_JOB_MATCH: int = 10
 
+    PDF_EXPORT_TOKEN_SECRET: Optional[str] = None
+    PDF_EXPORT_TOKEN_TTL_SECONDS: int = 300
+    PDF_EXPORT_MAX_PAYLOAD_BYTES: int = 512_000
+    PDF_EXPORT_MAX_CONCURRENT_JOBS: int = 2
+    PDF_EXPORT_NO_SANDBOX: bool = False
+    PDF_EXPORT_PREPARE_RATE_LIMIT_PER_MINUTE: int = 20
+    PDF_EXPORT_REDEEM_RATE_LIMIT_PER_MINUTE: int = 10
+
     @field_validator("CORS_ALLOWED_ORIGINS", mode="before")
     def _split_csv(cls, v):
         """
