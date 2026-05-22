@@ -10,11 +10,11 @@ from src.database import Base
 
 
 class PdfExportIntent(Base):
-    __tablename__ = "pdf_export_intents"
+    __tablename__ = "pdf_exports"
     __table_args__ = (
-        Index("ix_pdf_export_intents_expires_at", "expires_at"),
-        Index("ix_pdf_export_intents_consumed_at", "consumed_at"),
-        Index("ix_pdf_export_intents_requester_ip_created_at", "requester_ip", "created_at"),
+        Index("ix_pdf_exports_expires_at", "expires_at"),
+        Index("ix_pdf_exports_consumed_at", "consumed_at"),
+        Index("ix_pdf_exports_requester_ip_created_at", "requester_ip", "created_at"),
     )
 
     id: Mapped[str] = mapped_column(String(length=36), primary_key=True, default=lambda: str(uuid.uuid4()))

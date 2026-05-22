@@ -4,6 +4,27 @@ import json
 from typing import Protocol, Optional
 from loguru import logger
 
+
+class AIConfigurationError(Exception):
+    pass
+
+
+class AIProviderError(Exception):
+    pass
+
+
+def _raise_ai_error(exc: Exception) -> None:
+    if isinstance(exc, (httpx.UnsupportedProtocol, httpx.InvalidURL)):
+        raise AIConfigurationError("Invalid AI Base URL. Please check your AI configuration settings.") from exc
+    if isinstance(exc, httpx.HTTPStatusError):
+        status_code = exc.response.status_code if exc.response is not None else None
+        if status_code in {401, 403}:
+            raise AIConfigurationError("AI authentication failed. Please check your AI API key in Settings.") from exc
+        raise AIProviderError("AI provider returned an error. Please try again.") from exc
+    if isinstance(exc, httpx.RequestError):
+        raise AIProviderError("AI provider connection failed. Please check your AI configuration and try again.") from exc
+    raise AIProviderError("AI request failed. Please try again.") from exc
+
 class AsyncLLMClient(Protocol):
     async def generate(self, prompt: str, model: str) -> str:
         ...
@@ -62,7 +83,7 @@ class OllamaClient:
                 return response.json().get("response", "")
         except Exception as exc:
             logger.error(f"Ollama API call failed: {repr(exc)}")
-            raise
+            _raise_ai_error(exc)
 
 class OpenAIClient:
     def __init__(self, base_url: str, api_key: str):
@@ -89,7 +110,7 @@ class OpenAIClient:
                 return data["choices"][0]["message"]["content"]
         except Exception as exc:
             logger.error("OpenAI API call failed: {}", str(exc))
-            raise
+            _raise_ai_error(exc)
 
 class AnthropicClient:
     def __init__(self, base_url: str, api_key: str):
@@ -120,7 +141,7 @@ class AnthropicClient:
                 return data["content"][0]["text"]
         except Exception as exc:
             logger.error("Anthropic API call failed: {}", str(exc))
-            raise
+            _raise_ai_error(exc)
 
 class GoogleClient:
     def __init__(self, base_url: str, api_key: str):
@@ -155,22 +176,22 @@ class GoogleClient:
                 return data["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as exc:
             logger.error("Google API call failed: {}", str(exc))
-            raise
+            _raise_ai_error(exc)
 
 def get_ai_client(provider: str, base_url: str, api_key: Optional[str] = None) -> AsyncLLMClient:
     if provider == "ollama":
         return OllamaClient(base_url)
     elif provider == "openai":
         if not api_key:
-            raise ValueError("API Key required for OpenAI")
+            raise AIConfigurationError("AI API key is missing. Please check your AI configuration settings.")
         return OpenAIClient(base_url, api_key)
     elif provider == "anthropic":
         if not api_key:
-            raise ValueError("API Key required for Anthropic")
+            raise AIConfigurationError("AI API key is missing. Please check your AI configuration settings.")
         return AnthropicClient(base_url, api_key)
     elif provider == "google":
         if not api_key:
-            raise ValueError("API Key required for Google")
+            raise AIConfigurationError("AI API key is missing. Please check your AI configuration settings.")
         return GoogleClient(base_url, api_key)
     else:
-        raise ValueError(f"Unsupported AI provider: {provider}")
+        raise AIConfigurationError(f"Unsupported AI provider: {provider}")

@@ -24,7 +24,7 @@ from src.services.file_parser_service import FileParser
 from src.services.ai.ai_resume_parser_service import AIResumeParser
 from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.ai.ai_clients_service import (
-    OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor
+    OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor, AIConfigurationError, AIProviderError
 )
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
@@ -423,7 +423,7 @@ class ResumeService:
             parsed_data = None
             
             try:
-                client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+                client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
                 
                 plan_service = PlanService(self.db, self.user)
                 cost = settings.COST_PARSE_RESUME
@@ -441,9 +441,15 @@ class ResumeService:
 
             except HTTPException:
                 raise
+            except AIConfigurationError as e:
+                logger.error(f"AI parsing configuration error: {str(e)}")
+                raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+            except AIProviderError as e:
+                logger.error(f"AI parsing provider error: {str(e)}")
+                raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
             except Exception as e:
                 logger.error(f"AI parsing failed: {repr(e)}")
-                raise HTTPException(status_code=500, detail=f"AI parsing failed: {repr(e)}")
+                raise HTTPException(status_code=500, detail="AI parsing failed. Please try again.")
 
             if not parsed_data:
                 raise HTTPException(status_code=400, detail="AI parsing failed or no AI model configured. Please configure an AI model in settings.")
@@ -538,7 +544,7 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
         
-        client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+        client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
         plan_service = PlanService(self.db, self.user)
         cost = settings.COST_TAILOR_RESUME
         
@@ -547,14 +553,21 @@ class ResumeService:
                 raise HTTPException(status_code=402, detail=f"Insufficient tokens. This action requires at least {cost} tokens.")
         
         resume_text = self._compose_resume_text(resume)
-
-        job_match = await JobMatchService(client, model_id).analyse(
-            body.job_title,
-            body.job_description,
-            resume_text,
-        )
+        try:
+            job_match = await JobMatchService(client, model_id).analyse(
+                body.job_title,
+                body.job_description,
+                resume_text,
+            )
+        except AIConfigurationError as e:
+            logger.error("AI job match configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI job match provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         suggestions = job_match.get("suggestions") or []
         missing_keywords = job_match.get("missing_keywords") or []
+
 
         rd = resume.resume_data or {}
         if not isinstance(rd, dict):
@@ -652,7 +665,14 @@ class ResumeService:
             "Projects (allowed ids):\n"
             f"{projects_context}\n"
         )
-        generated = await client.generate(prompt, model_id)
+        try:
+            generated = await client.generate(prompt, model_id)
+        except AIConfigurationError as e:
+            logger.error("AI tailoring configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI tailoring provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         parsed = TextProcessor.extract_json(generated) or {}
         actions = parsed.get("actions") or []
         if not isinstance(actions, list):
@@ -769,7 +789,7 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+        client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
         plan_service = PlanService(self.db, self.user)
         cost = settings.COST_JOB_MATCH
 
@@ -780,9 +800,16 @@ class ResumeService:
             )
 
         resume_text = self._compose_resume_text(resume)
-        data = await JobMatchService(client, model_id).analyse(
-            body.job_title, body.job_description, resume_text
-        )
+        try:
+            data = await JobMatchService(client, model_id).analyse(
+                body.job_title, body.job_description, resume_text
+            )
+        except AIConfigurationError as e:
+            logger.error("AI job match configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI job match provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
 
         if is_platform_mode:
             await plan_service.deduct_tokens(cost, "Job Match Analysis")

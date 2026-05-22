@@ -7,6 +7,7 @@ from src.database import get_db
 from src.api.dependencies import get_current_user
 from src.models.user import User
 from src.services.resumes.review_service import create_cv_review_service
+from src.services.ai.ai_clients_service import AIConfigurationError, AIProviderError
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
 from src.config import settings
@@ -22,7 +23,7 @@ async def review_resume(
     try:
         plan_service = PlanService(session, user)
         
-        client, model_id, is_platform_mode = await get_configured_ai_client(session)
+        client, model_id, is_platform_mode = await get_configured_ai_client(session, user.id)
         
         cost = settings.COST_CV_REVIEW
         if is_platform_mode:
@@ -43,9 +44,15 @@ async def review_resume(
 
     except HTTPException:
         raise
+    except AIConfigurationError as e:
+        logger.warning("Review AI configuration error: {}", str(e))
+        raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+    except AIProviderError as e:
+        logger.warning("Review AI provider error: {}", str(e))
+        raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
     except ValueError as e:
         logger.warning("Review failed: {}", e)
         raise HTTPException(status_code=502, detail="AI analysis failed. Please try again.")
     except Exception as e:
         logger.exception("Review failed: {}", e)
-        raise HTTPException(status_code=500, detail=f"Review failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Review failed. Please try again.")

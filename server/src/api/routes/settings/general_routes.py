@@ -3,13 +3,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from src.database import get_db
+from src.api.dependencies import get_current_user
+from src.models.user import User
 from src.api.schemas.settings import SettingCreate, SettingResponse
 from src.services.settings import SettingsService
 
 router = APIRouter()
 
-def get_settings_service(db: AsyncSession = Depends(get_db)) -> SettingsService:
-    return SettingsService(db)
+def get_settings_service(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SettingsService:
+    return SettingsService(db, user.id)
 
 @router.get("/", response_model=List[SettingResponse])
 async def get_settings(service: SettingsService = Depends(get_settings_service)):

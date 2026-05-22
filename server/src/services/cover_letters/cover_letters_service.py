@@ -13,7 +13,7 @@ from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.api.schemas.resume import CoverLetterItem, CoverLetterCreate, CoverLetterGenerateRequest
 from src.models.cover_letter_template import CoverLetterTemplate
-from src.services.ai.ai_clients_service import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
+from src.services.ai.ai_clients_service import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, AIConfigurationError, AIProviderError
 from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
@@ -33,7 +33,7 @@ class CoverLetterService:
         return self.user.id
 
     async def _get_ai_config(self) -> Tuple[AIModel, dict]:
-        stmt = select(Setting).where(Setting.key == "ai_config")
+        stmt = select(Setting).where(Setting.user_id == self.user_id, Setting.key == "ai_config")
         result = await self.db.execute(stmt)
         setting = result.scalar_one_or_none()
         ai_settings = setting.value if setting else {}
@@ -295,7 +295,7 @@ class CoverLetterService:
             resume = result.scalar_one_or_none()
             if not resume:
                 raise HTTPException(status_code=404, detail="Resume not found")
-            client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+            client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
             plan_service = PlanService(self.db, self.user)
             cost = settings.COST_GENERATE_COVER_LETTER
             if is_platform_mode:
@@ -354,6 +354,12 @@ class CoverLetterService:
             return item
         except HTTPException:
             raise
+        except AIConfigurationError as e:
+            logger.error("AI cover letter configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI cover letter provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         except Exception as e:
             logger.exception("Cover letter generation failed: {}", e)
-            raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Generation failed. Please try again.")
