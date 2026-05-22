@@ -608,22 +608,24 @@
 .homepage .hero-sub { font-size: 1.05rem; color: var(--ink2); line-height: 1.75; font-weight: 400; max-width: 500px; margin: 0 auto 36px; }
 .homepage .hero-cta { padding: 15px 40px; border-radius: 99px; border: none; background: var(--primary); color: var(--white); font-family: "Geist", sans-serif; font-size: 1rem; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 4px 20px rgba(6, 114, 173, 0.35); transition: all 0.22s; display: inline-block; }
 .homepage .hero-cta:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(6, 114, 173, 0.4); }
-.homepage .hero-trust { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; flex-wrap: wrap; color: #7c7f86; }
+.homepage .hero-trust { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
 .homepage .ht {
-    font-size: .8rem;
-    color: var(--ink3);
+    font-size: .82rem;
+    color: var(--ink2);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    font-weight: 450;
+    letter-spacing: 0.01em;
 }
 .homepage .ht-dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--ink3);
+    width: 1px;
+    height: 10px;
+    border-radius: 1px;
+    background: #d1d5db;
 }
 .homepage .ht:hover {
-  color: #5c616b;
+  color: var(--ink1);
 }
 @keyframes htPopIn {
   0% { opacity: 0; transform: scale(0.9) translateY(10px); }
@@ -636,12 +638,12 @@
 
 .homepage .ht::before {
   content: "✓";
-  color: #7c7f86;
+  color: var(--blue);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1em;
-  font-weight: 500;
+  font-size: 0.9em;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -810,8 +812,9 @@
 .homepage .footer-brand img { width: 36px; height: 36px; display: block; flex-shrink: 0; margin-right: -2px; }
 .homepage .footer-desc { font-size: 0.84rem; color: var(--ink3); line-height: 1.75; max-width: 220px; margin-top: 12px; font-weight: 400; }
 .homepage .f-col-h { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(0, 0, 0, 0.3); margin-bottom: 16px; }
-.homepage .f-links { list-style: none; display: flex; flex-direction: column; gap: 11px; }
-.homepage .f-links a { text-decoration: none; font-size: 0.85rem; color: var(--ink2); transition: color 0.15s; font-weight: 400; }
+.homepage .f-links { list-style: none; display: flex; flex-direction: column; gap: 11px; font-size: 0.85rem; color: var(--ink2); font-weight: 400; }
+.homepage .f-links li { font-size: 0.85rem; color: var(--ink2); font-weight: 400; }
+.homepage .f-links a { text-decoration: none; font-size: inherit; color: inherit; transition: color 0.15s; font-weight: inherit; }
 .homepage .f-links a:hover { color: var(--blue); }
 .homepage .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid rgba(0, 0, 0, 0.07); flex-wrap: wrap; gap: 10px; }
 .homepage .footer-copy,
@@ -883,6 +886,7 @@
   .homepage .hero-trust { gap: 8px; margin-top: 22px; justify-content: center; max-width: 360px; margin-left: auto; margin-right: auto; }
   .homepage .ht { width: auto; justify-content: center; font-size: 0.85rem; }
   .homepage .ht-sep { display: none; }
+  .homepage .ht-dot { display: none; }
   .homepage .section { padding: 64px 16px; }
   .homepage .cta-wrap { padding: 36px 16px; }
   .homepage .cta-box { padding: 44px 20px; border-radius: 20px; }

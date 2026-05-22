@@ -34,4 +34,14 @@ export const settingsService = {
   saveAISettings: async (config: AIConfig): Promise<void> => {
     await api.post<AIConfig, unknown>('/settings/ai', config);
   },
+
+  getPaygStatus: async (): Promise<boolean> => {
+    const response = await api.get<{ enabled: boolean }>('/settings/ai/payg');
+    return response.enabled;
+  },
+
+  togglePayg: async (enabled: boolean): Promise<boolean> => {
+    const response = await api.patch<{ enabled: boolean }, { enabled: boolean }>('/settings/ai/payg', { enabled });
+    return response.enabled;
+  },
 };

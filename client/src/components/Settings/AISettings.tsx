@@ -49,12 +49,15 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
       setModels(fetchedModels);
 
       // Load settings
-      const settings = await settingsService.getSettings(SETTINGS_KEY_AI);
+      const [settings, paygEnabled] = await Promise.all([
+        settingsService.getSettings(SETTINGS_KEY_AI),
+        settingsService.getPaygStatus(),
+      ]);
       if (settings) {
         if (settings.activeModelId) setSelectedModelId(settings.activeModelId);
         if (settings.configs) setConfigs(prev => ({ ...prev, ...settings.configs }));
-        if (settings.usageMode) setUsePayAsYouGo(settings.usageMode === 'platform');
       }
+      setUsePayAsYouGo(paygEnabled);
       setIsLoading(false);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Failed to load AI settings');
@@ -136,19 +139,13 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   const handleUsageModeChange = async (enabled: boolean) => {
     setUsePayAsYouGo(enabled);
     setIsUpdatingMode(true);
-    
+
     try {
-      // Optimistically update UI, but rollback on failure
-      await settingsService.saveAISettings({
-        activeModelId: selectedModelId,
-        usageMode: enabled ? 'platform' : 'custom',
-        configs
-      });
-      
-      setToast({ 
-        message: `Switched to ${enabled ? 'Pay As You Go' : 'Bring Your Own Key'} mode`, 
-        type: 'success', 
-        isVisible: true 
+      await settingsService.togglePayg(enabled);
+      setToast({
+        message: `Switched to ${enabled ? 'Pay As You Go' : 'Bring Your Own Key'} mode`,
+        type: 'success',
+        isVisible: true
       });
     } catch (error: unknown) {
       setUsePayAsYouGo(!enabled);

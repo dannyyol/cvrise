@@ -18,3 +18,6 @@ class AISettingsUpdate(BaseModel):
     activeModelId: str
     usageMode: str = 'custom' # 'platform' or 'custom'
     configs: Dict[str, AISettingsConfig]
+
+class PAYGToggle(BaseModel):
+    enabled: bool

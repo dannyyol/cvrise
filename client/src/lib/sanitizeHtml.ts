@@ -43,9 +43,30 @@ const DOCUMENT_ALLOWED_TAGS = [
   'tr',
   'td',
   'th',
+  // SVG elements for template icons (lucide-react)
+  'svg',
+  'path',
+  'circle',
+  'rect',
+  'line',
+  'polyline',
+  'polygon',
+  'ellipse',
+  'g',
+  'use',
+  'defs',
 ];
 
-const DOCUMENT_ALLOWED_ATTR = ['href', 'target', 'rel', 'class', 'style', 'id'];
+const DOCUMENT_ALLOWED_ATTR = [
+  'href', 'target', 'rel', 'class', 'style', 'id',
+  // SVG presentation attributes
+  'viewBox', 'xmlns', 'width', 'height',
+  'fill', 'fill-rule', 'fill-opacity',
+  'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity',
+  'd', 'points', 'transform', 'clip-path', 'clip-rule', 'opacity',
+  'cx', 'cy', 'r', 'rx', 'ry',
+  'x', 'y', 'x1', 'y1', 'x2', 'y2',
+];
 
 let hooksInstalled = false;
 const ensureHooksInstalled = () => {
@@ -101,7 +122,7 @@ export const sanitizeDocumentHtml = (value: string | null | undefined): string =
     ALLOWED_TAGS: DOCUMENT_ALLOWED_TAGS,
     ALLOWED_ATTR: DOCUMENT_ALLOWED_ATTR,
     ALLOW_DATA_ATTR: true,
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'svg', 'math', 'form', 'input', 'textarea', 'button'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'math', 'form', 'input', 'textarea', 'button'],
     ALLOW_UNKNOWN_PROTOCOLS: false,
   });
 };

@@ -88,6 +88,11 @@ export const api = {
     const res: AxiosResponse<TRes> = await client.put(url, data, config);
     return res.data;
   },
+  patch: async <TReq, TRes>(url: string, data: TReq, config?: AxiosRequestConfig, mock?: MockOptions<TRes>): Promise<TRes> => {
+    if (mock?.mock) return simulateMock<TRes>(mock);
+    const res: AxiosResponse<TRes> = await client.patch(url, data, config);
+    return res.data;
+  },
   delete: async <TRes>(url: string, config?: AxiosRequestConfig, mock?: MockOptions<TRes>): Promise<TRes> => {
     if (mock?.mock) return simulateMock<TRes>(mock);
     const res: AxiosResponse<TRes> = await client.delete(url, config);

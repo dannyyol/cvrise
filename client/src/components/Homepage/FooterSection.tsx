@@ -19,54 +19,28 @@ export function FooterSection() {
         <div>
           <div className="f-col-h">Core Features</div>
           <ul className="f-links">
-            <li>
-              <a href="#">AI Tailoring</a>
-            </li>
-            <li>
-              <a href="#">ATS Optimization</a>
-            </li>
-            <li>
-              <a href="#">Smart Editor</a>
-            </li>
-            <li>
-              <a href="#">One-click Sections</a>
-            </li>
+            <li>AI Tailoring</li>
+            <li>ATS Optimization</li>
+            <li>Smart Editor</li>
+            <li>One-click Sections</li>
           </ul>
         </div>
         <div>
           <div className="f-col-h">Templates &amp; Export</div>
           <ul className="f-links">
-            <li>
-              <a href="#">Modern Templates</a>
-            </li>
-            <li>
-              <a href="#">PDF Export</a>
-            </li>
-            <li>
-              <a href="#">Print-ready Layouts</a>
-            </li>
-            <li>
-              <a href="#">Style Presets</a>
-            </li>
+            <li>Modern Templates</li>
+            <li>PDF Export</li>
+            <li>Print-ready Layouts</li>
+            <li>Style Presets</li>
           </ul>
         </div>
         <div>
           <div className="f-col-h">Open Source</div>
           <ul className="f-links">
-            <li>
-              <a href="#">GNU Licensed</a>
-            </li>
-            <li>
-              <a href="#">Self-hosting</a>
-            </li>
-            <li>
-              <a href="https://github.com/dannyyol/cvrise" target="_blank" rel="noreferrer">
-                GitHub Repo
-              </a>
-            </li>
-            <li>
-              <a href="#">Contributing</a>
-            </li>
+            <li>GNU Licensed</li>
+            <li>Self-hosting</li>
+            <li>GitHub Repo</li>
+            <li>Contributing</li>
           </ul>
         </div>
       </div>
