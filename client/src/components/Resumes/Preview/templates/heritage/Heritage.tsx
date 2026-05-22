@@ -1,10 +1,11 @@
 import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication, CVSection, PersonalDetails, ProfessionalSummary } from '../registry';
 import { formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 const HTMLContent = ({ content }: { content: string }) => (
-  <div className="cv-heritage-paragraph" dangerouslySetInnerHTML={{ __html: content }} />
+  <div className="cv-heritage-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(content) }} />
 );
 
 const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
@@ -44,9 +45,18 @@ const WebsitesSection = ({ websites, title }: { websites: SimpleItem[], title: s
           .filter((w) => !!w.url)
           .map((w, i) => (
             <li key={i}>
-              <a href={w.url as string} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                {(w.url as string).replace(/^https?:\/\//, '')}
-              </a>
+              {safeExternalHref(w.url as string) ? (
+                <a
+                  href={safeExternalHref(w.url as string)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
+                  {(w.url as string).replace(/^https?:\/\//, '')}
+                </a>
+              ) : (
+                <span>{(w.url as string).replace(/^https?:\/\//, '')}</span>
+              )}
             </li>
           ))}
       </ul>
@@ -246,9 +256,18 @@ const PublicationsSection = ({ publications, title }: { publications: Publicatio
             </div>
             {pub.link ? (
               <div className="cv-heritage-paragraph">
-                <a href={pub.link} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                  {pub.link.replace(/^https?:\/\//, '')}
-                </a>
+                {safeExternalHref(pub.link) ? (
+                  <a
+                    href={safeExternalHref(pub.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'inherit', textDecoration: 'none' }}
+                  >
+                    {pub.link.replace(/^https?:\/\//, '')}
+                  </a>
+                ) : (
+                  <span>{pub.link.replace(/^https?:\/\//, '')}</span>
+                )}
               </div>
             ) : null}
             {pub.description && <HTMLContent content={pub.description} />}

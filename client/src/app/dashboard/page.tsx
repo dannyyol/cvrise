@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from "next/navigation";
 import { Plus, ExternalLink, Clock, Upload, Loader2 } from 'lucide-react';
+import axios from 'axios';
 import { resumeService } from '@/src/services/resumeService';
 import type { ResumeSummary } from '@/src/services/resumeService';
 import type { CoverLetterTemplateId } from '@/src/types/resume';
@@ -13,6 +14,7 @@ import { DeleteResumeModal } from '@/src/components/Resumes/Modals/DeleteResumeM
 import { JobContextModal } from '@/src/components/Resumes/Editor/JobContextModal';
 import { CoverLetterHistoryDrawer } from '@/src/components/CoverLetters/Editor/CoverLetterHistoryDrawer';
 import { ResumeCardMenu } from '@/src/components/Resumes/ResumeCardMenu';
+import { Toast } from '@/src/components/ui/Toast';
 import { motion } from 'framer-motion';
 import { ROUTES } from '@/src/lib/routes';
 
@@ -42,6 +44,7 @@ export default function DashboardPage () {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [errorToast, setErrorToast] = useState<{ message: string; isVisible: boolean }>({ message: '', isVisible: false });
 
   useEffect(() => {
     const loadData = async () => {
@@ -85,7 +88,25 @@ export default function DashboardPage () {
       const resume = await resumeService.uploadResume(file);
       setCurrentResumeId(resume.id);
       router.push(ROUTES.EDITOR);
-    } catch {
+    } catch (err: unknown) {
+      let message = 'Import failed. Please try again.';
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
+        const detailText = typeof detail === 'string' ? detail : undefined;
+        if (status === 400 && detailText) {
+          if (detailText.toLowerCase().includes('ai configuration') || detailText.toLowerCase().includes('ai base url') || detailText.toLowerCase().includes('ai api key')) {
+            message = 'Import failed. Please check your AI configuration settings and try again.';
+          } else {
+            message = detailText;
+          }
+        } else if (status === 502) {
+          message = 'Import failed. Please check your AI configuration settings and try again.';
+        } else if (detailText) {
+          message = detailText;
+        }
+      }
+      setErrorToast({ message, isVisible: true });
     } finally {
       setIsUploading(false);
       if (event.target) event.target.value = '';
@@ -203,6 +224,12 @@ export default function DashboardPage () {
 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-6 font-sans scrollbar-thin scrollbar-thumb-slate-200">
+      <Toast
+        message={errorToast.message}
+        type="error"
+        isVisible={errorToast.isVisible}
+        onClose={() => setErrorToast((t) => ({ ...t, isVisible: false }))}
+      />
       <div className="mx-auto w-full max-w-7xl 2xl:max-w-6xl">
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>

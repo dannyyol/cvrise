@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException
 from typing import Dict, Any, Optional, Tuple
+from urllib.parse import urlsplit
 
 from src.models.settings import Setting
 from src.models.ai_model import AIModel
@@ -13,11 +14,12 @@ from src.services.ai.ai_clients_service import (
 from src.config import get_settings
 
 class AISettingsService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, user_id: str):
         self.session = session
+        self.user_id = user_id
 
     async def get_ai_settings(self) -> Dict[str, Any]:
-        result = await self.session.execute(select(Setting).where(Setting.key == 'ai_config'))
+        result = await self.session.execute(select(Setting).where(Setting.user_id == self.user_id, Setting.key == 'ai_config'))
         setting = result.scalar_one_or_none()
         if not setting:
             return {}
@@ -36,19 +38,25 @@ class AISettingsService:
         provider_config = provider_config_model.model_dump() if provider_config_model else {}
         validation_errors = {}
         
-        result = await self.session.execute(select(Setting).where(Setting.key == 'ai_config'))
+        result = await self.session.execute(select(Setting).where(Setting.user_id == self.user_id, Setting.key == 'ai_config'))
         existing_setting = result.scalar_one_or_none()
-        existing_value = existing_setting.value if existing_setting else {}
+        if settings_data.usageMode == 'custom':
+            base_url = str(provider_config.get('baseUrl') or '').strip()
+            model_id = str(provider_config.get('modelId') or '').strip()
+            api_key = str(provider_config.get('apiKey') or '').strip()
 
-        if settings_data.usageMode == 'custom' and existing_value.get('usageMode') == 'custom':
-            if not provider_config.get('baseUrl'):
+            if not base_url:
                 validation_errors['baseUrl'] = "Base URL is required"
-                
-            if not provider_config.get('modelId'):
-                 validation_errors['modelId'] = "Model ID is required"
-                
-            if model.key_id != 'ollama' and not provider_config.get('apiKey'):
-                 validation_errors['apiKey'] = "API Key is required"
+            else:
+                parsed = urlsplit(base_url)
+                if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
+                    validation_errors['baseUrl'] = "Base URL must be a valid http(s) URL (e.g. https://api.openai.com/v1)"
+
+            if not model_id:
+                validation_errors['modelId'] = "Model ID is required"
+
+            if model.key_id != 'ollama' and not api_key:
+                validation_errors['apiKey'] = "API Key is required"
         
         if validation_errors:
             raise HTTPException(status_code=400, detail=validation_errors)
@@ -61,17 +69,17 @@ class AISettingsService:
             await self.session.refresh(existing_setting)
             return existing_setting.value
         else:
-            new_setting = Setting(key='ai_config', value=value_to_store)
+            new_setting = Setting(user_id=self.user_id, key='ai_config', value=value_to_store)
             self.session.add(new_setting)
             await self.session.commit()
             await self.session.refresh(new_setting)
             return new_setting.value
 
-async def get_configured_ai_client(session: AsyncSession) -> Tuple[AsyncLLMClient, str, bool]:
+async def get_configured_ai_client(session: AsyncSession, user_id: str) -> Tuple[AsyncLLMClient, str, bool]:
     """
     Returns (client, model_id, is_platform_mode)
     """
-    stmt = select(Setting).where(Setting.key == "ai_config")
+    stmt = select(Setting).where(Setting.user_id == user_id, Setting.key == "ai_config")
     result = await session.execute(stmt)
     setting = result.scalar_one_or_none()
     ai_settings = setting.value if setting else {}
@@ -109,9 +117,21 @@ async def get_configured_ai_client(session: AsyncSession) -> Tuple[AsyncLLMClien
         configs = ai_settings.get("configs", {})
         provider_config = configs.get(provider, {})
         
-        base_url = provider_config.get("baseUrl", "")
-        api_key = provider_config.get("apiKey", "")
-        model_id = provider_config.get("modelId") or active_model.id
+        base_url = str(provider_config.get("baseUrl", "") or "").strip()
+        api_key = str(provider_config.get("apiKey", "") or "").strip()
+        model_id = str((provider_config.get("modelId") or active_model.id) or "").strip()
+
+        if not model_id:
+            raise HTTPException(status_code=400, detail="No AI model configured. Please check your AI configuration settings.")
+
+        if not base_url:
+            raise HTTPException(status_code=400, detail="AI Base URL is missing. Please check your AI configuration settings.")
+
+        if not (base_url.startswith("http://") or base_url.startswith("https://")):
+            raise HTTPException(status_code=400, detail="AI Base URL must start with http:// or https://. Please check your AI configuration settings.")
+
+        if provider != "ollama" and not api_key:
+            raise HTTPException(status_code=400, detail="AI API key is missing. Please check your AI configuration settings.")
         
         if provider == "openai":
             client = OpenAIClient(base_url, api_key)

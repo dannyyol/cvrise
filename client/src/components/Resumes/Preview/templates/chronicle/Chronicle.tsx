@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Publication, CVSection } from '../registry';
 import { User, Briefcase, GraduationCap, Phone, Mail, MapPin, Globe, FolderGit2, Award as AwardIcon, Star, Languages, Link as LinkIcon, BookOpen } from 'lucide-react';
 import { formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 const SIDEBAR_IDS = ['skills', 'languages', 'interests', 'websites', 'awards', 'certifications'];
@@ -58,7 +59,7 @@ export default function Chronicle({
       case 'summary':
         if (!professionalSummary?.content) return null;
         return (
-          <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: professionalSummary.content }} />
+          <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(professionalSummary.content) }} />
         );
 
       case 'experience':
@@ -78,7 +79,7 @@ export default function Chronicle({
                   {exp.location ? ` • ${exp.location}` : ''}
                 </div>
                 {exp.description && (
-                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(exp.description) }} />
                 )}
               </div>
             ))}
@@ -99,7 +100,7 @@ export default function Chronicle({
                 </div>
                 <div className="cv-chronicle-item-subtitle">{edu.institution}</div>
                 {edu.description && (
-                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: edu.description }} />
+                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(edu.description) }} />
                 )}
               </div>
             ))}
@@ -118,9 +119,15 @@ export default function Chronicle({
                       {formatDateRange(proj.startDate, proj.endDate, dateLocale)}
                             </div>
                         </div>
-                        {proj.link && <div className="cv-chronicle-item-subtitle"><a href={proj.link}>{proj.link}</a></div>}
+                        {safeExternalHref(proj.link) ? (
+                          <div className="cv-chronicle-item-subtitle">
+                            <a href={safeExternalHref(proj.link)} target="_blank" rel="noopener noreferrer">
+                              {proj.link}
+                            </a>
+                          </div>
+                        ) : null}
                         {proj.description && (
-                            <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: proj.description }} />
+                            <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(proj.description) }} />
                         )}
                     </div>
                 ))}
@@ -142,11 +149,15 @@ export default function Chronicle({
                 {pub.publisher ? <div className="cv-chronicle-item-subtitle">{pub.publisher}</div> : null}
                 {pub.link ? (
                   <div className="cv-chronicle-item-subtitle">
-                    <a href={pub.link} target="_blank" rel="noreferrer">{pub.link}</a>
+                    {safeExternalHref(pub.link) ? (
+                      <a href={safeExternalHref(pub.link)} target="_blank" rel="noopener noreferrer">
+                        {pub.link}
+                      </a>
+                    ) : null}
                   </div>
                 ) : null}
                 {pub.description && (
-                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: pub.description }} />
+                  <div className="cv-chronicle-paragraph" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(pub.description) }} />
                 )}
               </div>
             ))}
@@ -211,7 +222,13 @@ export default function Chronicle({
                   {websites.map(web => (
                       <li key={web.id} className="cv-chronicle-skill-item">
                           <LinkIcon size={12} style={{ marginRight: 8 }} />
-                          <a href={web.url} target="_blank" rel="noreferrer">{web.name || web.url}</a>
+                          {safeExternalHref(web.url) ? (
+                            <a href={safeExternalHref(web.url)} target="_blank" rel="noopener noreferrer">
+                              {web.name || web.url}
+                            </a>
+                          ) : (
+                            <span>{web.name || web.url}</span>
+                          )}
                       </li>
                   ))}
               </ul>

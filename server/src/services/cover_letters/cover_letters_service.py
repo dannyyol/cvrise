@@ -13,12 +13,13 @@ from src.models.settings import Setting
 from src.models.ai_model import AIModel
 from src.api.schemas.resume import CoverLetterItem, CoverLetterCreate, CoverLetterGenerateRequest
 from src.models.cover_letter_template import CoverLetterTemplate
-from src.services.ai.ai_clients_service import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
+from src.services.ai.ai_clients_service import TextProcessor, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, AIConfigurationError, AIProviderError
 from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
 from src.config import settings
 from src.models.user import User
+from src.utils.html_sanitizer import sanitize_rich_text_html
 
 class CoverLetterService:
     def __init__(self, db: AsyncSession, user: Optional[User] = None):
@@ -32,7 +33,7 @@ class CoverLetterService:
         return self.user.id
 
     async def _get_ai_config(self) -> Tuple[AIModel, dict]:
-        stmt = select(Setting).where(Setting.key == "ai_config")
+        stmt = select(Setting).where(Setting.user_id == self.user_id, Setting.key == "ai_config")
         result = await self.db.execute(stmt)
         setting = result.scalar_one_or_none()
         ai_settings = setting.value if setting else {}
@@ -222,7 +223,7 @@ class CoverLetterService:
                     recipient_title=cl.recipient_title,
                     company_name=cl.company_name,
                     company_address=cl.company_address,
-                    content=cl.content,
+                    content=sanitize_rich_text_html(cl.content or ""),
                     job_title=cl.job_title,
                     job_description=cl.job_description,
                     template_key=cl.template_key,
@@ -245,6 +246,7 @@ class CoverLetterService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
         name = body.title or (f"{body.job_title} @ {body.company_name}".strip() if body.job_title or body.company_name else "Cover Letter")
+        safe_content = sanitize_rich_text_html(body.content or "")
         cl = DBCoverLetter(
             id=str(uuid.uuid4()),
             resume_id=resume.id,
@@ -253,7 +255,7 @@ class CoverLetterService:
             recipient_title=body.recipient_title or "",
             company_name=body.company_name or "",
             company_address=body.company_address or "",
-            content=body.content or "",
+            content=safe_content,
             job_title=body.job_title or "",
             job_description=body.job_description or "",
             template_key=body.template_key or "soft-modern",
@@ -293,7 +295,7 @@ class CoverLetterService:
             resume = result.scalar_one_or_none()
             if not resume:
                 raise HTTPException(status_code=404, detail="Resume not found")
-            client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+            client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
             plan_service = PlanService(self.db, self.user)
             cost = settings.COST_GENERATE_COVER_LETTER
             if is_platform_mode:
@@ -308,7 +310,7 @@ class CoverLetterService:
             length_hint = body.length or "medium"
             prompt = self._compose_cover_letter_prompt(resume_text, body, template.guidelines or {}, length_hint)
             generated = await client.generate(prompt, model_id)
-            content = TextProcessor.strip_code_fences(generated)
+            content = sanitize_rich_text_html(TextProcessor.strip_code_fences(generated))
             name = body.title or (f"{body.job_title} @ {body.company_name}".strip() if body.job_title or body.company_name else "Cover Letter")
             cl = DBCoverLetter(
                 id=str(uuid.uuid4()),
@@ -352,6 +354,12 @@ class CoverLetterService:
             return item
         except HTTPException:
             raise
+        except AIConfigurationError as e:
+            logger.error("AI cover letter configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI cover letter provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         except Exception as e:
             logger.exception("Cover letter generation failed: {}", e)
-            raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Generation failed. Please try again.")

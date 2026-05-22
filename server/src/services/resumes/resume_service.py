@@ -1,4 +1,5 @@
 from datetime import datetime
+import copy
 from typing import Optional, List
 import uuid
 from loguru import logger
@@ -23,12 +24,13 @@ from src.services.file_parser_service import FileParser
 from src.services.ai.ai_resume_parser_service import AIResumeParser
 from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.ai.ai_clients_service import (
-    OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor
+    OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor, AIConfigurationError, AIProviderError
 )
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
 from src.utils.pagination import paginate
 from src.config import settings
+from src.utils.html_sanitizer import sanitize_rich_text_html, sanitize_resume_data_inplace
 
 from src.models.user import User
 from src.services.resumes.job_match_service import JobMatchService
@@ -184,8 +186,11 @@ class ResumeService:
 
         if resume.resume_data:
             rd = resume.resume_data
+            safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
+            if isinstance(safe_rd, dict):
+                sanitize_resume_data_inplace(safe_rd)
             
-            cover_letter_data = rd.get("coverLetter")
+            cover_letter_data = safe_rd.get("coverLetter")
             if not cover_letter_data and resume.cover_letters:
                 latest = sorted(
                     resume.cover_letters,
@@ -197,7 +202,7 @@ class ResumeService:
                     "recipient_title": latest.recipient_title,
                     "company_name": latest.company_name,
                     "company_address": latest.company_address,
-                    "content": latest.content,
+                    "content": sanitize_rich_text_html(latest.content),
                     "job_title": latest.job_title,
                     "job_description": latest.job_description,
                     "template_key": latest.template_key,
@@ -212,28 +217,28 @@ class ResumeService:
                 template_key=resume.template_key,
                 created_at=resume.created_at.isoformat() if resume.created_at else "",
                 updated_at=resume.updated_at.isoformat() if resume.updated_at else "",
-                resume_data=rd,
+                resume_data=safe_rd,
                 ai_analysis=resume.ai_analysis,
                 
-                personal_details=rd.get("personalDetails", {}),
-                professional_summary=rd.get("professionalSummary", {}),
-                work_experiences=rd.get("workExperiences", []),
-                education=rd.get("education", []),
-                skills=rd.get("skills", []),
-                projects=rd.get("projects", []),
-                certifications=rd.get("certifications", []),
-                awards=rd.get("awards", []),
-                publications=rd.get("publications", []),
-                languages=rd.get("languages", []),
-                interests=rd.get("interests", []),
-                websites=rd.get("websites", []),
-                volunteering=rd.get("volunteering", []),
-                references=rd.get("references", []),
-                custom=rd.get("custom", []),
-                sections=rd.get("sections", []),
+                personal_details=safe_rd.get("personalDetails", {}),
+                professional_summary=safe_rd.get("professionalSummary", {}),
+                work_experiences=safe_rd.get("workExperiences", []),
+                education=safe_rd.get("education", []),
+                skills=safe_rd.get("skills", []),
+                projects=safe_rd.get("projects", []),
+                certifications=safe_rd.get("certifications", []),
+                awards=safe_rd.get("awards", []),
+                publications=safe_rd.get("publications", []),
+                languages=safe_rd.get("languages", []),
+                interests=safe_rd.get("interests", []),
+                websites=safe_rd.get("websites", []),
+                volunteering=safe_rd.get("volunteering", []),
+                references=safe_rd.get("references", []),
+                custom=safe_rd.get("custom", []),
+                sections=safe_rd.get("sections", []),
                 
-                theme=rd.get("theme") or resume.theme,
-                cover_letter_theme=rd.get("coverLetterTheme") or resume.cover_letter_theme,
+                theme=safe_rd.get("theme") or resume.theme,
+                cover_letter_theme=safe_rd.get("coverLetterTheme") or resume.cover_letter_theme,
                 
                 cover_letter=cover_letter_data
             )
@@ -251,12 +256,15 @@ class ResumeService:
             resume.cover_letter_theme = cl_theme
 
         rd = resume.resume_data or {}
+        safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
+        if isinstance(safe_rd, dict):
+            sanitize_resume_data_inplace(safe_rd)
         
-        sections_config = rd.get("sections", [])
+        sections_config = safe_rd.get("sections", [])
         if not sections_config:
             sections_config = DEFAULT_RESUME_SECTIONS
             
-        cover_letter_data = rd.get("coverLetter")
+        cover_letter_data = safe_rd.get("coverLetter")
         if not cover_letter_data and resume.cover_letters:
             latest = sorted(
                 resume.cover_letters,
@@ -268,7 +276,7 @@ class ResumeService:
                 "recipient_title": latest.recipient_title,
                 "company_name": latest.company_name,
                 "company_address": latest.company_address,
-                "content": latest.content,
+                "content": sanitize_rich_text_html(latest.content),
                 "job_title": latest.job_title,
                 "job_description": latest.job_description,
                 "template_key": latest.template_key,
@@ -294,23 +302,23 @@ class ResumeService:
             
             sections=sections_config,
             
-            personal_details=rd.get("personalDetails"),
-            professional_summary=rd.get("professionalSummary"),
-            work_experiences=rd.get("workExperiences", []),
-            education=rd.get("education", []),
-            skills=rd.get("skills", []),
-            projects=rd.get("projects", []),
-            certifications=rd.get("certifications", []),
-            awards=rd.get("awards", []),
-            publications=rd.get("publications", []),
-            languages=rd.get("languages", []),
-            interests=rd.get("interests", []),
-            websites=rd.get("websites", []),
-            volunteering=rd.get("volunteering", []),
-            references=rd.get("references", []),
-            custom_sections=rd.get("custom", []),
+            personal_details=safe_rd.get("personalDetails"),
+            professional_summary=safe_rd.get("professionalSummary"),
+            work_experiences=safe_rd.get("workExperiences", []),
+            education=safe_rd.get("education", []),
+            skills=safe_rd.get("skills", []),
+            projects=safe_rd.get("projects", []),
+            certifications=safe_rd.get("certifications", []),
+            awards=safe_rd.get("awards", []),
+            publications=safe_rd.get("publications", []),
+            languages=safe_rd.get("languages", []),
+            interests=safe_rd.get("interests", []),
+            websites=safe_rd.get("websites", []),
+            volunteering=safe_rd.get("volunteering", []),
+            references=safe_rd.get("references", []),
+            custom_sections=safe_rd.get("custom", []),
             
-            resume_data=rd
+            resume_data=safe_rd
         )
 
     async def create_resume(self, resume_in: ResumeCreate) -> ResumeResponse:
@@ -415,7 +423,7 @@ class ResumeService:
             parsed_data = None
             
             try:
-                client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+                client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
                 
                 plan_service = PlanService(self.db, self.user)
                 cost = settings.COST_PARSE_RESUME
@@ -433,12 +441,21 @@ class ResumeService:
 
             except HTTPException:
                 raise
+            except AIConfigurationError as e:
+                logger.error(f"AI parsing configuration error: {str(e)}")
+                raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+            except AIProviderError as e:
+                logger.error(f"AI parsing provider error: {str(e)}")
+                raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
             except Exception as e:
                 logger.error(f"AI parsing failed: {repr(e)}")
-                raise HTTPException(status_code=500, detail=f"AI parsing failed: {repr(e)}")
+                raise HTTPException(status_code=500, detail="AI parsing failed. Please try again.")
 
             if not parsed_data:
                 raise HTTPException(status_code=400, detail="AI parsing failed or no AI model configured. Please configure an AI model in settings.")
+
+            if isinstance(parsed_data, dict):
+                sanitize_resume_data_inplace(parsed_data)
 
             stmt = select(Template).where(Template.key == "classic")
             result = await self.db.execute(stmt)
@@ -527,7 +544,7 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
         
-        client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+        client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
         plan_service = PlanService(self.db, self.user)
         cost = settings.COST_TAILOR_RESUME
         
@@ -536,14 +553,21 @@ class ResumeService:
                 raise HTTPException(status_code=402, detail=f"Insufficient tokens. This action requires at least {cost} tokens.")
         
         resume_text = self._compose_resume_text(resume)
-
-        job_match = await JobMatchService(client, model_id).analyse(
-            body.job_title,
-            body.job_description,
-            resume_text,
-        )
+        try:
+            job_match = await JobMatchService(client, model_id).analyse(
+                body.job_title,
+                body.job_description,
+                resume_text,
+            )
+        except AIConfigurationError as e:
+            logger.error("AI job match configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI job match provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         suggestions = job_match.get("suggestions") or []
         missing_keywords = job_match.get("missing_keywords") or []
+
 
         rd = resume.resume_data or {}
         if not isinstance(rd, dict):
@@ -641,7 +665,14 @@ class ResumeService:
             "Projects (allowed ids):\n"
             f"{projects_context}\n"
         )
-        generated = await client.generate(prompt, model_id)
+        try:
+            generated = await client.generate(prompt, model_id)
+        except AIConfigurationError as e:
+            logger.error("AI tailoring configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI tailoring provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
         parsed = TextProcessor.extract_json(generated) or {}
         actions = parsed.get("actions") or []
         if not isinstance(actions, list):
@@ -676,7 +707,7 @@ class ResumeService:
             t = str(action.get("type", "")).strip()
 
             if t == "update_summary":
-                content = str(action.get("content", "")).strip()
+                content = sanitize_rich_text_html(str(action.get("content", "")).strip())
                 if content:
                     rd["professionalSummary"]["content"] = content
                 continue
@@ -695,7 +726,7 @@ class ResumeService:
 
             if t == "update_experience_description":
                 eid = str(action.get("experienceId", "")).strip()
-                desc = str(action.get("description", "")).strip()
+                desc = sanitize_rich_text_html(str(action.get("description", "")).strip())
                 if eid and desc and eid in exp_by_id:
                     exp_by_id[eid]["description"] = desc
                     _set_section_visible("experience")
@@ -703,7 +734,7 @@ class ResumeService:
 
             if t == "update_project_description":
                 pid = str(action.get("projectId", "")).strip()
-                desc = str(action.get("description", "")).strip()
+                desc = sanitize_rich_text_html(str(action.get("description", "")).strip())
                 if pid and desc and pid in project_by_id:
                     project_by_id[pid]["description"] = desc
                     _set_section_visible("projects")
@@ -711,7 +742,7 @@ class ResumeService:
 
             if t == "add_project":
                 name = str(action.get("name", "")).strip()
-                desc = str(action.get("description", "")).strip()
+                desc = sanitize_rich_text_html(str(action.get("description", "")).strip())
                 if not name or not desc:
                     continue
                 technologies_raw = action.get("technologies", [])
@@ -732,6 +763,8 @@ class ResumeService:
                 )
                 _set_section_visible("projects")
                 continue
+        
+        sanitize_resume_data_inplace(rd)
 
         resume.resume_data = dict(rd)
         flag_modified(resume, "resume_data")
@@ -756,7 +789,7 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        client, model_id, is_platform_mode = await get_configured_ai_client(self.db)
+        client, model_id, is_platform_mode = await get_configured_ai_client(self.db, self.user_id)
         plan_service = PlanService(self.db, self.user)
         cost = settings.COST_JOB_MATCH
 
@@ -767,9 +800,16 @@ class ResumeService:
             )
 
         resume_text = self._compose_resume_text(resume)
-        data = await JobMatchService(client, model_id).analyse(
-            body.job_title, body.job_description, resume_text
-        )
+        try:
+            data = await JobMatchService(client, model_id).analyse(
+                body.job_title, body.job_description, resume_text
+            )
+        except AIConfigurationError as e:
+            logger.error("AI job match configuration error: {}", str(e))
+            raise HTTPException(status_code=400, detail="AI configuration is invalid. Please check your AI configuration settings.")
+        except AIProviderError as e:
+            logger.error("AI job match provider error: {}", str(e))
+            raise HTTPException(status_code=502, detail="AI connection failed. Please check your AI configuration settings and try again.")
 
         if is_platform_mode:
             await plan_service.deduct_tokens(cost, "Job Match Analysis")
@@ -879,8 +919,32 @@ class ResumeService:
 
         resume.title = data.title
         resume.create_and_tailor = data.create_and_tailor
-        
-        resume.resume_data = data.model_dump(by_alias=True, exclude={"ai_analysis"})
+
+        sanitized_data = data.model_copy(deep=True)
+        if getattr(sanitized_data, "professional_summary", None) and hasattr(sanitized_data.professional_summary, "content"):
+            sanitized_data.professional_summary.content = sanitize_rich_text_html(sanitized_data.professional_summary.content)
+        for exp in getattr(sanitized_data, "work_experiences", []) or []:
+            if hasattr(exp, "description"):
+                exp.description = sanitize_rich_text_html(exp.description)
+        for ed in getattr(sanitized_data, "education", []) or []:
+            if hasattr(ed, "description"):
+                ed.description = sanitize_rich_text_html(ed.description)
+        for proj in getattr(sanitized_data, "projects", []) or []:
+            if hasattr(proj, "description"):
+                proj.description = sanitize_rich_text_html(proj.description)
+        for award in getattr(sanitized_data, "awards", []) or []:
+            if hasattr(award, "description"):
+                award.description = sanitize_rich_text_html(award.description)
+        for pub in getattr(sanitized_data, "publications", []) or []:
+            if hasattr(pub, "description"):
+                pub.description = sanitize_rich_text_html(pub.description)
+        if getattr(sanitized_data, "cover_letter", None) and hasattr(sanitized_data.cover_letter, "content"):
+            sanitized_data.cover_letter.content = sanitize_rich_text_html(sanitized_data.cover_letter.content)
+
+        resume_data_dump = sanitized_data.model_dump(by_alias=True, exclude={"ai_analysis"})
+        if isinstance(resume_data_dump, dict):
+            sanitize_resume_data_inplace(resume_data_dump)
+        resume.resume_data = resume_data_dump
 
         if "ai_analysis" in data.model_fields_set:
             resume.ai_analysis = data.ai_analysis
@@ -901,7 +965,7 @@ class ResumeService:
             if getattr(data.cover_letter_theme, "template_key", None):
                 resume.cover_letter_theme.template_key = data.cover_letter_theme.template_key
 
-        if getattr(data, "cover_letter", None):
+        if getattr(sanitized_data, "cover_letter", None):
             latest = None
             if resume.cover_letters:
                 latest = sorted(
@@ -910,35 +974,35 @@ class ResumeService:
                     reverse=True
                 )[0]
             if latest:
-                latest.recipient_name = data.cover_letter.recipient_name or latest.recipient_name
-                latest.recipient_title = data.cover_letter.recipient_title or latest.recipient_title
-                latest.company_name = data.cover_letter.company_name or latest.company_name
-                latest.company_address = data.cover_letter.company_address or latest.company_address
-                latest.content = data.cover_letter.content or latest.content
-                latest.job_title = data.cover_letter.job_title or latest.job_title
-                latest.job_description = data.cover_letter.job_description or latest.job_description
-                if getattr(data.cover_letter, "template_key", None):
-                    latest.template_key = data.cover_letter.template_key
-                if getattr(data.cover_letter, "tone", None):
-                    latest.tone = data.cover_letter.tone
-                if getattr(data.cover_letter, "length", None):
-                    latest.length = data.cover_letter.length
+                latest.recipient_name = sanitized_data.cover_letter.recipient_name or latest.recipient_name
+                latest.recipient_title = sanitized_data.cover_letter.recipient_title or latest.recipient_title
+                latest.company_name = sanitized_data.cover_letter.company_name or latest.company_name
+                latest.company_address = sanitized_data.cover_letter.company_address or latest.company_address
+                latest.content = sanitized_data.cover_letter.content or latest.content
+                latest.job_title = sanitized_data.cover_letter.job_title or latest.job_title
+                latest.job_description = sanitized_data.cover_letter.job_description or latest.job_description
+                if getattr(sanitized_data.cover_letter, "template_key", None):
+                    latest.template_key = sanitized_data.cover_letter.template_key
+                if getattr(sanitized_data.cover_letter, "tone", None):
+                    latest.tone = sanitized_data.cover_letter.tone
+                if getattr(sanitized_data.cover_letter, "length", None):
+                    latest.length = sanitized_data.cover_letter.length
                 latest.updated_at = datetime.utcnow()
             else:
                 cl = DBCoverLetter(
                     id=str(uuid.uuid4()),
                     resume_id=resume.id,
-                    name=(f"{data.cover_letter.job_title} @ {data.cover_letter.company_name}".strip() if (data.cover_letter.job_title or data.cover_letter.company_name) else "Cover Letter"),
-                    recipient_name=data.cover_letter.recipient_name or "",
-                    recipient_title=data.cover_letter.recipient_title or "",
-                    company_name=data.cover_letter.company_name or "",
-                    company_address=data.cover_letter.company_address or "",
-                    content=data.cover_letter.content or "",
-                    job_title=data.cover_letter.job_title or "",
-                    job_description=data.cover_letter.job_description or "",
-                    template_key=(getattr(data.cover_letter, "template_key", None) or (resume.cover_letter_theme.template_key if resume.cover_letter_theme else "professional")),
-                    tone=(getattr(data.cover_letter, "tone", None) or "professional"),
-                    length=(getattr(data.cover_letter, "length", None) or "medium"),
+                    name=(f"{sanitized_data.cover_letter.job_title} @ {sanitized_data.cover_letter.company_name}".strip() if (sanitized_data.cover_letter.job_title or sanitized_data.cover_letter.company_name) else "Cover Letter"),
+                    recipient_name=sanitized_data.cover_letter.recipient_name or "",
+                    recipient_title=sanitized_data.cover_letter.recipient_title or "",
+                    company_name=sanitized_data.cover_letter.company_name or "",
+                    company_address=sanitized_data.cover_letter.company_address or "",
+                    content=sanitized_data.cover_letter.content or "",
+                    job_title=sanitized_data.cover_letter.job_title or "",
+                    job_description=sanitized_data.cover_letter.job_description or "",
+                    template_key=(getattr(sanitized_data.cover_letter, "template_key", None) or (resume.cover_letter_theme.template_key if resume.cover_letter_theme else "professional")),
+                    tone=(getattr(sanitized_data.cover_letter, "tone", None) or "professional"),
+                    length=(getattr(sanitized_data.cover_letter, "length", None) or "medium"),
                 )
                 self.db.add(cl)
             resume.updated_at = datetime.utcnow()

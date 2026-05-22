@@ -5,3 +5,4 @@ from .ai_model import AIModel
 from .cover_letter_template import CoverLetterTemplate
 from .billing import TokenPlan, UserBalance, TokenTransaction
 from .user import User
+from .pdf_export_intent import PdfExportIntent

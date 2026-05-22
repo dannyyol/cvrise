@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CoverLetterTemplateProps } from '../registry';
 import { formatToday } from '@/src/lib/dateFormatting';
+import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 export default function Aesthetic({ personalDetails, coverLetter, theme }: CoverLetterTemplateProps) {
@@ -38,7 +39,7 @@ export default function Aesthetic({ personalDetails, coverLetter, theme }: Cover
         </div>
       </div>
 
-      <div data-cl-content className="cl-content" dangerouslySetInnerHTML={{ __html: coverLetter.content || '' }} />
+      <div data-cl-content className="cl-content" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(coverLetter.content || '') }} />
     </div>
   );
 }

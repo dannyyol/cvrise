@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useCVStore } from '../../../store/useCVStore';
 import { Clock, X } from 'lucide-react';
+import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 
 interface CoverLetterHistoryDrawerProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export const CoverLetterHistoryDrawer: React.FC<CoverLetterHistoryDrawerProps> =
                 <div className="font-medium text-slate-900">{item.title}</div>
                 <div className="text-xs text-slate-500 mt-1">{item.jobTitle} {item.companyName ? `@ ${item.companyName}` : ''}</div>
                 <div className="text-xs text-slate-400 mt-1">{formatDate(item.updatedAt || item.createdAt)}</div>
-                <div className="text-sm text-slate-700 mt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: item.content }} />
+                <div className="text-sm text-slate-700 mt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(item.content) }} />
               </button>
             ))}
           </div>

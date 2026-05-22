@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 export default function Legacy({
@@ -93,7 +94,7 @@ export default function Legacy({
                 <h2 className="cv-legacy-section-title">{section.title}</h2>
                 <div
                   className="cv-legacy-paragraph"
-                  dangerouslySetInnerHTML={{ __html: professionalSummary.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(professionalSummary.content) }}
                 />
               </section>
             );
@@ -124,7 +125,7 @@ export default function Legacy({
                           {exp.description ? (
                             <div
                               className="cv-legacy-paragraph"
-                              dangerouslySetInnerHTML={{ __html: exp.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(exp.description) }}
                             />
                           ) : null}
                         </div>
@@ -163,7 +164,7 @@ export default function Legacy({
                           {ed.description ? (
                             <div
                               className="cv-legacy-paragraph"
-                              dangerouslySetInnerHTML={{ __html: ed.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(ed.description) }}
                             />
                           ) : null}
                         </div>
@@ -225,7 +226,7 @@ export default function Legacy({
                           {p.description ? (
                             <div
                               className="cv-legacy-paragraph"
-                              dangerouslySetInnerHTML={{ __html: p.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                             />
                           ) : null}
                         </div>
@@ -287,7 +288,7 @@ export default function Legacy({
                           {a.description ? (
                             <div
                               className="cv-legacy-paragraph"
-                              dangerouslySetInnerHTML={{ __html: a.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(a.description) }}
                             />
                           ) : null}
                         </div>
@@ -322,7 +323,7 @@ export default function Legacy({
                           {p.description ? (
                             <div
                               className="cv-legacy-paragraph"
-                              dangerouslySetInnerHTML={{ __html: p.description }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(p.description) }}
                             />
                           ) : null}
                         </div>
@@ -407,9 +408,18 @@ export default function Legacy({
                           <div className="cv-legacy-item-title">{web.name}</div>
                           {web.url ? (
                             <div className="cv-legacy-item-meta">
-                              <a href={web.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                                {web.url}
-                              </a>
+                              {safeExternalHref(web.url) ? (
+                                <a
+                                  href={safeExternalHref(web.url)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: 'inherit', textDecoration: 'none' }}
+                                >
+                                  {web.url}
+                                </a>
+                              ) : (
+                                <span>{web.url}</span>
+                              )}
                             </div>
                           ) : null}
                         </div>

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { clsx } from 'clsx';
 import { A4_DIMENSIONS } from '@/src/lib/paginationUtils';
+import { sanitizeDocumentHtml } from '@/src/lib/sanitizeHtml';
 import {
   getLetterSpacingCssValue,
   getLineHeightCssValue,
@@ -176,7 +177,8 @@ export default function PaginatedPreview({
       const localAbort = abortRef.current;
 
       try {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const safeHtml = sanitizeDocumentHtml(html);
+        const doc = new DOMParser().parseFromString(safeHtml, 'text/html');
         const parallelContainer = doc.querySelector('[data-parallel-pagination="true"]');
         const parallelColumns = parallelContainer?.querySelectorAll('[data-parallel-column="true"]');
 
@@ -187,7 +189,7 @@ export default function PaginatedPreview({
           
           const originalContainerWidth = splitContainerRef.current.style.width;
 
-          splitContainerRef.current.innerHTML = html;
+          splitContainerRef.current.innerHTML = safeHtml;
           const measuredContainer = splitContainerRef.current.querySelector('[data-parallel-pagination="true"]');
           const measuredColumns = measuredContainer?.querySelectorAll('[data-parallel-column="true"]');
 
@@ -232,7 +234,7 @@ export default function PaginatedPreview({
              
              for await (const page of splitHtmlToPages(contentToSplit, { container: splitContainerRef.current }, localAbort)) {
                 if (localAbort.aborted) return;
-                columnPages.push(page);
+                columnPages.push(sanitizeDocumentHtml(page));
              }
              columnPagesMap.push(columnPages);
           }
@@ -271,7 +273,7 @@ export default function PaginatedPreview({
             
             const safeRootStyle = rootStyle.replaceAll('"', '&quot;');
             const pageHtml = `<div class="${rootClasses}" style="${safeRootStyle}">${hideSpacerStyle}${i === 0 ? styleTag : ''}${i === 0 ? header : ''}${columnsHtml}</div>`;
-            mergedPages.push(pageHtml);
+            mergedPages.push(sanitizeDocumentHtml(pageHtml));
           }
           
           if (!localAbort.aborted) {
@@ -290,12 +292,12 @@ export default function PaginatedPreview({
         }
 
         const nextPages: string[] = [];
-        for await (const pageHtml of splitHtmlToPages(html, { container: splitContainerRef.current }, localAbort)) {
+        for await (const pageHtml of splitHtmlToPages(safeHtml, { container: splitContainerRef.current }, localAbort)) {
           if (localAbort.aborted) return;
           
-          nextPages.push(pageHtml);
+          nextPages.push(sanitizeDocumentHtml(pageHtml));
           if (nextPages.length === 1) {
-            setPages([pageHtml]);
+            setPages([nextPages[0]]);
           }
         }
 

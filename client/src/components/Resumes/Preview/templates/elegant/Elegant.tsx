@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Certification, CVSection, PersonalDetails, ProfessionalSummary, CustomSectionItem } from '../../../../../types/resume';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
+import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
 
 const SectionHeader = ({ title }: { title: string }) => (
@@ -16,7 +17,7 @@ const FormatDate = ({ date, locale }: { date?: string | null; locale: string }) 
 };
 
 const HTMLContent = ({ content }: { content: string }) => (
-  <div className="cv-elegant-p" dangerouslySetInnerHTML={{ __html: content }} />
+  <div className="cv-elegant-p" dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(content) }} />
 );
 
 // --- Section Renderers ---
@@ -28,13 +29,16 @@ const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalD
   
   const renderItem = (label: string, value: string, isLink: boolean = false) => {
     if (!value) return null;
+    const href = isLink ? safeExternalHref(value) : undefined;
     return (
       <div className="cv-elegant-contact-item">
         <span className="cv-elegant-contact-label">{label}:</span>{' '}
-        {isLink ? (
-          <a href={value} target="_blank" rel="noopener noreferrer" className="cv-elegant-link">
+        {isLink && href ? (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="cv-elegant-link">
             {value.replace(/^https?:\/\//, '')}
           </a>
+        ) : isLink ? (
+          value.replace(/^https?:\/\//, '')
         ) : (
           value
         )}
@@ -138,9 +142,13 @@ const ListSection = ({ items, title, id, displayField = 'name' }: { items: Custo
             {displayField === 'name_level' ? (
                <><strong>{item.name}</strong> {item.description && `- ${item.description}`}</>
             ) : displayField === 'url' ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="cv-elegant-link">
-                  {item.url.replace(/^https?:\/\//, '')}
-                </a>
+                safeExternalHref(item.url) ? (
+                  <a href={safeExternalHref(item.url)} target="_blank" rel="noopener noreferrer" className="cv-elegant-link">
+                    {item.url.replace(/^https?:\/\//, '')}
+                  </a>
+                ) : (
+                  item.url?.replace(/^https?:\/\//, '')
+                )
             ) : (
                item.name || item.description
             )}

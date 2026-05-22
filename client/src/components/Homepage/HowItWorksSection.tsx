@@ -32,7 +32,7 @@ export function HowItWorksSection() {
                 <div className="step-t">Fill in your details</div>
                 <div className="step-d">
                   Enter your experience, education, and skills using our guided editor.
-                  Import from LinkedIn in one click.
+                  Import from your exising resume in one click.
                 </div>
               </div>
             </div>
