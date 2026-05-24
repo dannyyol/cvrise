@@ -264,6 +264,37 @@ function HomeContent() {
       <FeaturesSection />
       <div className="mx-10 h-px bg-[rgba(0,0,0,0.07)]" />
 
+      {/* ── OSS ── */}
+      <section className="section" id="oss">
+        <div className="r">
+          <div className="sec-eyebrow">Open Source</div>
+          <h2 className="sec-h">Built in the open. Owned by everyone.</h2>
+          <p className="sec-p">CVRise is GNU-licensed and fully open source. Self-host it, contribute features, or fork it. Your career tools should never be locked behind a paywall.</p>
+        </div>
+        <div className="oss-grid r">
+          <div className="oss-card">
+            <div className="oss-card-head"><GitHubIcon className="w-3.5 h-3.5" /> dannyyol / cvrise</div>
+            <div className="oss-stats">
+              <div className="os-s"><div className="os-sn">100%</div><div className="os-sl">Open Source</div></div>
+              <div className="os-s"><div className="os-sn">GNU</div><div className="os-sl">License</div></div>
+              <div className="os-s"><div className="os-sn">Self-host</div><div className="os-sl">Ready</div></div>
+              <div className="os-s"><div className="os-sn">Community</div><div className="os-sl">Driven</div></div>
+            </div>
+            <div className="oss-code"><span>$</span> git clone {githubUrl}.git</div>
+          </div>
+          <div className="oss-card">
+            <div className="oss-links">
+              <a className="oss-lnk" href={githubUrl} target="_blank" rel="noreferrer"><div className="oss-lnk-icon"><GitHubIcon className="w-3.5 h-3.5" /></div>Star on GitHub<span className="oss-lnk-arr">→</span></a>
+              <a className="oss-lnk" href={`${githubUrl}/issues/new`} target="_blank" rel="noreferrer"><div className="oss-lnk-icon">🐛</div>Raise an issue on GitHub<span className="oss-lnk-arr">→</span></a>
+              <a className="oss-lnk" href={`${githubUrl}/blob/main/docs/DEVELOPMENT.md`} target="_blank" rel="noreferrer"><div className="oss-lnk-icon">📖</div>Read the Documentation<span className="oss-lnk-arr">→</span></a>
+              <a className="oss-lnk" href={`${githubUrl}/blob/main/docs/SELF_HOSTING.md`} target="_blank" rel="noreferrer"><div className="oss-lnk-icon">🖥️</div>Self-hosting Guide<span className="oss-lnk-arr">→</span></a>
+              <a className="oss-lnk" href={`${githubUrl}/blob/main/.github/CONTRIBUTING.md`} target="_blank" rel="noreferrer"><div className="oss-lnk-icon">🤝</div>Contribution Guide<span className="oss-lnk-arr">→</span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="mx-10 h-px bg-[rgba(0,0,0,0.07)]" />
+
       {/* ── FAQ ── */}
       <FaqSection />
 
