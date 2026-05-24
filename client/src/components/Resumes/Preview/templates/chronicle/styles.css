@@ -207,23 +207,29 @@
 }
 
 .cv-chronicle-skill-list {
-  list-style: none;
-  padding: 0;
+  list-style: disc;
+  padding-left: 1.1rem;
   margin: 0;
 }
 
 .cv-chronicle-skill-item {
   margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
 }
 
-.cv-chronicle-skill-bullet {
-  width: 4px;
-  height: 4px;
-  background-color: var(--accent-color);
-  border-radius: 50%;
-  margin-right: 0.75rem;
+.cv-chronicle-skill-item::marker {
+  color: var(--accent-color);
+}
+
+.cv-chronicle-icon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cv-chronicle-icon-list-item {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .cv-chronicle-ref-item {

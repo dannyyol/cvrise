@@ -29,7 +29,11 @@ export default function Chronicle({
   const personalSection = sections.find((s) => s.id === 'personal');
   const contactTitle = personalSection?.title || 'Contact';
   const hasAnyContactDetail = Boolean(
-    personalDetails.phone || personalDetails.email || personalDetails.address || personalDetails.website
+    personalDetails.phone ||
+      personalDetails.email ||
+      personalDetails.address ||
+      personalDetails.website ||
+      personalDetails.github
   );
 
   // Helper to get Icon for section
@@ -180,7 +184,6 @@ export default function Chronicle({
           <ul className="cv-chronicle-skill-list">
             {skills.map((skill: Skill) => (
               <li key={skill.id} className="cv-chronicle-skill-item">
-                <span className="cv-chronicle-skill-bullet" />
                 <span>
                   {skill.name}
                   {skill.level && <span className="cv-chronicle-muted"> ({skill.level})</span>}
@@ -196,7 +199,6 @@ export default function Chronicle({
           <ul className="cv-chronicle-skill-list">
              {languages.map((lang) => (
                  <li key={lang.id} className="cv-chronicle-skill-item">
-                    <span className="cv-chronicle-skill-bullet" />
                     <span>{lang.name} {lang.description && `(${lang.description})`}</span>
                  </li>
              ))}
@@ -209,7 +211,6 @@ export default function Chronicle({
            <ul className="cv-chronicle-skill-list">
                {interests.map((int) => (
                    <li key={int.id} className="cv-chronicle-skill-item">
-                       <span className="cv-chronicle-skill-bullet" />
                        <span>{int.name}</span>
                    </li>
                ))}
@@ -219,9 +220,9 @@ export default function Chronicle({
       case 'websites':
           if (!websites.length) return null;
           return (
-              <ul className="cv-chronicle-skill-list">
+              <ul className="cv-chronicle-icon-list">
                   {websites.map(web => (
-                      <li key={web.id} className="cv-chronicle-skill-item">
+                      <li key={web.id} className="cv-chronicle-icon-list-item">
                           <LinkIcon size={12} style={{ marginRight: 8 }} />
                           {safeExternalHref(web.url) ? (
                             <a href={safeExternalHref(web.url)} target="_blank" rel="noopener noreferrer">
@@ -240,8 +241,7 @@ export default function Chronicle({
         return (
           <ul className="cv-chronicle-skill-list">
             {awards.map((award) => (
-              <li key={award.id} className="cv-chronicle-skill-item" style={{ alignItems: 'flex-start' }}>
-                <span className="cv-chronicle-skill-bullet" style={{ marginTop: '0.4em' }} />
+              <li key={award.id} className="cv-chronicle-skill-item">
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontWeight: 500 }}>{award.title}</span>
                   <span className="cv-chronicle-muted" style={{ fontSize: '0.85em' }}>{award.issuer}</span>
@@ -263,8 +263,7 @@ export default function Chronicle({
         return (
           <ul className="cv-chronicle-skill-list">
             {certifications.map((cert: Certification) => (
-              <li key={cert.id} className="cv-chronicle-skill-item" style={{ alignItems: 'flex-start' }}>
-                <span className="cv-chronicle-skill-bullet" style={{ marginTop: '0.4em' }} />
+              <li key={cert.id} className="cv-chronicle-skill-item">
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontWeight: 500 }}>{cert.name}</span>
                   <div className="cv-chronicle-muted" style={{ fontSize: '0.85em' }}>
@@ -291,17 +290,19 @@ export default function Chronicle({
         fontFamily: appliedFont,
       } as React.CSSProperties}
     >
-      <header className="cv-chronicle-header">
-        <div className="cv-chronicle-header-name">{personalDetails.fullName || 'Your Name'}</div>
-        <div className="cv-chronicle-header-role">{personalDetails.jobTitle || 'Professional Title'}</div>
-      </header>
+      {personalSection ? (
+        <header className="cv-chronicle-header" data-cv-section data-section-id="personal">
+          <div className="cv-chronicle-header-name">{personalDetails.fullName || 'Your Name'}</div>
+          <div className="cv-chronicle-header-role">{personalDetails.jobTitle || 'Professional Title'}</div>
+        </header>
+      ) : null}
 
       <div className="cv-chronicle-layout" data-parallel-pagination="true">
         {/* Sidebar */}
         <aside className="cv-chronicle-aside" data-parallel-column="true">
           {/* Contact Details (Fixed at top of sidebar) */}
-          {personalSection?.isVisible !== false && hasAnyContactDetail && (
-            <div className="cv-chronicle-sidebar-section" data-cv-section data-section-id="contact">
+          {personalSection && hasAnyContactDetail && (
+            <div className="cv-chronicle-sidebar-section" data-cv-section data-section-id="personal">
               <div className="cv-chronicle-sidebar-section-title">{contactTitle}</div>
               <div className="cv-chronicle-contact-list">
                 {personalDetails.phone && (
