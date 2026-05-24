@@ -53,7 +53,7 @@ const EducationItem = ({
              <button
                type="button"
                onClick={(e) => e.stopPropagation()}
-               className="text-gray-300 hover:text-gray-500 p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-all duration-200 cursor-grab active:cursor-grabbing"
+               className="text-gray-300 hover:text-gray-500 p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-all duration-200 cursor-grab active:cursor-grabbing touch-none select-none"
                title="Drag to reorder"
                {...dragHandleProps}
              >
