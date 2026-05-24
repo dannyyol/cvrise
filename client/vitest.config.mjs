@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-export default {
+const vitestConfig = {
   resolve: {
     alias: {
       '@': path.resolve(process.cwd()),
@@ -13,3 +13,5 @@ export default {
     testTimeout: 20000,
   },
 };
+
+export default vitestConfig;
