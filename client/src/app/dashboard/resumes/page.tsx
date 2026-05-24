@@ -158,13 +158,16 @@ export default function ResumesPage() {
         jobTitle,
         jobDescription,
       });
-      setDocumentMode('resume');
+    }
+
+    if (options.generateCoverLetter) {
+      setDocumentMode('cover-letter');
     }
 
     const idToOpen = resumeToTailor;
     if (idToOpen) {
       setCurrentResumeId(idToOpen);
-      router.push(ROUTES.EDITOR);
+      router.push(options.generateCoverLetter ? `${ROUTES.EDITOR}?source=cover-letter-history` : ROUTES.EDITOR);
     }
   };
 

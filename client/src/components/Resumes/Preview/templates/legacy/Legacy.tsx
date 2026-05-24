@@ -71,6 +71,12 @@ export default function Legacy({
                         <span className="cv-legacy-contact-value">{personalDetails.linkedin}</span>
                       </div>
                     ) : null}
+                    {personalDetails?.github ? (
+                      <div className="cv-legacy-contact-row">
+                        <span className="cv-legacy-contact-label">GitHub</span>
+                        <span className="cv-legacy-contact-value">{personalDetails.github.replace(/^https?:\/\//, '')}</span>
+                      </div>
+                    ) : null}
                     {personalDetails?.website ? (
                       <div className="cv-legacy-contact-row">
                         <span className="cv-legacy-contact-label">Website</span>

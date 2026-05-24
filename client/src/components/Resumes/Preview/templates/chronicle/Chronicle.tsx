@@ -3,6 +3,7 @@ import type { TemplateProps, WorkExperience, Education, Skill, Project, Certific
 import { User, Briefcase, GraduationCap, Phone, Mail, MapPin, Globe, FolderGit2, Award as AwardIcon, Star, Languages, Link as LinkIcon, BookOpen } from 'lucide-react';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { GitHubIcon } from '@/src/components/ui/SocialIcons';
 import './styles.css';
 
 const SIDEBAR_IDS = ['skills', 'languages', 'interests', 'websites', 'awards', 'certifications'];
@@ -244,6 +245,13 @@ export default function Chronicle({
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontWeight: 500 }}>{award.title}</span>
                   <span className="cv-chronicle-muted" style={{ fontSize: '0.85em' }}>{award.issuer}</span>
+                  {award.description ? (
+                    <div
+                      className="cv-chronicle-paragraph"
+                      style={{ fontSize: '0.9em' }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(award.description) }}
+                    />
+                  ) : null}
                 </div>
               </li>
             ))}
@@ -318,6 +326,12 @@ export default function Chronicle({
                   <div className="cv-chronicle-contact-item">
                     <Globe className="cv-chronicle-contact-icon" />
                     <span>{personalDetails.website}</span>
+                  </div>
+                )}
+                {personalDetails.github && (
+                  <div className="cv-chronicle-contact-item">
+                    <GitHubIcon className="cv-chronicle-contact-icon" />
+                    <span>{personalDetails.github.replace(/^https?:\/\//, '')}</span>
                   </div>
                 )}
               </div>

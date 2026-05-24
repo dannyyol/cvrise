@@ -9,8 +9,8 @@ const HTMLContent = ({ content }: { content: string }) => (
 );
 
 const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalDetails, title: string }) => {
-  const { address, phone, email, website } = personalDetails;
-  const hasAny = Boolean(address || phone || email || website);
+  const { address, phone, email, website, github } = personalDetails;
+  const hasAny = Boolean(address || phone || email || website || github);
   if (!hasAny) return null;
   
   return (
@@ -28,6 +28,9 @@ const ContactSection = ({ personalDetails, title }: { personalDetails: PersonalD
         )}
         {website && (
           <li><span className="cv-heritage-label">Web:</span> {website}</li>
+        )}
+        {github && (
+          <li><span className="cv-heritage-label">GitHub:</span> {github.replace(/^https?:\/\//, '')}</li>
         )}
       </ul>
     </section>

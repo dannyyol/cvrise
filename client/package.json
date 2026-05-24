@@ -12,7 +12,7 @@
     "dev": "next dev",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "test": "pnpm dlx vitest@3.2.4 run",
+    "test": "vitest run",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
   },
@@ -41,15 +41,20 @@
     "@eslint/js": "^9.3.0",
     "@tailwindcss/oxide": "^4.2.2",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "jsdom": "^26.1.0",
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   },
   "packageManager": "pnpm@11.0.8+sha512.4c4097e1dd2d42372c4e7fa5a791ff28fc75a484c7ac192e64b1df0fdef17594ba982f9b4fed9adfb3c757846f565b799b2763fb3733d1de1bcb82cf46684912"
 }

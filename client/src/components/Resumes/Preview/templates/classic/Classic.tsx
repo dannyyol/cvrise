@@ -58,6 +58,8 @@ export default function Classic({
                   {personalDetails?.website}
                   {personalDetails?.linkedin ? <span className="cv-classic-header-dot"> • </span> : null}
                   {personalDetails?.linkedin}
+                  {personalDetails?.github ? <span className="cv-classic-header-dot"> • </span> : null}
+                  {personalDetails?.github ? personalDetails.github.replace(/^https?:\/\//, '') : null}
                 </div>
                 <div className="cv-classic-header-divider" />
               </section>

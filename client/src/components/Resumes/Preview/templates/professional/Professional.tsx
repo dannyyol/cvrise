@@ -56,6 +56,8 @@ export default function Professional({
                   {personalDetails?.website}
                   {personalDetails?.linkedin ? <span className="cv-professional-header-dot"> | </span> : null}
                   {personalDetails?.linkedin}
+                  {personalDetails?.github ? <span className="cv-professional-header-dot"> | </span> : null}
+                  {personalDetails?.github ? personalDetails.github.replace(/^https?:\/\//, '') : null}
                 </div>
                 <div className="cv-professional-header-divider" />
               </section>

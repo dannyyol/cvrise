@@ -33,7 +33,8 @@ export default function Regal({
 
   const contactLine2 = [
     personalDetails?.website && `Web: ${personalDetails.website}`,
-    personalDetails?.linkedin
+    personalDetails?.linkedin,
+    personalDetails?.github && `GitHub: ${personalDetails.github.replace(/^https?:\/\//, '')}`
   ].filter(Boolean).join(' • ');
 
   return (

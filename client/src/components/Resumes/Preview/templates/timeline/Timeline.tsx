@@ -19,6 +19,7 @@ import {
   MapPin,
   Globe
 } from 'lucide-react';
+import { GitHubIcon } from '@/src/components/ui/SocialIcons';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import './styles.css';
@@ -276,13 +277,20 @@ const renderSidebarSectionContent = (
           {awards.map(award => (
             <li key={award.id} className="cv-timeline-sidebar-item cv-timeline-sidebar-item-block">
               <div className="cv-timeline-sidebar-text">
-                <div className="cv-timeline-sidebar-title">
+                <div className="cv-timeline-sidebar-item-title">
                   {award.title}
                 </div>
                 {award.issuer ? (
                   <div className="cv-timeline-muted">
                     {award.issuer}
                   </div>
+                ) : null}
+                {award.description ? (
+                  <div
+                    className="cv-timeline-paragraph"
+                    style={{ fontSize: '0.9em' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(award.description) }}
+                  />
                 ) : null}
               </div>
             </li>
@@ -363,6 +371,12 @@ export default function Timeline(props: TemplateProps) {
               <span className="cv-timeline-header-contact-item">
                 <Globe className="cv-timeline-header-contact-icon" />
                 <span>{personalDetails.website}</span>
+              </span>
+            ) : null}
+            {personalDetails.github ? (
+              <span className="cv-timeline-header-contact-item">
+                <GitHubIcon className="cv-timeline-header-contact-icon" />
+                <span>{personalDetails.github.replace(/^https?:\/\//, '')}</span>
               </span>
             ) : null}
           </div>
