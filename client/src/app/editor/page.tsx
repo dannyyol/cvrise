@@ -252,6 +252,12 @@ function GuestEditorContent() {
           <Eye className="w-4 h-4" />
           Preview
         </button>
+        <button
+          onClick={() => setIsLoginOpen(true)}
+          className="flex items-center justify-center w-9 h-9 rounded-md bg-[#04659A] text-white hover:bg-[#03517A] transition-colors shrink-0"
+        >
+          <CloudUpload className="w-4 h-4" />
+        </button>
       </div>
 
       <GuestEditorTopBar
