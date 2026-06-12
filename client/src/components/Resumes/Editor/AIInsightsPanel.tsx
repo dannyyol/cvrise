@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useCVStore } from "@/src/store/useCVStore";
 import { buildCVPayload } from "@/src/lib/payloadBuilder";
 import { submitCVForReview, type AIReviewResponse } from "@/src/services/analysisService";
@@ -140,12 +140,16 @@ function CVScoreSection() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMsg, setErrorMsg]       = useState<string | null>(null);
   const [tab, setTab]                 = useState<InsightTab>("strengths");
+  const loaderAnchorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { setReviewData(aiAnalysis); }, [aiAnalysis]);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     setErrorMsg(null);
+    requestAnimationFrame(() => {
+      loaderAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     try {
       const { data } = buildCVPayload(cvData, selectedTemplate);
       const result   = await submitCVForReview(data);
@@ -178,6 +182,7 @@ function CVScoreSection() {
       </CardHeader>
 
       <CardContent className="pt-0 space-y-5">
+        <div ref={loaderAnchorRef} />
         {errorMsg && (
           <div className="flex items-start gap-2.5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
