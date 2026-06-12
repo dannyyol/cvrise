@@ -11,6 +11,7 @@ from src.api.schemas.ai_settings import AISettingsUpdate
 from src.services.ai.ai_clients_service import (
     AsyncLLMClient, OpenAIClient, AnthropicClient, GoogleClient, OllamaClient
 )
+from src.services.ai.ai_provider_registry_service import resolve_ai_base_url, resolve_ai_model_id
 from src.config import get_settings
 
 class AISettingsService:
@@ -41,8 +42,8 @@ class AISettingsService:
         result = await self.session.execute(select(Setting).where(Setting.user_id == self.user_id, Setting.key == 'ai_config'))
         existing_setting = result.scalar_one_or_none()
         if settings_data.usageMode == 'custom':
-            base_url = str(provider_config.get('baseUrl') or '').strip()
-            model_id = str(provider_config.get('modelId') or '').strip()
+            base_url = resolve_ai_base_url(model.key_id, provider_config.get('baseUrl'))
+            model_id = resolve_ai_model_id(model.key_id, provider_config.get('modelId'), model.id)
             api_key = str(provider_config.get('apiKey') or '').strip()
 
             if not base_url:
@@ -117,9 +118,9 @@ async def get_configured_ai_client(session: AsyncSession, user_id: str) -> Tuple
         configs = ai_settings.get("configs", {})
         provider_config = configs.get(provider, {})
         
-        base_url = str(provider_config.get("baseUrl", "") or "").strip()
+        base_url = resolve_ai_base_url(provider, provider_config.get("baseUrl", ""))
         api_key = str(provider_config.get("apiKey", "") or "").strip()
-        model_id = str((provider_config.get("modelId") or active_model.id) or "").strip()
+        model_id = resolve_ai_model_id(provider, provider_config.get("modelId"), active_model.id)
 
         if not model_id:
             raise HTTPException(status_code=400, detail="No AI model configured. Please check your AI configuration settings.")

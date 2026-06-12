@@ -1,15 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List
+from typing import Dict, List
 
 from src.config import get_settings
 from src.database import get_db
 from src.models.ai_model import AIModel
 from src.api.schemas.ai_model import AIModelResponse, TestConnectionRequest
 from src.services.ai.ai_connection_service import AIConnectionService
+from src.services.ai.ai_provider_registry_service import DEFAULT_AI_BASE_URLS, DEFAULT_AI_MODEL_IDS
 
 router = APIRouter()
+
+@router.get("/provider-defaults", response_model=Dict[str, Dict[str, str]])
+async def get_provider_defaults():
+    return {
+        "baseUrls": DEFAULT_AI_BASE_URLS,
+        "modelIds": DEFAULT_AI_MODEL_IDS,
+    }
 
 @router.get("", response_model=List[AIModelResponse])
 @router.get("/", response_model=List[AIModelResponse], include_in_schema=False)

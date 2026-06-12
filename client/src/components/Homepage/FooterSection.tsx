@@ -6,7 +6,7 @@ export function FooterSection() {
       <div className="footer-inner">
         <div>
           <a href="#" className="footer-brand">
-            <Image src="/images/blue-logo.png" alt="CVRise" width={32} height={32} />
+            <Image src="/images/blue-logo.png" alt="CVRise" width={36} height={36} />
             <span>
               CV<span style={{ color: "var(--blue)" }}>Rise</span>
             </span>

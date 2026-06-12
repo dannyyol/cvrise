@@ -138,7 +138,9 @@ class AnthropicClient:
                 )
                 response.raise_for_status()
                 data = response.json()
-                return data["content"][0]["text"]
+                blocks = data.get("content") or []
+                texts = [block.get("text", "") for block in blocks if isinstance(block, dict) and block.get("type") == "text"]
+                return "\n".join([text for text in texts if text]).strip()
         except Exception as exc:
             logger.error("Anthropic API call failed: {}", str(exc))
             _raise_ai_error(exc)

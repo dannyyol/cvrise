@@ -6,7 +6,7 @@ import httpx
 from loguru import logger
 from src.services.ai.ai_clients_service import (
     AsyncLLMClient, OllamaClient, OpenAIClient, 
-    AnthropicClient, GoogleClient, TextProcessor
+    AnthropicClient, GoogleClient, TextProcessor, AIConfigurationError, AIProviderError
 )
 
 
@@ -87,6 +87,8 @@ class SectionAnalyzer:
                 "areas_to_improve": list(map(str, parsed.get("areas_to_improve", []))),
                 "suggestions": list(map(str, parsed.get("suggestions", []))),
             }
+        except (AIConfigurationError, AIProviderError):
+            raise
         except Exception as exc:
             logger.warning("Section analysis failed for '{}': {}", name, str(exc))
             return {"name": name, "score": 0.0, "strengths": [], "areas_to_improve": [], "suggestions": []}
@@ -230,6 +232,8 @@ class ContentAnalyzer:
                 "contentQuality": {"score": TextProcessor.safe_number(cq.get("score", 0)), "summary": list(map(str, cq.get("summary", [])))},
                 "formattingAnalysis": {"score": TextProcessor.safe_number(fmt.get("score", 0)), "summary": list(map(str, fmt.get("summary", [])))},
             }
+        except (AIConfigurationError, AIProviderError):
+            raise
         except Exception as exc:
             logger.warning("Combined analysis failed; falling back to separate calls: {}", str(exc))
             return {

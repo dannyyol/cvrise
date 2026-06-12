@@ -159,7 +159,7 @@ function HomeContent() {
           <div className="nav-bg" />
           <div className="nav-inner">
             <a className="nav-logo" href="#">
-              <Image src="/images/blue-logo.png" alt={appName} width={28} height={28} />
+              <Image src="/images/blue-logo.png" alt={appName} width={36} height={36} />
               <span>CV<span>Rise</span></span>
             </a>
             <ul className="nav-links">
@@ -359,4 +359,3 @@ function HomeContent() {
     </div>
   );
 }
-

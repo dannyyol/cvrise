@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Check, Cpu, Save, Key, Server, Globe, Activity, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Form';
@@ -16,6 +16,8 @@ interface AISettingsProps {
   onNavigateToBilling?: () => void;
 }
 
+type ProviderDefaults = { baseUrls: Record<string, string>; modelIds: Record<string, string> };
+
 export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   const [models, setModels] = useState<AIModel[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('gpt-4o');
@@ -28,8 +30,22 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({ message: '', type: 'info', isVisible: false });
   const [usePayAsYouGo, setUsePayAsYouGo] = useState(false);
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+  const [providerDefaults, setProviderDefaults] = useState<ProviderDefaults>({
+    baseUrls: {},
+    modelIds: {},
+  });
 
   const selectedModel = models.find(m => m.id === selectedModelId);
+
+  const getDefaultBaseUrl = useCallback((provider: string | undefined): string => {
+    if (!provider) return '';
+    return providerDefaults.baseUrls[provider] || '';
+  }, [providerDefaults.baseUrls]);
+
+  const getDefaultModelId = useCallback((provider: string | undefined): string => {
+    if (!provider) return '';
+    return providerDefaults.modelIds[provider] || '';
+  }, [providerDefaults.modelIds]);
 
   const getErrorDetail = (error: unknown): unknown => {
     return (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
@@ -44,15 +60,19 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
     try {
       setIsLoading(true);
       setLoadError(null);
-      // Load AI models
-      const fetchedModels = await aiModelService.getAll();
-      setModels(fetchedModels);
-
-      // Load settings
-      const [settings, paygEnabled] = await Promise.all([
+      const [fetchedModels, settings, paygEnabled, defaults] = await Promise.all([
+        aiModelService.getAll(),
         settingsService.getSettings(SETTINGS_KEY_AI),
         settingsService.getPaygStatus(),
+        aiModelService.getProviderDefaults().catch(() => null),
       ]);
+      setModels(fetchedModels);
+      if (defaults) {
+        setProviderDefaults({
+          baseUrls: defaults.baseUrls || {},
+          modelIds: defaults.modelIds || {},
+        });
+      }
       if (settings) {
         if (settings.activeModelId) setSelectedModelId(settings.activeModelId);
         if (settings.configs) setConfigs(prev => ({ ...prev, ...settings.configs }));
@@ -68,6 +88,27 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedModel) return;
+    const providerKey = selectedModel.key_id;
+    const defaultBaseUrl = getDefaultBaseUrl(providerKey);
+    const defaultModelId = getDefaultModelId(providerKey);
+    if (!defaultBaseUrl && !defaultModelId) return;
+
+    setConfigs((prev) => {
+      const current = prev[providerKey];
+      if (current?.baseUrl && current?.modelId) return prev;
+      return {
+        ...prev,
+        [providerKey]: {
+          apiKey: current?.apiKey || '',
+          baseUrl: current?.baseUrl || defaultBaseUrl,
+          modelId: current?.modelId || defaultModelId,
+        },
+      };
+    });
+  }, [selectedModel, getDefaultBaseUrl, getDefaultModelId]);
 
   if (loadError) {
     return (
@@ -87,15 +128,17 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
     if (!selectedModel) return;
     
     const config = configs[selectedModel.key_id] || {};
+    const baseUrl = config.baseUrl || getDefaultBaseUrl(selectedModel.key_id);
+    const modelId = config.modelId || getDefaultModelId(selectedModel.key_id);
     
     setConnectionStatus('testing');
     setErrors({});
     try {
       await aiModelService.testConnection({
         provider: selectedModel.key_id,
-        base_url: config.baseUrl || '',
+        base_url: baseUrl,
         api_key: config.apiKey || '',
-        model_id: config.modelId || ''
+        model_id: modelId
       });
       setConnectionStatus('success');
       setTimeout(() => setConnectionStatus('idle'), 3000);
@@ -116,10 +159,32 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
     setErrors({});
     setIsSaving(true);
     try {
+      let configsToSave = configs;
+      if (!usePayAsYouGo && selectedModel) {
+        const providerKey = selectedModel.key_id;
+        const current = configs[providerKey] || { apiKey: '', baseUrl: '', modelId: '' };
+        const baseUrl = current.baseUrl || getDefaultBaseUrl(providerKey);
+        const modelId = current.modelId || getDefaultModelId(providerKey);
+        const shouldUpdate =
+          (baseUrl && current.baseUrl !== baseUrl) || (modelId && current.modelId !== modelId);
+
+        if (shouldUpdate) {
+          configsToSave = {
+            ...configs,
+            [providerKey]: {
+              ...current,
+              baseUrl,
+              modelId,
+            },
+          };
+          setConfigs(configsToSave);
+        }
+      }
+
       await settingsService.saveAISettings({
         activeModelId: selectedModelId,
         usageMode: usePayAsYouGo ? 'platform' : 'custom',
-        configs
+        configs: configsToSave
       });
       setToast({ message: 'Settings saved successfully', type: 'success', isVisible: true });
     } catch (error: unknown) {
@@ -300,18 +365,30 @@ export function AISettings({ onNavigateToBilling }: AISettingsProps) {
                 <>
                   <Input
                     label="Model ID"
-                    placeholder="e.g. gpt-4.1"
+                    placeholder={getDefaultModelId(selectedModel.key_id) || 'e.g. gpt-4.1'}
                     value={configs[selectedModel.key_id]?.modelId || ''}
                     onChange={(e) => handleConfigChange(selectedModel.key_id, 'modelId', e.target.value)}
+                    onBlur={() => {
+                      const current = (configs[selectedModel.key_id]?.modelId || '').trim();
+                      if (current) return;
+                      const fallback = getDefaultModelId(selectedModel.key_id);
+                      if (fallback) handleConfigChange(selectedModel.key_id, 'modelId', fallback);
+                    }}
                     icon={<Cpu className="w-4 h-4 text-gray-400" />}
                     error={errors.modelId}
                   />
                   
                   <Input
                     label="Base URL"
-                    placeholder="e.g. https://api.openai.com/v1"
+                    placeholder={getDefaultBaseUrl(selectedModel.key_id) || 'e.g. https://api.openai.com/v1'}
                     value={configs[selectedModel.key_id]?.baseUrl || ''}
                     onChange={(e) => handleConfigChange(selectedModel.key_id, 'baseUrl', e.target.value)}
+                    onBlur={() => {
+                      const current = (configs[selectedModel.key_id]?.baseUrl || '').trim();
+                      if (current) return;
+                      const fallback = getDefaultBaseUrl(selectedModel.key_id);
+                      if (fallback) handleConfigChange(selectedModel.key_id, 'baseUrl', fallback);
+                    }}
                     icon={<Server className="w-4 h-4 text-gray-400" />}
                     error={errors.baseUrl}
                   />

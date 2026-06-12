@@ -2,6 +2,8 @@ import httpx
 from loguru import logger
 from typing import Optional
 
+from src.services.ai.ai_provider_registry_service import resolve_ai_base_url, resolve_ai_model_id
+
 class AIConnectionService:
     @staticmethod
     async def test_connection(provider: str, base_url: str, api_key: Optional[str], model_id: Optional[str]) -> bool:
@@ -9,6 +11,8 @@ class AIConnectionService:
         Test connection to the AI provider.
         Returns True if connection is successful, False otherwise.
         """
+        base_url = resolve_ai_base_url(provider, base_url)
+        model_id = resolve_ai_model_id(provider, model_id)
         if not base_url:
             raise ValueError("Base URL is required")
             
@@ -32,15 +36,20 @@ class AIConnectionService:
                     return response.status_code == 200
                 
                 elif provider == "anthropic":
-                    
-                    url = f"{base_url}/v1/models" if not base_url.endswith("/v1") else f"{base_url}/models"
-                    
-                    response = await client.get(
+                    url = f"{base_url}/v1/messages" if not base_url.endswith("/v1") else f"{base_url}/messages"
+
+                    response = await client.post(
                         url,
                         headers={
                             "x-api-key": api_key,
-                            "anthropic-version": "2023-06-01"
-                        }
+                            "anthropic-version": "2023-06-01",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "model": model_id,
+                            "messages": [{"role": "user", "content": "Reply with OK"}],
+                            "max_tokens": 1,
+                        },
                     )
                     return response.status_code == 200
 
