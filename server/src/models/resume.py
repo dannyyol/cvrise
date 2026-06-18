@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 import uuid
-from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON, Index, Text, Float
+from sqlalchemy import String, Boolean, ForeignKey, DateTime, JSON, Index, Text, Float, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -10,6 +10,7 @@ class Resume(Base):
     __tablename__ = "resumes"
     __table_args__ = (
         Index("ix_resumes_user_id_updated_at", "user_id", "updated_at"),
+        Index("ix_resumes_share_token", "share_token", unique=True),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -19,6 +20,11 @@ class Resume(Base):
     create_and_tailor: Mapped[bool] = mapped_column(Boolean, default=False)
     resume_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     ai_analysis: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    share_token: Mapped[Optional[str]] = mapped_column(String(12), unique=True, nullable=True)
+    share_view_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    share_created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    share_last_viewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    share_revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

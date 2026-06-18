@@ -15,6 +15,7 @@ import { useCVStore } from '@/src/store/useCVStore';
 import { resumeService } from '@/src/services/resumeService';
 import type { ResumeSummary } from '@/src/services/resumeService';
 import DownloadDropdown from '@/src/components/DownloadDropdown';
+import { ResumeSharePanel } from '@/src/components/Resumes/Editor/ResumeSharePanel';
 import { ROUTES } from '@/src/lib/routes';
 
 interface EditorTopBarProps {
@@ -269,6 +270,7 @@ export function EditorTopBar({
       <div className="flex items-center gap-3 flex-1 justify-end">
         <SaveStatus />
         <div className="h-5 w-px bg-gray-200" />
+        <ResumeSharePanel />
         <DownloadDropdown />
       </div>
     </div>

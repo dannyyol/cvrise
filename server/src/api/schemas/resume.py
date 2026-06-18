@@ -199,6 +199,39 @@ class ResumeCreate(BaseSchema):
     template_id: Optional[str] = "classic"
     create_and_tailor: Optional[bool] = False
 
+class ShareLinkCreateRequest(BaseSchema):
+    regenerate: bool = False
+
+class ResumeShareLinkResponse(BaseSchema):
+    enabled: bool
+    token: Optional[str] = None
+    url: Optional[str] = None
+    view_count: int = 0
+    created_at: Optional[datetime] = None
+    last_viewed_at: Optional[datetime] = None
+    revoked_at: Optional[datetime] = None
+
+class PublicResumeResponse(BaseSchema):
+    title: str
+    personal_details: PersonalDetails
+    professional_summary: ProfessionalSummary
+    work_experiences: List[WorkExperience] = []
+    education: List[Education] = []
+    skills: List[Skill] = []
+    projects: List[Project] = []
+    certifications: List[Certification] = []
+    awards: List[Award] = []
+    publications: List[Publication] = []
+    interests: List[CustomSectionItem] = []
+    languages: List[CustomSectionItem] = []
+    websites: List[CustomSectionItem] = []
+    volunteering: List[CustomSectionItem] = []
+    references: List[CustomSectionItem] = []
+    custom: List[CustomSectionItem] = []
+    sections: List[SectionConfig] = []
+    theme: ThemeConfig
+    template_key: str = Field(..., alias="template_key")
+
 class ResumeResponse(BaseSchema):
     id: str
     title: str
@@ -226,6 +259,7 @@ class ResumeResponse(BaseSchema):
     template_key: str = Field(..., alias="template_key")
     resume_data: Optional[dict] = Field(default=None, alias="resumeData")
     ai_analysis: Optional[dict] = None
+    share_link: Optional[ResumeShareLinkResponse] = None
     created_at: str
     updated_at: str
 
@@ -240,5 +274,7 @@ class ResumeSummary(BaseSchema):
     create_and_tailor: bool = False
     template_id: str = Field(..., alias="template_id")
     template_key: str = Field(..., alias="template_key")
+    share_enabled: bool = False
+    share_view_count: int = 0
     created_at: str
     updated_at: str

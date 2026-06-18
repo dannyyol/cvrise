@@ -1,30 +1,30 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import copy
 from typing import Optional, List
+import secrets
+import string
 import uuid
 from loguru import logger
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
 from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig, JobMatchHistory
-from src.models.settings import Setting
-from src.models.ai_model import AIModel
 from src.models.cover_letter import CoverLetter as DBCoverLetter
 from src.constants import DEFAULT_RESUME_SECTIONS
 from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
     TailorResumeRequest, JobMatchRequest, JobMatchResponse,
-    JobMatchHistorySummary, JobMatchHistoryItem,
+    JobMatchHistorySummary, JobMatchHistoryItem, ResumeShareLinkResponse,
+    PublicResumeResponse,
 )
 from src.api.schemas.common import PaginatedResponse
 from src.services.file_parser_service import FileParser
 from src.services.ai.ai_resume_parser_service import AIResumeParser
-from src.services.ai.ai_connection_service import AIConnectionService
 from src.services.ai.ai_clients_service import (
-    OpenAIClient, AnthropicClient, GoogleClient, OllamaClient, TextProcessor, AIConfigurationError, AIProviderError
+    TextProcessor, AIConfigurationError, AIProviderError
 )
 from src.services.settings.ai_service import get_configured_ai_client
 from src.services.settings.plan_service import PlanService
@@ -43,6 +43,156 @@ class ResumeService:
     @property
     def user_id(self) -> str:
         return self.user.id
+
+    def _default_theme_payload(self) -> dict:
+        return {
+            "primary_color": "#475569",
+            "secondary_color": "#4b5563",
+            "font_family": "",
+            "font_size": "medium",
+            "letter_spacing": "normal",
+            "line_spacing": "normal",
+            "date_locale": "en-US",
+        }
+
+    def _default_cover_letter_theme_payload(self) -> dict:
+        return {
+            "primary_color": "#475569",
+            "secondary_color": "#4b5563",
+            "font_family": "",
+            "font_size": "medium",
+            "letter_spacing": "normal",
+            "line_spacing": "normal",
+            "template_key": "soft-modern",
+            "date_locale": "en-US",
+        }
+
+    def _build_share_url(self, token: str) -> str:
+        return f"{settings.CLIENT_BASE_URL.rstrip('/')}/cv/{token}"
+
+    def _build_share_link_response(self, resume: Resume) -> ResumeShareLinkResponse:
+        enabled = bool(resume.share_token)
+        return ResumeShareLinkResponse(
+            enabled=enabled,
+            token=resume.share_token,
+            url=self._build_share_url(resume.share_token) if resume.share_token else None,
+            view_count=resume.share_view_count or 0,
+            created_at=resume.share_created_at,
+            last_viewed_at=resume.share_last_viewed_at,
+            revoked_at=resume.share_revoked_at,
+        )
+
+    async def _generate_unique_share_token(self, length: int = 10) -> str:
+        alphabet = string.ascii_letters + string.digits
+        for _ in range(10):
+            token = "".join(secrets.choice(alphabet) for _ in range(length))
+            result = await self.db.execute(select(Resume.id).where(Resume.share_token == token))
+            if result.scalar_one_or_none() is None:
+                return token
+        raise HTTPException(status_code=500, detail="Unable to generate a unique share link. Please try again.")
+
+    def _get_safe_resume_data(self, resume: Resume) -> dict:
+        rd = resume.resume_data or {}
+        safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
+        if isinstance(safe_rd, dict):
+            sanitize_resume_data_inplace(safe_rd)
+        return safe_rd
+
+    def _get_sections_config(self, safe_rd: dict) -> list:
+        sections_config = safe_rd.get("sections", [])
+        if not sections_config:
+            return DEFAULT_RESUME_SECTIONS
+        return sections_config
+
+    def _get_cover_letter_data(self, resume: Resume, safe_rd: dict) -> Optional[dict]:
+        cover_letter_data = safe_rd.get("coverLetter")
+        if cover_letter_data or not resume.cover_letters:
+            return cover_letter_data
+
+        latest = sorted(
+            resume.cover_letters,
+            key=lambda x: (x.updated_at or x.created_at),
+            reverse=True
+        )[0]
+        return {
+            "recipient_name": latest.recipient_name,
+            "recipient_title": latest.recipient_title,
+            "company_name": latest.company_name,
+            "company_address": latest.company_address,
+            "content": sanitize_rich_text_html(latest.content),
+            "job_title": latest.job_title,
+            "job_description": latest.job_description,
+            "template_key": latest.template_key,
+            "tone": latest.tone,
+            "length": latest.length,
+        }
+
+    def _serialize_resume(self, resume: Resume) -> ResumeResponse:
+        safe_rd = self._get_safe_resume_data(resume)
+        sections_config = self._get_sections_config(safe_rd)
+        theme_payload = safe_rd.get("theme") or resume.theme or self._default_theme_payload()
+        cover_letter_theme_payload = (
+            safe_rd.get("coverLetterTheme")
+            or resume.cover_letter_theme
+            or self._default_cover_letter_theme_payload()
+        )
+        cover_letter_data = self._get_cover_letter_data(resume, safe_rd)
+
+        return ResumeResponse(
+            id=resume.id,
+            title=resume.title,
+            create_and_tailor=resume.create_and_tailor,
+            template_id=resume.template_id,
+            template_key=resume.template_key,
+            created_at=resume.created_at.isoformat() if resume.created_at else "",
+            updated_at=resume.updated_at.isoformat() if resume.updated_at else "",
+            resume_data=safe_rd,
+            ai_analysis=resume.ai_analysis,
+            personal_details=safe_rd.get("personalDetails", {}),
+            professional_summary=safe_rd.get("professionalSummary", {}),
+            work_experiences=safe_rd.get("workExperiences", []),
+            education=safe_rd.get("education", []),
+            skills=safe_rd.get("skills", []),
+            projects=safe_rd.get("projects", []),
+            certifications=safe_rd.get("certifications", []),
+            awards=safe_rd.get("awards", []),
+            publications=safe_rd.get("publications", []),
+            languages=safe_rd.get("languages", []),
+            interests=safe_rd.get("interests", []),
+            websites=safe_rd.get("websites", []),
+            volunteering=safe_rd.get("volunteering", []),
+            references=safe_rd.get("references", []),
+            custom=safe_rd.get("custom", []),
+            sections=sections_config,
+            theme=theme_payload,
+            cover_letter_theme=cover_letter_theme_payload,
+            cover_letter=cover_letter_data,
+            share_link=self._build_share_link_response(resume),
+        )
+
+    def _serialize_public_resume(self, resume: Resume) -> PublicResumeResponse:
+        safe_rd = self._get_safe_resume_data(resume)
+        return PublicResumeResponse(
+            title=resume.title,
+            template_key=resume.template_key,
+            personal_details=safe_rd.get("personalDetails", {}),
+            professional_summary=safe_rd.get("professionalSummary", {}),
+            work_experiences=safe_rd.get("workExperiences", []),
+            education=safe_rd.get("education", []),
+            skills=safe_rd.get("skills", []),
+            projects=safe_rd.get("projects", []),
+            certifications=safe_rd.get("certifications", []),
+            awards=safe_rd.get("awards", []),
+            publications=safe_rd.get("publications", []),
+            languages=safe_rd.get("languages", []),
+            interests=safe_rd.get("interests", []),
+            websites=safe_rd.get("websites", []),
+            volunteering=safe_rd.get("volunteering", []),
+            references=safe_rd.get("references", []),
+            custom=safe_rd.get("custom", []),
+            sections=self._get_sections_config(safe_rd),
+            theme=safe_rd.get("theme") or resume.theme or self._default_theme_payload(),
+        )
 
     def _compose_resume_text(self, resume: Resume) -> str:
         rd = resume.resume_data or {}
@@ -184,65 +334,6 @@ class ResumeService:
         if not resume:
             raise HTTPException(status_code=404, detail="Resume not found")
 
-        if resume.resume_data:
-            rd = resume.resume_data
-            safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
-            if isinstance(safe_rd, dict):
-                sanitize_resume_data_inplace(safe_rd)
-            
-            cover_letter_data = safe_rd.get("coverLetter")
-            if not cover_letter_data and resume.cover_letters:
-                latest = sorted(
-                    resume.cover_letters,
-                    key=lambda x: (x.updated_at or x.created_at),
-                    reverse=True
-                )[0]
-                cover_letter_data = {
-                    "recipient_name": latest.recipient_name,
-                    "recipient_title": latest.recipient_title,
-                    "company_name": latest.company_name,
-                    "company_address": latest.company_address,
-                    "content": sanitize_rich_text_html(latest.content),
-                    "job_title": latest.job_title,
-                    "job_description": latest.job_description,
-                    "template_key": latest.template_key,
-                    "tone": latest.tone,
-                    "length": latest.length,
-                }
-
-            return ResumeResponse(
-                id=resume.id,
-                title=resume.title,
-                template_id=resume.template_id,
-                template_key=resume.template_key,
-                created_at=resume.created_at.isoformat() if resume.created_at else "",
-                updated_at=resume.updated_at.isoformat() if resume.updated_at else "",
-                resume_data=safe_rd,
-                ai_analysis=resume.ai_analysis,
-                
-                personal_details=safe_rd.get("personalDetails", {}),
-                professional_summary=safe_rd.get("professionalSummary", {}),
-                work_experiences=safe_rd.get("workExperiences", []),
-                education=safe_rd.get("education", []),
-                skills=safe_rd.get("skills", []),
-                projects=safe_rd.get("projects", []),
-                certifications=safe_rd.get("certifications", []),
-                awards=safe_rd.get("awards", []),
-                publications=safe_rd.get("publications", []),
-                languages=safe_rd.get("languages", []),
-                interests=safe_rd.get("interests", []),
-                websites=safe_rd.get("websites", []),
-                volunteering=safe_rd.get("volunteering", []),
-                references=safe_rd.get("references", []),
-                custom=safe_rd.get("custom", []),
-                sections=safe_rd.get("sections", []),
-                
-                theme=safe_rd.get("theme") or resume.theme,
-                cover_letter_theme=safe_rd.get("coverLetterTheme") or resume.cover_letter_theme,
-                
-                cover_letter=cover_letter_data
-            )
-
         if not resume.cover_letter_theme:
             cl_theme = CoverLetterThemeConfig(
                 id=str(uuid.uuid4()),
@@ -254,72 +345,7 @@ class ResumeService:
             self.db.add(cl_theme)
             await self.db.commit()
             resume.cover_letter_theme = cl_theme
-
-        rd = resume.resume_data or {}
-        safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
-        if isinstance(safe_rd, dict):
-            sanitize_resume_data_inplace(safe_rd)
-        
-        sections_config = safe_rd.get("sections", [])
-        if not sections_config:
-            sections_config = DEFAULT_RESUME_SECTIONS
-            
-        cover_letter_data = safe_rd.get("coverLetter")
-        if not cover_letter_data and resume.cover_letters:
-            latest = sorted(
-                resume.cover_letters,
-                key=lambda x: (x.updated_at or x.created_at),
-                reverse=True
-            )[0]
-            cover_letter_data = {
-                "recipient_name": latest.recipient_name,
-                "recipient_title": latest.recipient_title,
-                "company_name": latest.company_name,
-                "company_address": latest.company_address,
-                "content": sanitize_rich_text_html(latest.content),
-                "job_title": latest.job_title,
-                "job_description": latest.job_description,
-                "template_key": latest.template_key,
-                "tone": latest.tone,
-                "length": latest.length,
-            }
-
-        return ResumeResponse(
-            id=resume.id,
-            title=resume.title,
-            user_id=resume.user_id,
-            created_at=resume.created_at,
-            updated_at=resume.updated_at,
-            template_id=resume.template_id,
-            create_and_tailor=resume.create_and_tailor,
-            template=resume.template,
-            theme=resume.theme,
-            cover_letter_theme=resume.cover_letter_theme,
-            cover_letters=resume.cover_letters,
-            ai_analysis=resume.ai_analysis,
-            
-            cover_letter=cover_letter_data,
-            
-            sections=sections_config,
-            
-            personal_details=safe_rd.get("personalDetails"),
-            professional_summary=safe_rd.get("professionalSummary"),
-            work_experiences=safe_rd.get("workExperiences", []),
-            education=safe_rd.get("education", []),
-            skills=safe_rd.get("skills", []),
-            projects=safe_rd.get("projects", []),
-            certifications=safe_rd.get("certifications", []),
-            awards=safe_rd.get("awards", []),
-            publications=safe_rd.get("publications", []),
-            languages=safe_rd.get("languages", []),
-            interests=safe_rd.get("interests", []),
-            websites=safe_rd.get("websites", []),
-            volunteering=safe_rd.get("volunteering", []),
-            references=safe_rd.get("references", []),
-            custom_sections=safe_rd.get("custom", []),
-            
-            resume_data=safe_rd
-        )
+        return self._serialize_resume(resume)
 
     async def create_resume(self, resume_in: ResumeCreate) -> ResumeResponse:
         """Create a new resume with default sections."""
@@ -523,12 +549,100 @@ class ResumeService:
                 title=r.title,
                 template_id=r.template_id,
                 template_key=r.template_key,
+                share_enabled=bool(r.share_token),
+                share_view_count=r.share_view_count or 0,
                 created_at=r.created_at.isoformat(),
                 updated_at=r.updated_at.isoformat(),
                 create_and_tailor=r.create_and_tailor,
             )
             for r in resumes
         ]
+
+    async def get_resume_share_link(self, resume_id: str) -> ResumeShareLinkResponse:
+        stmt = select(Resume).where(
+            Resume.id == resume_id,
+            Resume.user_id == self.user_id,
+        )
+        result = await self.db.execute(stmt)
+        resume = result.scalar_one_or_none()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        return self._build_share_link_response(resume)
+
+    async def create_resume_share_link(self, resume_id: str, regenerate: bool = False) -> ResumeShareLinkResponse:
+        stmt = select(Resume).where(
+            Resume.id == resume_id,
+            Resume.user_id == self.user_id,
+        )
+        result = await self.db.execute(stmt)
+        resume = result.scalar_one_or_none()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+
+        if resume.share_token and not regenerate:
+            return self._build_share_link_response(resume)
+
+        resume.share_token = await self._generate_unique_share_token()
+        resume.share_view_count = 0
+        resume.share_created_at = datetime.now(timezone.utc)
+        resume.share_last_viewed_at = None
+        resume.share_revoked_at = None
+        resume.updated_at = datetime.now(timezone.utc)
+        await self.db.commit()
+        await self.db.refresh(resume)
+        return self._build_share_link_response(resume)
+
+    async def revoke_resume_share_link(self, resume_id: str) -> ResumeShareLinkResponse:
+        stmt = select(Resume).where(
+            Resume.id == resume_id,
+            Resume.user_id == self.user_id,
+        )
+        result = await self.db.execute(stmt)
+        resume = result.scalar_one_or_none()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+
+        if resume.share_token:
+            resume.share_token = None
+            resume.share_revoked_at = datetime.now(timezone.utc)
+            resume.updated_at = datetime.now(timezone.utc)
+            await self.db.commit()
+            await self.db.refresh(resume)
+
+        return self._build_share_link_response(resume)
+
+    async def get_public_resume_by_token(self, token: str, increment_view: bool = True) -> PublicResumeResponse:
+        normalized_token = (token or "").strip()
+        if not normalized_token or not normalized_token.isalnum():
+            raise HTTPException(status_code=404, detail="Shared resume not found")
+
+        stmt = (
+            select(Resume)
+            .where(Resume.share_token == normalized_token)
+            .options(
+                selectinload(Resume.template),
+                selectinload(Resume.theme),
+            )
+        )
+        result = await self.db.execute(stmt)
+        resume = result.scalar_one_or_none()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Shared resume not found")
+
+        if increment_view:
+            now = datetime.now(timezone.utc)
+            await self.db.execute(
+                update(Resume)
+                .where(Resume.id == resume.id)
+                .values(
+                    share_view_count=(resume.share_view_count or 0) + 1,
+                    share_last_viewed_at=now,
+                    updated_at=Resume.updated_at,
+                )
+            )
+            await self.db.commit()
+
+        return self._serialize_public_resume(resume)
 
     async def tailor_resume(self, resume_id: str, body: TailorResumeRequest) -> ResumeResponse:
         stmt = select(Resume).where(

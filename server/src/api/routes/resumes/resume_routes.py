@@ -9,6 +9,7 @@ from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
     TailorResumeRequest, JobMatchRequest, JobMatchResponse,
     JobMatchHistorySummary, JobMatchHistoryItem,
+    ShareLinkCreateRequest, ResumeShareLinkResponse,
 )
 from src.api.schemas.common import PaginatedResponse
 from src.services.resumes import ResumeService
@@ -92,6 +93,37 @@ async def match_resume_to_job(
     """Analyse how well a resume matches a job description."""
     service = ResumeService(session, user)
     return await service.analyse_job_match(resume_id, body)
+
+
+@router.get("/{resume_id}/share-link", response_model=ResumeShareLinkResponse)
+async def get_resume_share_link(
+    resume_id: str,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    return await service.get_resume_share_link(resume_id)
+
+
+@router.post("/{resume_id}/share-link", response_model=ResumeShareLinkResponse)
+async def create_resume_share_link(
+    resume_id: str,
+    body: ShareLinkCreateRequest,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    return await service.create_resume_share_link(resume_id, regenerate=body.regenerate)
+
+
+@router.delete("/{resume_id}/share-link", response_model=ResumeShareLinkResponse)
+async def revoke_resume_share_link(
+    resume_id: str,
+    session: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    service = ResumeService(session, user)
+    return await service.revoke_resume_share_link(resume_id)
 
 @router.get("/{resume_id}/job-matches", response_model=PaginatedResponse[JobMatchHistorySummary])
 async def list_job_match_history(

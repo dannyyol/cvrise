@@ -7,7 +7,7 @@ import { useCVStore } from '../../../store/useCVStore';
 import { resumeService } from '../../../services/resumeService';
 import type { ResumeSummary } from '../../../services/resumeService';
 import type { CoverLetterTemplateId } from '../../../types/resume';
-import { FileText, Plus, Clock, Trash2, Pencil, Briefcase } from 'lucide-react';
+import { FileText, Plus, Clock, Trash2, Pencil, Briefcase, Eye, Link as LinkIcon } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { PageTitle } from '../../../components/ui/PageTitle';
@@ -385,6 +385,12 @@ export default function ResumesPage() {
                     <p className="text-sm text-slate-500 mt-1 line-clamp-2">
                       Last edited on {formatDate(resume.updatedAt)}
                     </p>
+                    {resume.shareEnabled && (
+                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        <LinkIcon className="h-3.5 w-3.5" />
+                        Shared publicly
+                      </div>
+                    )}
                   </div>
                   <ResumeCardMenu
                     onTailorToJob={(e) => handleTailorToJob(e, resume.id)}
@@ -395,11 +401,15 @@ export default function ResumesPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-50 pt-4 mt-auto">
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Updated {formatDate(resume.updatedAt)}</span>
-                    </div>
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 border-t border-slate-50 pt-4 mt-auto">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Updated {formatDate(resume.updatedAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{resume.shareEnabled ? `${resume.shareViewCount} public views` : 'Not shared yet'}</span>
+                  </div>
                 </div>
               </div>
             </motion.div>

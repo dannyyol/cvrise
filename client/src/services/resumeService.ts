@@ -1,6 +1,6 @@
 import { api } from '../lib/apiClient';
 import type { PaginatedResponse } from './planService';
-import type { TemplateProps, TemplateId, Template } from '../types/resume';
+import type { TemplateProps, TemplateId, Template, ResumeShareLink } from '../types/resume';
 import type { AIReviewResponse } from './analysisService';
 
 export interface ResumeApiResponse extends TemplateProps {
@@ -9,6 +9,7 @@ export interface ResumeApiResponse extends TemplateProps {
   template_id: string;
   template_key: TemplateId;
   aiAnalysis?: AIReviewResponse | null;
+  shareLink?: ResumeShareLink | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,8 +19,15 @@ export interface ResumeSummary {
   title: string;
   template_id: string;
   template_key: TemplateId;
+  shareEnabled: boolean;
+  shareViewCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PublicResumeApiResponse extends TemplateProps {
+  title: string;
+  template_key: TemplateId;
 }
 
 export interface CoverLetterItem {
@@ -81,6 +89,22 @@ export const resumeService = {
 
   getDefaultResume: async (): Promise<ResumeApiResponse> => {
     return api.get<ResumeApiResponse>('/resumes/default');
+  },
+
+  getResumeShareLink: async (id: string): Promise<ResumeShareLink> => {
+    return api.get<ResumeShareLink>(`/resumes/${id}/share-link`);
+  },
+
+  createResumeShareLink: async (id: string, regenerate: boolean = false): Promise<ResumeShareLink> => {
+    return api.post<{ regenerate: boolean }, ResumeShareLink>(`/resumes/${id}/share-link`, { regenerate });
+  },
+
+  revokeResumeShareLink: async (id: string): Promise<ResumeShareLink> => {
+    return api.delete<ResumeShareLink>(`/resumes/${id}/share-link`);
+  },
+
+  getPublicResumeByToken: async (token: string): Promise<PublicResumeApiResponse> => {
+    return api.get<PublicResumeApiResponse>(`/resumes/public/${token}`);
   },
 
   updateResume: async (id: string, data: ResumeApiResponse): Promise<ResumeApiResponse> => {

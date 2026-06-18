@@ -135,6 +135,16 @@ export interface TemplateProps {
   coverLetterTheme?: ThemeConfig;
 }
 
+export interface ResumeShareLink {
+  enabled: boolean;
+  token?: string | null;
+  url?: string | null;
+  viewCount: number;
+  createdAt?: string | null;
+  lastViewedAt?: string | null;
+  revokedAt?: string | null;
+}
+
 export interface CoverLetter {
   recipientName: string;
   recipientTitle: string;
