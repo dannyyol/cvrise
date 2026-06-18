@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SharedCvPage(props: PageProps<"/cv/[token]">) {
+type SharedCvPageProps = {
+  params: Promise<{
+    token: string;
+  }>;
+};
+
+export default async function SharedCvPage(props: SharedCvPageProps) {
   const { token } = await props.params;
   return <PublicResumePageClient token={token} />;
 }
