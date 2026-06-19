@@ -11,6 +11,7 @@ import { ErrorState } from "@/src/components/ui/ErrorState";
 import { Toast, type ToastType } from "@/src/components/ui/Toast";
 import { buildCVPayload } from "@/src/lib/payloadBuilder";
 import { exportResumeToPDF, generateResumePDFBlob } from "@/src/services/pdfService";
+import { CVPreview } from "@/src/components/Resumes/Preview/CVPreview";
 
 function normalizeNameForFilename(value: string): string {
   return value.trim().replace(/\.pdf$/i, "").replace(/\s*pdf$/i, "").trim() || "CVRise";
@@ -128,7 +129,7 @@ export function PublicResumePageClient({ token }: { token: string }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState(false);
-  const [useCompactPdfView, setUseCompactPdfView] = useState(false);
+  const [useCompactPdfView, setUseCompactPdfView] = useState<boolean | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
     message: "",
     type: "info",
@@ -173,7 +174,7 @@ export function PublicResumePageClient({ token }: { token: string }) {
   const identity = useMemo(() => getHeaderIdentity(resume), [resume]);
 
   useEffect(() => {
-    if (!resume || !previewData) {
+    if (!resume || !previewData || useCompactPdfView !== false) {
       setPdfUrl((current) => {
         if (current) URL.revokeObjectURL(current);
         return null;
@@ -221,7 +222,7 @@ export function PublicResumePageClient({ token }: { token: string }) {
         URL.revokeObjectURL(nextUrl);
       }
     };
-  }, [previewData, resume]);
+  }, [previewData, resume, useCompactPdfView]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1023px)");
@@ -237,12 +238,15 @@ export function PublicResumePageClient({ token }: { token: string }) {
     };
   }, []);
 
+  const isViewportModeReady = useCompactPdfView !== null;
+  const isMobilePreview = useCompactPdfView === true;
+
   const pdfViewerHash = useMemo(
     () =>
-      useCompactPdfView
+      isMobilePreview
         ? "#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-fit"
         : "#toolbar=0&navpanes=0&scrollbar=1&page=1&zoom=page-width",
-    [useCompactPdfView],
+    [isMobilePreview],
   );
 
   const handleDownload = async () => {
@@ -260,9 +264,9 @@ export function PublicResumePageClient({ token }: { token: string }) {
     }
   };
 
-  const isPdfStillPreparing = Boolean(resume && previewData && !pdfUrl && !previewError);
+  const isPdfStillPreparing = Boolean(resume && previewData && useCompactPdfView === false && !pdfUrl && !previewError);
 
-  if (isLoading || isPdfStillPreparing) {
+  if (isLoading || !isViewportModeReady || isPdfStillPreparing) {
     return (
       <PublicPageFrame>
         <Toast
@@ -319,15 +323,18 @@ export function PublicResumePageClient({ token }: { token: string }) {
           <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-5">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-slate-900">{identity.fullName}</p>
-              <p className="truncate text-xs text-slate-500">PDF preview</p>
-            </div>
-            <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
-              {useCompactPdfView ? "Mobile fit view" : "Preview"}
+              <p className="truncate text-xs text-slate-500">{isMobilePreview ? "Resume preview" : "PDF preview"}</p>
             </div>
           </div>
 
           <div className="relative min-h-0 flex-1 bg-slate-100">
-            {previewError ? (
+            {isMobilePreview ? (
+              <div className="absolute inset-0 bg-white">
+                <CVPreview data={previewData} templateId={resume.template_key} scaleMode="fill" />
+              </div>
+            ) : null}
+
+            {!isMobilePreview && previewError ? (
               <div className="absolute inset-0 flex items-center justify-center p-6">
                 <div className="max-w-md rounded-2xl border border-amber-200 bg-white px-6 py-8 text-center shadow-sm">
                   <p className="text-base font-semibold text-slate-900">Preview unavailable</p>
@@ -347,7 +354,7 @@ export function PublicResumePageClient({ token }: { token: string }) {
               </div>
             ) : null}
 
-            {pdfUrl && !previewError ? (
+            {!isMobilePreview && pdfUrl && !previewError ? (
               <object
                 aria-label={`${identity.fullName} PDF preview`}
                 data={`${pdfUrl}${pdfViewerHash}`}
