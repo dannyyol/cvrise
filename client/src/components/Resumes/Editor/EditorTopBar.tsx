@@ -70,7 +70,15 @@ function ResumePicker() {
     }
   };
 
-  const handleSelect = (id: string) => {
+  const handleSelect = async (id: string) => {
+    if (id === currentResumeId) {
+      setIsOpen(false);
+      return;
+    }
+    const { isDirty, flushSave } = useCVStore.getState();
+    if (isDirty) {
+      await flushSave();
+    }
     setCurrentResumeId(id);
     setIsOpen(false);
   };
@@ -183,13 +191,25 @@ function ResumePicker() {
 }
 
 function SaveStatus() {
-  const { isSaving, isDirty, lastSaved } = useCVStore();
+  const { isSaving, isDirty, lastSaved, error, currentResumeId } = useCVStore();
+  const isSaveError = Boolean(
+    currentResumeId &&
+    error &&
+    (error === 'Failed to save changes' || error === 'Failed to save AI analysis')
+  );
 
   if (isSaving) {
     return (
       <div className="flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors duration-200">
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
         <span>Saving…</span>
+      </div>
+    );
+  }
+  if (isSaveError) {
+    return (
+      <div className="flex items-center gap-1 text-[13px] font-medium text-red-600 transition-colors duration-200">
+        <span>Save failed</span>
       </div>
     );
   }
@@ -200,7 +220,7 @@ function SaveStatus() {
         isDirty ? 'text-gray-400' : 'text-green-600'
       )}>
         <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-        <span>Saved</span>
+        <span>{isDirty ? 'Unsaved changes' : 'Saved'}</span>
       </div>
     );
   }

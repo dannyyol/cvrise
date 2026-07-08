@@ -1,3 +1,24 @@
+RESUME_DATA_FIELD_NAMES = frozenset({
+    "personal_details",
+    "professional_summary",
+    "work_experiences",
+    "education",
+    "skills",
+    "projects",
+    "certifications",
+    "awards",
+    "publications",
+    "languages",
+    "interests",
+    "websites",
+    "volunteering",
+    "references",
+    "custom",
+    "cover_letter",
+    "sections",
+    "theme",
+    "cover_letter_theme",
+})
 
 DEFAULT_RESUME_SECTIONS = [
     {'id': 'personal', 'type': 'personal', 'title': 'Personal Details', 'is_visible': True, 'order': 0},

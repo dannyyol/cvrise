@@ -29,6 +29,7 @@ function EditorPageContent() {
   const {
     cvData,
     saveResume,
+    flushSave,
     currentResumeId,
     selectedTemplate,
     isDirty,
@@ -47,27 +48,49 @@ function EditorPageContent() {
   const [showLoadSampleConfirm, setShowLoadSampleConfirm] = useState(false);
 
   const isLoadError = error && !currentResumeId;
+  const prevResumeIdRef = useRef<string | null>(null);
+  const lastEditStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchTemplates();
     fetchCoverLetterTemplates();
-    if (source === 'cover-letter-history' && currentResumeId) return;
-    if (currentResumeId) {
-      fetchResumeById(currentResumeId);
-    } else {
-      fetchDefaultResume();
-    }
-  }, [fetchTemplates, fetchCoverLetterTemplates, source, currentResumeId, fetchResumeById, fetchDefaultResume]);
-
-  const isDirtyRef = useRef(isDirty);
-  const lastEditStartRef = useRef<number | null>(null);
+  }, [fetchTemplates, fetchCoverLetterTemplates]);
 
   useEffect(() => {
-    isDirtyRef.current = isDirty;
-  }, [isDirty]);
+    let cancelled = false;
+
+    const loadResume = async () => {
+      if (source === 'cover-letter-history' && currentResumeId) return;
+
+      const prevId = prevResumeIdRef.current;
+      if (prevId && prevId !== currentResumeId) {
+        await flushSave();
+      }
+      if (cancelled) return;
+
+      prevResumeIdRef.current = currentResumeId;
+
+      if (currentResumeId) {
+        await fetchResumeById(currentResumeId);
+      } else {
+        await fetchDefaultResume();
+      }
+    };
+
+    void loadResume();
+    return () => {
+      cancelled = true;
+    };
+  }, [source, currentResumeId, fetchResumeById, fetchDefaultResume, flushSave]);
 
   useEffect(() => {
-    if (!currentResumeId || !isDirtyRef.current) return;
+    return () => {
+      void useCVStore.getState().flushSave();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentResumeId || !isDirty || isLoading) return;
 
     if (lastEditStartRef.current === null) {
       lastEditStartRef.current = Date.now();
@@ -78,11 +101,11 @@ function EditorPageContent() {
 
     const handler = setTimeout(() => {
       lastEditStartRef.current = null;
-      saveResume();
+      void saveResume();
     }, delay);
 
     return () => clearTimeout(handler);
-  }, [cvData, selectedTemplate, saveResume, currentResumeId]);
+  }, [cvData, selectedTemplate, saveResume, currentResumeId, isDirty, isLoading]);
 
   const handleLoadSample = async () => {
     const sampleData = await resumeService.getSampleData();

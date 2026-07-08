@@ -22,7 +22,7 @@ import { ROUTES } from '../../../lib/routes';
 export default function ResumesPage() {
   const router = useRouter();
 
-  const { fetchResumeById, setCurrentResumeId, generateCoverLetter, setDocumentMode, currentResumeId, templates, fetchTemplates } = useCVStore();
+  const { fetchResumeById, setCurrentResumeId, generateCoverLetter, setDocumentMode, currentResumeId, templates, fetchTemplates, flushSave } = useCVStore();
   const [resumes, setResumes] = useState<ResumeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +64,10 @@ export default function ResumesPage() {
 
   const handleSelectResume = async (id: string) => {
     try {
+      const { isDirty } = useCVStore.getState();
+      if (isDirty) {
+        await flushSave();
+      }
       setCurrentResumeId(id);
       router.push(ROUTES.EDITOR);
     } catch {
