@@ -3,6 +3,54 @@ import type { CVSection as Section, PersonalDetails, WorkExperience, Education, 
 import { resumeService } from '../services/resumeService';
 import type { CoverLetterItem } from '../services/resumeService';
 import type { AIReviewResponse } from '../services/analysisService';
+import type { ResumeApiResponse } from '../services/resumeService';
+
+let pendingSave = false;
+
+function apiResponseToCvData(data: ResumeApiResponse): TemplateProps {
+  return {
+    personalDetails: data.personalDetails,
+    professionalSummary: data.professionalSummary,
+    workExperiences: data.workExperiences,
+    education: data.education,
+    skills: data.skills,
+    projects: data.projects,
+    certifications: data.certifications,
+    awards: data.awards,
+    publications: data.publications,
+    languages: data.languages,
+    interests: data.interests,
+    websites: data.websites,
+    volunteering: data.volunteering ?? [],
+    references: data.references ?? [],
+    custom: data.custom ?? [],
+    sections: data.sections,
+    theme: data.theme,
+    coverLetterTheme: data.coverLetterTheme ?? initialCVData.coverLetterTheme,
+    coverLetter: {
+      recipientName: data.coverLetter?.recipientName ?? '',
+      recipientTitle: data.coverLetter?.recipientTitle ?? '',
+      companyName: data.coverLetter?.companyName ?? '',
+      companyAddress: data.coverLetter?.companyAddress ?? '',
+      content: data.coverLetter?.content ?? '',
+      jobTitle: data.coverLetter?.jobTitle,
+      jobDescription: data.coverLetter?.jobDescription,
+      templateKey: (data.coverLetter?.templateKey ?? data.coverLetterTheme?.templateKey ?? 'soft-modern') as CoverLetterTemplateId,
+    },
+  };
+}
+
+function buildSaveSnapshot(state: {
+  cvData: TemplateProps;
+  selectedTemplate: TemplateId;
+  currentResumeId: string | null;
+}): string {
+  return JSON.stringify({
+    cvData: state.cvData,
+    selectedTemplate: state.selectedTemplate,
+    currentResumeId: state.currentResumeId,
+  });
+}
 
 interface CVStore {
   cvData: TemplateProps;
@@ -32,6 +80,7 @@ interface CVStore {
   fetchDefaultResume: () => Promise<void>;
   fetchResumeById: (id: string) => Promise<void>;
   saveResume: () => Promise<void>;
+  flushSave: () => Promise<void>;
   saveAIAnalysis: (analysis: AIReviewResponse | null) => Promise<void>;
   setTemplate: (id: TemplateId) => void;
   updatePersonalDetails: (details: Partial<PersonalDetails>) => void;
@@ -189,7 +238,9 @@ export const useCVStore = create<CVStore>((set, get) => ({
   historyError: null,
   isCLGenerating: false,
 
-  reset: () => set({
+  reset: () => {
+    pendingSave = false;
+    set({
     cvData: initialCVData,
     aiAnalysis: null,
     activeDocumentMode: 'resume',
@@ -204,7 +255,8 @@ export const useCVStore = create<CVStore>((set, get) => ({
     isHistoryLoading: false,
     historyError: null,
     isCLGenerating: false,
-  }),
+  });
+  },
   
   setCurrentResumeId: (id) => set({ currentResumeId: id }),
 
@@ -226,23 +278,9 @@ export const useCVStore = create<CVStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await resumeService.getDefaultResume();
-      const { aiAnalysis: nextAIAnalysis, ...resumeData } = data;
       set({ 
-        cvData: { 
-          ...resumeData,
-          coverLetter: {
-            recipientName: data.coverLetter?.recipientName ?? '',
-            recipientTitle: data.coverLetter?.recipientTitle ?? '',
-            companyName: data.coverLetter?.companyName ?? '',
-            companyAddress: data.coverLetter?.companyAddress ?? '',
-            content: data.coverLetter?.content ?? '',
-            jobTitle: data.coverLetter?.jobTitle,
-            jobDescription: data.coverLetter?.jobDescription,
-            templateKey: (data.coverLetter?.templateKey ?? data.coverLetterTheme?.templateKey ?? 'soft-modern') as CoverLetterTemplateId
-          },
-          coverLetterTheme: data.coverLetterTheme ?? initialCVData.coverLetterTheme 
-        }, 
-        aiAnalysis: nextAIAnalysis ?? null,
+        cvData: apiResponseToCvData(data),
+        aiAnalysis: data.aiAnalysis ?? null,
         selectedTemplate: data.template_key,
         currentResumeId: data.id,
         currentResumeTitle: data.title,
@@ -259,23 +297,9 @@ export const useCVStore = create<CVStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await resumeService.getResumeById(id);
-      const { aiAnalysis: nextAIAnalysis, ...resumeData } = data;
       set({ 
-        cvData: { 
-          ...resumeData,
-          coverLetter: {
-            recipientName: data.coverLetter?.recipientName ?? '',
-            recipientTitle: data.coverLetter?.recipientTitle ?? '',
-            companyName: data.coverLetter?.companyName ?? '',
-            companyAddress: data.coverLetter?.companyAddress ?? '',
-            content: data.coverLetter?.content ?? '',
-            jobTitle: data.coverLetter?.jobTitle,
-            jobDescription: data.coverLetter?.jobDescription,
-            templateKey: (data.coverLetter?.templateKey ?? data.coverLetterTheme?.templateKey ?? 'soft-modern') as CoverLetterTemplateId
-          },
-          coverLetterTheme: data.coverLetterTheme ?? initialCVData.coverLetterTheme 
-        }, 
-        aiAnalysis: nextAIAnalysis ?? null,
+        cvData: apiResponseToCvData(data),
+        aiAnalysis: data.aiAnalysis ?? null,
         selectedTemplate: data.template_key,
         currentResumeId: data.id,
         currentResumeTitle: data.title,
@@ -293,11 +317,18 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   saveResume: async () => {
-    const { currentResumeId, currentResumeTitle, cvData, selectedTemplate, isSaving } = get();
-    if (!currentResumeId || isSaving) return;
+    const { currentResumeId, isSaving } = get();
+    if (!currentResumeId) return;
+    if (isSaving) {
+      pendingSave = true;
+      return;
+    }
 
-    set({ isSaving: true });
+    const snapshot = buildSaveSnapshot(get());
+    set({ isSaving: true, error: null });
+
     try {
+      const { currentResumeTitle, cvData, selectedTemplate } = get();
       const payload = {
         ...cvData,
         id: currentResumeId,
@@ -308,19 +339,48 @@ export const useCVStore = create<CVStore>((set, get) => ({
         updatedAt: new Date().toISOString(),
       };
       const response = await resumeService.updateResume(currentResumeId, payload);
-      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), currentResumeTitle: response.title, isDirty: false });
+      const stillMatches = buildSaveSnapshot(get()) === snapshot;
+      const shouldSaveAgain = pendingSave || (!stillMatches && get().isDirty);
+      pendingSave = false;
+
+      set({
+        isSaving: false,
+        error: null,
+        lastSaved: new Date(response.updatedAt),
+        currentResumeTitle: response.title,
+        isDirty: stillMatches ? false : get().isDirty,
+      });
+
+      if (shouldSaveAgain) {
+        await get().saveResume();
+      }
     } catch (error) {
+      pendingSave = false;
       set({ isSaving: false, error: 'Failed to save changes' });
       throw error;
     }
   },
 
-  saveAIAnalysis: async (analysis) => {
-    const { currentResumeId, currentResumeTitle, cvData, selectedTemplate, isSaving } = get();
-    if (!currentResumeId || isSaving) return;
+  flushSave: async () => {
+    const { isDirty, currentResumeId } = get();
+    if (isDirty && currentResumeId) {
+      await get().saveResume();
+    }
+  },
 
-    set({ isSaving: true, aiAnalysis: analysis });
+  saveAIAnalysis: async (analysis) => {
+    const { currentResumeId, isSaving } = get();
+    if (!currentResumeId) return;
+    if (isSaving) {
+      pendingSave = true;
+      return;
+    }
+
+    const snapshot = buildSaveSnapshot(get());
+    set({ isSaving: true, aiAnalysis: analysis, error: null });
+
     try {
+      const { currentResumeTitle, cvData, selectedTemplate } = get();
       const payload = {
         ...cvData,
         id: currentResumeId,
@@ -332,8 +392,23 @@ export const useCVStore = create<CVStore>((set, get) => ({
         updatedAt: new Date().toISOString(),
       };
       const response = await resumeService.updateResume(currentResumeId, payload);
-      set({ isSaving: false, error: null, lastSaved: new Date(response.updatedAt), currentResumeTitle: response.title, isDirty: false });
+      const stillMatches = buildSaveSnapshot(get()) === snapshot;
+      const shouldSaveAgain = pendingSave || (!stillMatches && get().isDirty);
+      pendingSave = false;
+
+      set({
+        isSaving: false,
+        error: null,
+        lastSaved: new Date(response.updatedAt),
+        currentResumeTitle: response.title,
+        isDirty: stillMatches ? false : get().isDirty,
+      });
+
+      if (shouldSaveAgain) {
+        await get().saveResume();
+      }
     } catch (error) {
+      pendingSave = false;
       set({ isSaving: false, error: 'Failed to save AI analysis' });
       throw error;
     }
@@ -454,12 +529,13 @@ export const useCVStore = create<CVStore>((set, get) => ({
       jobDescription: data.jobDescription,
     };
     const updated = await resumeService.tailorResume(currentResumeId, payload);
+    const tailoredCvData = apiResponseToCvData(updated);
     set((state) => ({
       activeDocumentMode: 'resume',
       cvData: {
-        ...updated,
-        coverLetter: state.cvData.coverLetter ?? updated.coverLetter,
-        coverLetterTheme: state.cvData.coverLetterTheme ?? updated.coverLetterTheme,
+        ...tailoredCvData,
+        coverLetter: state.cvData.coverLetter ?? tailoredCvData.coverLetter,
+        coverLetterTheme: state.cvData.coverLetterTheme ?? tailoredCvData.coverLetterTheme,
       },
       selectedTemplate: updated.template_key,
       currentResumeId: updated.id,

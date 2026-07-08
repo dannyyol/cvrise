@@ -13,7 +13,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from src.models.resume import Resume, ThemeConfig, Template, CoverLetterThemeConfig, JobMatchHistory
 from src.models.cover_letter import CoverLetter as DBCoverLetter
-from src.constants import DEFAULT_RESUME_SECTIONS
+from src.constants import DEFAULT_RESUME_SECTIONS, RESUME_DATA_FIELD_NAMES
 from src.api.schemas.resume import (
     ResumeResponse, ResumeSummary, ResumeUpdate, ResumeCreate,
     TailorResumeRequest, JobMatchRequest, JobMatchResponse,
@@ -1055,10 +1055,14 @@ class ResumeService:
         if getattr(sanitized_data, "cover_letter", None) and hasattr(sanitized_data.cover_letter, "content"):
             sanitized_data.cover_letter.content = sanitize_rich_text_html(sanitized_data.cover_letter.content)
 
-        resume_data_dump = sanitized_data.model_dump(by_alias=True, exclude={"ai_analysis"})
+        resume_data_dump = sanitized_data.model_dump(
+            by_alias=True,
+            include=RESUME_DATA_FIELD_NAMES,
+        )
         if isinstance(resume_data_dump, dict):
             sanitize_resume_data_inplace(resume_data_dump)
         resume.resume_data = resume_data_dump
+        flag_modified(resume, "resume_data")
 
         if "ai_analysis" in data.model_fields_set:
             resume.ai_analysis = data.ai_analysis
