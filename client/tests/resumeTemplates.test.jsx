@@ -91,7 +91,7 @@ function buildPopulatedTemplateProps() {
       },
     ],
     skills: [
-      { id: 'sk-1', name: 'TEMPLATE_TEST_SKILL', level: 'Expert' },
+      { id: 'sk-1', name: 'Languages', items: ['TEMPLATE_TEST_SKILL'], level: '' },
     ],
     projects: [
       {
@@ -277,10 +277,10 @@ describe.each(TEMPLATE_IDS)('resume template: %s', (templateId) => {
     resetStoreForEditor(templateId);
     {
       const { unmount } = render(<SkillsForm />);
-      await user.click(screen.getByRole('button', { name: /add skill/i }));
-      const skillName = screen.getByPlaceholderText('e.g. React, Leadership, Python');
-      await user.type(skillName, 'EDITOR_TEST_SKILL');
-      expect(useCVStore.getState().cvData.skills[0]?.name).toBe('EDITOR_TEST_SKILL');
+      await user.click(screen.getByRole('button', { name: /add category/i }));
+      const chipInput = screen.getByPlaceholderText('Add skill…');
+      await user.type(chipInput, 'EDITOR_TEST_SKILL{Enter}');
+      expect(useCVStore.getState().cvData.skills[0]?.items).toContain('EDITOR_TEST_SKILL');
       unmount();
       cleanup();
     }

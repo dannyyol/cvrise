@@ -35,10 +35,15 @@ export interface WorkExperience {
   description: string;
 }
 
+/** A skill group: optional category name + individual skill chips. */
 export interface Skill {
   id: string;
+  /** Category label, e.g. "Backend Development". Empty = uncategorized. */
   name: string;
-  level: string;
+  /** Individual skills within the category. */
+  items: string[];
+  /** Optional proficiency for the group (legacy / advanced use). */
+  level?: string;
 }
 
 export interface Project {

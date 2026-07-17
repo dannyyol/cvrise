@@ -96,6 +96,9 @@ class ResumeService:
         safe_rd = copy.deepcopy(rd) if isinstance(rd, dict) else {}
         if isinstance(safe_rd, dict):
             sanitize_resume_data_inplace(safe_rd)
+            from src.utils.skills import normalize_skills
+
+            safe_rd["skills"] = normalize_skills(safe_rd.get("skills", []))
         return safe_rd
 
     def _get_sections_config(self, safe_rd: dict) -> list:
@@ -235,12 +238,11 @@ class ResumeService:
 
         skills = rd.get("skills", [])
         if skills:
-            skill_parts = []
-            for item in skills:
-                name = item.get("name", "")
-                level = item.get("level", "")
-                skill_parts.append(name + (f" ({level})" if level else ""))
-            sections["Skills"] = ", ".join([p for p in skill_parts if p])
+            from src.utils.skills import flatten_skills_text
+
+            text = flatten_skills_text(skills)
+            if text:
+                sections["Skills"] = text
 
         projs = rd.get("projects", [])
         if projs:
@@ -738,11 +740,10 @@ class ResumeService:
 
         existing_skill_names: set[str] = set()
         if isinstance(rd.get("skills"), list):
-            for s in rd["skills"]:
-                if isinstance(s, dict):
-                    name = str(s.get("name", "")).strip().lower()
-                    if name:
-                        existing_skill_names.add(name)
+            from src.utils.skills import collect_skill_item_names, normalize_skills
+
+            rd["skills"] = normalize_skills(rd["skills"])
+            existing_skill_names = collect_skill_item_names(rd["skills"])
 
         prompt = (
             "You are an expert resume writer.\n"
@@ -756,7 +757,7 @@ class ResumeService:
             "{\n"
             '  "actions": [\n'
             '    { "type": "update_summary", "content": string },\n'
-            '    { "type": "add_skill", "name": string, "level": "Familiar" | "Good" | "Expert" },\n'
+            '    { "type": "add_skill", "name": string, "category": string },\n'
             '    { "type": "update_experience_description", "experienceId": string, "description": string },\n'
             '    { "type": "update_project_description", "projectId": string, "description": string },\n'
             '    { "type": "add_project", "name": string, "description": string, "technologies": [string], "link": string }\n'
@@ -832,8 +833,36 @@ class ResumeService:
                     continue
                 if name.lower() in existing_skill_names:
                     continue
-                level = str(action.get("level", "Familiar")).strip() or "Familiar"
-                rd["skills"].append({"id": str(uuid.uuid4()), "name": name, "level": level})
+                category = str(action.get("category", "")).strip()
+                from src.utils.skills import normalize_skills
+
+                skills_list = normalize_skills(rd.get("skills") or [])
+                # Prefer appending into a matching category when provided
+                target = None
+                if category:
+                    for s in skills_list:
+                        if str(s.get("name", "")).strip().lower() == category.lower():
+                            target = s
+                            break
+                if target is None and not category:
+                    for s in skills_list:
+                        if not str(s.get("name", "")).strip():
+                            target = s
+                            break
+                if target is not None:
+                    items = list(target.get("items") or [])
+                    items.append(name)
+                    target["items"] = items
+                else:
+                    skills_list.append(
+                        {
+                            "id": str(uuid.uuid4()),
+                            "name": category,
+                            "items": [name],
+                            "level": "",
+                        }
+                    )
+                rd["skills"] = skills_list
                 existing_skill_names.add(name.lower())
                 _set_section_visible("skills")
                 continue

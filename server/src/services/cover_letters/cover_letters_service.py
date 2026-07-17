@@ -88,12 +88,11 @@ class CoverLetterService:
 
         skills = rd.get("skills", [])
         if skills:
-            skill_parts = []
-            for item in skills:
-                name = item.get("name", "")
-                level = item.get("level", "")
-                skill_parts.append(name + (f" ({level})" if level else ""))
-            sections["Skills"] = ", ".join([p for p in skill_parts if p])
+            from src.utils.skills import flatten_skills_text
+
+            text = flatten_skills_text(skills)
+            if text:
+                sections["Skills"] = text
 
         projs = rd.get("projects", [])
         if projs:

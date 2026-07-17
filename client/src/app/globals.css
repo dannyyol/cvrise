@@ -180,6 +180,43 @@
   .skill-delete-btn { @apply absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 p-1.5 rounded-full hover:bg-red-50 transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100; }
   .skill-add-btn { @apply w-full py-4 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-300 flex items-center justify-center gap-2 font-bold text-sm; }
 
+  .skill-group {
+    @apply flex items-start gap-2 rounded-2xl border border-slate-200 bg-white p-3 animate-in slide-in-from-bottom-2 duration-200;
+  }
+  .skill-group-drag {
+    @apply mt-2.5 shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 p-1 rounded-md hover:bg-slate-100 transition-colors outline-none;
+  }
+  .skill-group-main {
+    @apply flex-1 min-w-0 flex flex-col gap-1.5;
+  }
+  .skill-group-category-row {
+    @apply flex items-center gap-2;
+  }
+  .skill-group-remove {
+    @apply shrink-0 px-1.5 text-xs font-medium text-slate-400 hover:text-red-500 transition-colors;
+  }
+  .skill-category-input {
+    @apply flex-1 min-w-0 h-10 rounded-xl bg-slate-100 border-0 px-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal
+      outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-50 transition-colors;
+  }
+  .skill-chip-field {
+    @apply flex flex-wrap items-center gap-1.5 min-h-11 w-full rounded-xl bg-slate-100 px-2.5 py-2 cursor-text
+      focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:bg-slate-50 transition-colors;
+  }
+  .skill-chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-white border border-slate-200/90 pl-2.5 pr-1 py-1 text-xs font-medium text-slate-700 shadow-none;
+  }
+  .skill-chip-remove {
+    @apply p-0.5 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors;
+  }
+  .skill-chip-input {
+    @apply flex-1 min-w-[7rem] bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 py-1;
+  }
+  .skill-add-category-btn {
+    @apply w-full py-3 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40
+      transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium;
+  }
+
   /* Summary Form */
   .summary-card { @apply bg-transparent p-0 rounded-none border-0 shadow-none; }
   .summary-content { @apply flex items-start gap-4; }
@@ -242,7 +279,6 @@
   .skills-form .item-card { @apply border-0 shadow-sm; }
   .skills-form .item-header { @apply border-b-0; }
   .skills-form .item-content { @apply border-t-0 p-4 bg-transparent; }
-  .skills-form .input-field-borderless { @apply rounded-2xl; }
   .websites-form .input-label { @apply text-[11px] font-semibold text-slate-500 mb-1 ml-0; }
   .websites-form .item-card { @apply border-0 shadow-sm; }
   .websites-form .item-header { @apply border-b-0; }

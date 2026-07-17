@@ -97,14 +97,30 @@ _SAMPLE_RESUME_DATA = {
         },
     ],
     "skills": [
-        {"id": "sk-sample-1", "name": "JavaScript/TypeScript", "level": "Expert"},
-        {"id": "sk-sample-2", "name": "React & Next.js", "level": "Expert"},
-        {"id": "sk-sample-3", "name": "Node.js & Express", "level": "Expert"},
-        {"id": "sk-sample-4", "name": "AWS & Cloud Architecture", "level": "Advanced"},
-        {"id": "sk-sample-5", "name": "Docker & Kubernetes", "level": "Advanced"},
-        {"id": "sk-sample-6", "name": "PostgreSQL & MongoDB", "level": "Advanced"},
-        {"id": "sk-sample-7", "name": "Python", "level": "Intermediate"},
-        {"id": "sk-sample-8", "name": "CI/CD (GitHub Actions, Jenkins)", "level": "Advanced"},
+        {
+            "id": "sk-sample-1",
+            "name": "Frontend",
+            "items": ["JavaScript", "TypeScript", "React", "Next.js"],
+            "level": "",
+        },
+        {
+            "id": "sk-sample-2",
+            "name": "Backend",
+            "items": ["Node.js", "Express", "Python"],
+            "level": "",
+        },
+        {
+            "id": "sk-sample-3",
+            "name": "Cloud & DevOps",
+            "items": ["AWS", "Docker", "Kubernetes", "CI/CD"],
+            "level": "",
+        },
+        {
+            "id": "sk-sample-4",
+            "name": "Databases",
+            "items": ["PostgreSQL", "MongoDB"],
+            "level": "",
+        },
     ],
     "projects": [
         {

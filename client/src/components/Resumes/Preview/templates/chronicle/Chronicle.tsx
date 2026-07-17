@@ -4,6 +4,7 @@ import { User, Briefcase, GraduationCap, Phone, Mail, MapPin, Globe, FolderGit2,
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
 import { GitHubIcon } from '@/src/components/ui/SocialIcons';
+import { formatSkillGroupText, skillCategory, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css';
 
 const SIDEBAR_IDS = ['skills', 'languages', 'interests', 'websites', 'awards', 'certifications'];
@@ -178,20 +179,26 @@ export default function Chronicle({
 
   const renderSidebarContent = (section: CVSection) => {
     switch (section.id) {
-      case 'skills':
-        if (!skills.length) return null;
+      case 'skills': {
+        const groups = visibleSkills(skills);
+        if (!groups.length) return null;
         return (
           <ul className="cv-chronicle-skill-list">
-            {skills.map((skill: Skill) => (
-              <li key={skill.id} className="cv-chronicle-skill-item">
-                <span>
-                  {skill.name}
-                  {skill.level && <span className="cv-chronicle-muted"> ({skill.level})</span>}
-                </span>
-              </li>
-            ))}
+            {groups.map((skill: Skill) => {
+              const category = skillCategory(skill);
+              const items = skillItemsText(skill);
+              return (
+                <li key={skill.id} className="cv-chronicle-skill-item">
+                  <span>
+                    {category ? <strong>{category}: </strong> : null}
+                    {items || formatSkillGroupText(skill)}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         );
+      }
         
       case 'languages':
         if (!languages.length) return null;

@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication, CVSection, PersonalDetails, ProfessionalSummary } from '../registry';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { skillCategory, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css';
 
 const HTMLContent = ({ content }: { content: string }) => (
@@ -68,16 +69,22 @@ const WebsitesSection = ({ websites, title }: { websites: SimpleItem[], title: s
 };
 
 const SkillsSection = ({ skills, title }: { skills: Skill[], title: string }) => {
-  if (!skills?.length) return null;
+  const groups = visibleSkills(skills);
+  if (!groups.length) return null;
   return (
     <section className="cv-heritage-side-group" data-cv-section data-section-id="skills">
       <h3 className="cv-heritage-side-title">{title || 'Skills'}</h3>
       <ul className="cv-heritage-side-list">
-        {skills.map((sk: Skill) => (
-          <li key={sk.id}>
-            {sk.name}{sk.level ? ` (${sk.level})` : ''}
-          </li>
-        ))}
+        {groups.map((sk: Skill) => {
+          const category = skillCategory(sk);
+          const items = skillItemsText(sk);
+          return (
+            <li key={sk.id}>
+              {category ? <strong>{category}: </strong> : null}
+              {items}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

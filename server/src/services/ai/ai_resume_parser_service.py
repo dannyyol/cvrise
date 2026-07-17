@@ -60,8 +60,9 @@ class AIResumeParser:
             '  "skills": [\n'
             '    {\n'
             '      "id": "generate-uuid",\n'
-            '      "name": "...",\n'
-            '      "level": "..."\n'
+            '      "name": "Category name or empty string",\n'
+            '      "items": ["Skill 1", "Skill 2"],\n'
+            '      "level": ""\n'
             '    }\n'
             '  ],\n'
             '  "projects": [\n'
@@ -202,10 +203,9 @@ class AIResumeParser:
                     item.setdefault("description", "")
 
         if "skills" in data and isinstance(data["skills"], list):
-            for item in data["skills"]:
-                if isinstance(item, dict):
-                    item.setdefault("name", "")
-                    item.setdefault("level", "")
+            from src.utils.skills import normalize_skills
+
+            data["skills"] = normalize_skills(data["skills"])
 
         if "projects" in data and isinstance(data["projects"], list):
             for item in data["projects"]:

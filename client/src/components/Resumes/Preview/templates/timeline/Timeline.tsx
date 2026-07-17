@@ -22,6 +22,7 @@ import {
 import { GitHubIcon } from '@/src/components/ui/SocialIcons';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { formatSkillGroupText, skillCategory, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css';
 
 const SIDEBAR_IDS = ['skills', 'languages', 'interests', 'websites', 'awards', 'certifications'];
@@ -191,22 +192,26 @@ const renderSidebarSectionContent = (
   const { skills, languages, interests, websites, certifications, awards } = props;
 
   switch (section.id) {
-    case 'skills':
-      if (!skills.length) return null;
+    case 'skills': {
+      const groups = visibleSkills(skills);
+      if (!groups.length) return null;
       return (
         <ul className="cv-timeline-sidebar-list">
-          {skills.map((skill: Skill) => (
-            <li key={skill.id} className="cv-timeline-sidebar-item">
-              <span>
-                {skill.name}
-                {skill.level ? (
-                  <span className="cv-timeline-muted"> ({skill.level})</span>
-                ) : null}
-              </span>
-            </li>
-          ))}
+          {groups.map((skill: Skill) => {
+            const category = skillCategory(skill);
+            const items = skillItemsText(skill);
+            return (
+              <li key={skill.id} className="cv-timeline-sidebar-item">
+                <span>
+                  {category ? <strong>{category}: </strong> : null}
+                  {items || formatSkillGroupText(skill)}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       );
+    }
 
     case 'languages':
       if (!languages.length) return null;

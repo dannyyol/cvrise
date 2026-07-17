@@ -79,6 +79,28 @@
   padding: 0;
 }
 
+.cv-classic-skills-grid {
+  display: flex;
+  gap: 1.5em;
+}
+.cv-classic-skills-col {
+  flex: 1;
+  min-width: 0;
+}
+.cv-classic-skill-group {
+  margin-bottom: 0.45em;
+  font-size: 0.9em;
+  line-height: 1.35;
+  color: #111827;
+}
+.cv-classic-skill-category {
+  font-weight: 700;
+  color: #0f172a;
+}
+.cv-classic-skill-items {
+  font-weight: 400;
+}
+
 .cv-classic-inline-sep {
   color: #6b7280; /* gray-500 */
   margin: 0 0.375em;

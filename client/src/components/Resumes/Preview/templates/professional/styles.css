@@ -98,6 +98,7 @@
 
 .cv-professional-skills-grid { display: flex; gap: 2em; }
 .cv-professional-skills-col { flex: 1; list-style: none; padding: 0; }
-.cv-professional-skill-item { display: block; margin-bottom: 0.375em; font-size: 0.9em; color: #0f172a; }
+.cv-professional-skill-item { display: block; margin-bottom: 0.4em; font-size: 0.9em; color: #0f172a; line-height: 1.35; }
+.cv-professional-skill-item strong { font-weight: 600; color: #0f172a; }
 
 .cv-professional-muted { color: #64748b; }

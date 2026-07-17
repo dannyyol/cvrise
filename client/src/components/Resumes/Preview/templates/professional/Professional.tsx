@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { skillCategory, skillColumns, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css'
 
 export default function Professional({
@@ -154,12 +155,9 @@ export default function Professional({
             );
           }
           case 'skills': {
-            if (!skills.length) return null;
-            const cols = 3;
-            const rows = Math.ceil(skills.length / cols);
-            const columns: Skill[][] = Array.from({ length: cols }, (_, i) =>
-              skills.slice(i * rows, (i + 1) * rows)
-            );
+            const groups = visibleSkills(skills);
+            if (!groups.length) return null;
+            const columns = skillColumns(groups, 3);
             return (
               <section
                 key={section.id}
@@ -171,12 +169,16 @@ export default function Professional({
                 <div className="cv-professional-skills-grid">
                   {columns.map((col, ci) => (
                     <ul key={ci} className="cv-professional-skills-col">
-                      {col.map((sk: Skill) => (
-                        <li key={sk.id} className="cv-professional-skill-item">
-                          {sk.name}
-                          {sk.level ? <span className="cv-professional-muted"> ({sk.level})</span> : null}
-                        </li>
-                      ))}
+                      {col.map((sk: Skill) => {
+                        const category = skillCategory(sk);
+                        const items = skillItemsText(sk);
+                        return (
+                          <li key={sk.id} className="cv-professional-skill-item">
+                            {category ? <strong>{category}: </strong> : null}
+                            {items || null}
+                          </li>
+                        );
+                      })}
                     </ul>
                   ))}
                 </div>

@@ -132,7 +132,9 @@ class ResumeProcessor:
             edu_parts.append(ResumeProcessor._join_nonempty([" ".join([line, tail]).strip()]))
         education = "\n\n".join([p for p in edu_parts if p])
         skill_items = sections_payload.get("skills") or []
-        skills = ", ".join([s.get("name", "") + (f" ({s.get('level')})" if s.get("level") else "") for s in skill_items if s.get("name")])
+        from src.utils.skills import flatten_skills_text
+
+        skills = flatten_skills_text(skill_items)
         proj_items = sections_payload.get("projects") or []
         proj_parts: List[str] = []
         for item in proj_items:

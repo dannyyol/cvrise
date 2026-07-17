@@ -13,6 +13,7 @@ import type {
   TemplateProps,
   TemplateId
 } from '../../../../types/resume';
+import { normalizeSkills } from '../../../../lib/skills';
 import { TEMPLATE_COMPONENTS } from './registry.generated';
 
 export {
@@ -77,11 +78,7 @@ export function mapCVDataToTemplateProps(data: TemplateProps): TemplateProps {
       current: edu.current,
       description: edu.description,
     })),
-    skills: (data.skills ?? []).map(skill => ({
-      id: skill.id,
-      name: skill.name,
-      level: skill.level,
-    })),
+    skills: normalizeSkills(data.skills),
     projects: (data.projects ?? []).map(proj => ({
       id: proj.id,
       name: proj.name,

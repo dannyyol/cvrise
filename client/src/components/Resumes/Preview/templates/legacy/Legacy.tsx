@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { skillCategory, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css';
 
 export default function Legacy({
@@ -182,7 +183,8 @@ export default function Legacy({
             );
           }
           case 'skills': {
-            if (!skills.length) return null;
+            const groups = visibleSkills(skills);
+            if (!groups.length) return null;
             return (
               <section
                 key={section.id}
@@ -192,19 +194,23 @@ export default function Legacy({
               >
                 <h2 className="cv-legacy-section-title">{section.title}</h2>
                 <ul className="cv-legacy-list">
-                  {skills.map((sk: Skill) => (
-                    <li key={sk.id} className="cv-legacy-list-item">
-                      <div className="cv-legacy-skill-row">
-                        <div className="cv-legacy-skill-spacer" />
-                        <div className="cv-legacy-skill-content">
-                          <div className="cv-legacy-item-title">
-                            {sk.name}
-                            {sk.level ? <span className="cv-legacy-muted"> ({sk.level})</span> : null}
+                  {groups.map((sk: Skill) => {
+                    const category = skillCategory(sk);
+                    const items = skillItemsText(sk);
+                    return (
+                      <li key={sk.id} className="cv-legacy-list-item">
+                        <div className="cv-legacy-skill-row">
+                          <div className="cv-legacy-skill-spacer" />
+                          <div className="cv-legacy-skill-content">
+                            <div className="cv-legacy-skill-line">
+                              {category ? <strong>{category}: </strong> : null}
+                              {items || null}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             );

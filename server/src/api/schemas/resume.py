@@ -45,8 +45,9 @@ class Education(BaseSchema):
 
 class Skill(BaseSchema):
     id: str
-    name: str
-    level: str
+    name: str = ""
+    items: List[str] = []
+    level: str = ""
 
 class Project(BaseSchema):
     id: str

@@ -123,5 +123,6 @@
 
 .cv-regal-skills-grid { display: flex; gap: 2em; }
 .cv-regal-skills-col { flex: 1; list-style: none; padding: 0; }
-.cv-regal-skill-item { display: block; margin-bottom: 0.375em; font-size: 0.9em; color: #111827; }
+.cv-regal-skill-item { display: block; margin-bottom: 0.4em; font-size: 0.9em; color: #111827; line-height: 1.35; }
+.cv-regal-skill-item strong { font-weight: 600; color: #111827; }
 .cv-regal-muted { color: #6b7280; }

@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Project, Certification, Award, Publication } from '../registry';
 import { formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { skillCategory, skillColumns, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css'
 
 export default function Classic({
@@ -148,7 +149,9 @@ export default function Classic({
             );
           }
           case 'skills': {
-            if (!skills.length) return null;
+            const groups = visibleSkills(skills);
+            if (!groups.length) return null;
+            const columns = skillColumns(groups, 2);
             return (
               <section
                 key={section.id}
@@ -157,14 +160,26 @@ export default function Classic({
                 data-section-id={section.id}
               >
                 <h2 className="cv-classic-section-title">{section.title}</h2>
-                <ul className="cv-classic-inline-list">
-                  {skills.map((sk: Skill) => (
-                    <li key={sk.id} className="cv-classic-inline-item">
-                      {sk.name}
-                      {sk.level ? <span className="cv-classic-muted"> ({sk.level})</span> : null}
-                    </li>
+                <div className="cv-classic-skills-grid">
+                  {columns.map((col, ci) => (
+                    <div key={ci} className="cv-classic-skills-col">
+                      {col.map((sk: Skill) => {
+                        const category = skillCategory(sk);
+                        const items = skillItemsText(sk);
+                        return (
+                          <div key={sk.id} className="cv-classic-skill-group">
+                            {category ? (
+                              <strong className="cv-classic-skill-category">{category}: </strong>
+                            ) : null}
+                            {items ? (
+                              <span className="cv-classic-skill-items">{items}</span>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </section>
             );
           }

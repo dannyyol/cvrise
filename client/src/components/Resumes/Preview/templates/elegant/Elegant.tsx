@@ -2,6 +2,7 @@ import React from 'react';
 import type { TemplateProps, WorkExperience, Education, Skill, Certification, CVSection, PersonalDetails, ProfessionalSummary, CustomSectionItem } from '../../../../../types/resume';
 import { formatDate, formatDateRange } from '@/src/lib/dateFormatting';
 import { safeExternalHref, sanitizeRichTextHtml } from '@/src/lib/sanitizeHtml';
+import { skillCategory, skillItemsText, visibleSkills } from '../skillUtils';
 import './styles.css';
 
 const SectionHeader = ({ title }: { title: string }) => (
@@ -116,16 +117,22 @@ const EducationSection = ({ education, title, dateLocale }: { education: Educati
 };
 
 const SkillsSection = ({ skills, title }: { skills: Skill[], title: string }) => {
-  if (!skills?.length) return null;
+  const groups = visibleSkills(skills);
+  if (!groups.length) return null;
   return (
     <div className="cv-elegant-section" data-cv-section data-section-id="skills">
       <SectionHeader title={title} />
       <ul className="cv-elegant-list">
-        {skills.map(skill => (
-          <li key={skill.id} className="cv-elegant-skill-item">
-            <strong>{skill.name}</strong> {skill.level && `(${skill.level})`}
-          </li>
-        ))}
+        {groups.map(skill => {
+          const category = skillCategory(skill);
+          const items = skillItemsText(skill);
+          return (
+            <li key={skill.id} className="cv-elegant-skill-item">
+              {category ? <strong>{category}: </strong> : null}
+              {items || null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

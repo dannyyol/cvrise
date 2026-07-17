@@ -4,6 +4,7 @@ import { resumeService } from '../services/resumeService';
 import type { CoverLetterItem } from '../services/resumeService';
 import type { AIReviewResponse } from '../services/analysisService';
 import type { ResumeApiResponse } from '../services/resumeService';
+import { normalizeSkills } from '../lib/skills';
 
 let pendingSave = false;
 
@@ -13,7 +14,7 @@ function apiResponseToCvData(data: ResumeApiResponse): TemplateProps {
     professionalSummary: data.professionalSummary,
     workExperiences: data.workExperiences,
     education: data.education,
-    skills: data.skills,
+    skills: normalizeSkills(data.skills),
     projects: data.projects,
     certifications: data.certifications,
     awards: data.awards,
@@ -731,7 +732,8 @@ export const useCVStore = create<CVStore>((set, get) => ({
         {
           id: crypto.randomUUID(),
           name: '',
-          level: 'Intermediate',
+          items: [],
+          level: '',
         }
       ]
     }
