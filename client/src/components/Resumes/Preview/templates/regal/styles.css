@@ -79,6 +79,21 @@
   margin: 0 0.75em;
 }
 
+/*
+ * The HTML page splitter can leave an empty section-title shell on the previous
+ * page when a section starts on the next page. Pseudo-element rules still paint
+ * without text — collapse those empty shells so no orphan line remains.
+ */
+.cv-regal-section-title:empty,
+.cv-regal-section-title:has(> span:empty):not(:has(> span:not(:empty))) {
+  display: none;
+  margin: 0;
+}
+.cv-regal-section:not(:has(.cv-regal-list, .cv-regal-paragraph, .cv-regal-skills-grid, .cv-regal-inline-list, .cv-regal-section-title span:not(:empty))) {
+  display: none;
+  margin: 0;
+}
+
 .cv-regal-paragraph ul,
 .cv-regal-paragraph ol {
   padding-left: 1em;
