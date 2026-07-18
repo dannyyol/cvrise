@@ -125,13 +125,28 @@
   margin: 0 0 0.25em 0;
 }
 
+.cv-elegant-p ul,
+.cv-elegant-p ol {
+  margin: 0.25em 0;
+  padding-left: 1.25em;
+  list-style-position: outside;
+}
+
 .cv-elegant-p ul {
-  margin: 0.25em 0 0.25em 1.125em;
-  padding: 0;
+  list-style-type: disc;
+}
+
+.cv-elegant-p ol {
+  list-style-type: decimal;
 }
 
 .cv-elegant-p li {
+  display: list-item;
   margin-bottom: 0.125em;
+}
+
+.cv-elegant-p li > p {
+  margin: 0;
 }
 
 .cv-elegant-list {

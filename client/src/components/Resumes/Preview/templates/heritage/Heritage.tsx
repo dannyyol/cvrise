@@ -143,7 +143,7 @@ const ExperienceSection = ({ experiences, title, dateLocale }: { experiences: Wo
                 <span className="cv-heritage-item-title">{exp.position || 'Job Title'}</span>
                 {(exp.startDate || exp.endDate || exp.current) ? (
                   <span className="cv-heritage-item-date">
-                    {`, ${formatDateRange(exp.startDate, exp.endDate, dateLocale, { current: exp.current, presentLabel: 'Current' })}`}
+                    {formatDateRange(exp.startDate, exp.endDate, dateLocale, { current: exp.current, presentLabel: 'Current' })}
                   </span>
                 ) : null}
               </div>

@@ -32,10 +32,12 @@ _SAMPLE_RESUME_DATA = {
             "endDate": "",
             "current": True,
             "description": (
-                "Leading development of cloud-native applications serving 10M+ users. "
-                "Architected microservices infrastructure reducing latency by 40%. "
-                "Mentoring team of 5 junior engineers and conducting code reviews. "
-                "Technologies: React, Node.js, AWS, Kubernetes, PostgreSQL."
+                "<ul>"
+                "<li>Leading development of cloud-native applications serving 10M+ users.</li>"
+                "<li>Architected microservices infrastructure reducing latency by 40%.</li>"
+                "<li>Mentoring team of 5 junior engineers and conducting code reviews.</li>"
+                "<li>Technologies: React, Node.js, AWS, Kubernetes, PostgreSQL.</li>"
+                "</ul>"
             ),
         },
         {
@@ -47,9 +49,11 @@ _SAMPLE_RESUME_DATA = {
             "endDate": "2020-02",
             "current": False,
             "description": (
-                "Developed and maintained enterprise web applications for Fortune 500 clients. "
-                "Implemented CI/CD pipelines improving deployment frequency by 300%. "
-                "Collaborated with cross-functional teams to deliver projects on time and within budget."
+                "<ul>"
+                "<li>Developed and maintained enterprise web applications for Fortune 500 clients.</li>"
+                "<li>Implemented CI/CD pipelines improving deployment frequency by 300%.</li>"
+                "<li>Collaborated with cross-functional teams to deliver projects on time and within budget.</li>"
+                "</ul>"
             ),
         },
         {
@@ -61,9 +65,11 @@ _SAMPLE_RESUME_DATA = {
             "endDate": "2017-05",
             "current": False,
             "description": (
-                "Built responsive web interfaces and RESTful APIs for SaaS platform. "
-                "Participated in agile sprints and daily standups. "
-                "Gained experience in full-stack development and legacy JavaScript frameworks."
+                "<ul>"
+                "<li>Built responsive web interfaces and RESTful APIs for SaaS platform.</li>"
+                "<li>Participated in agile sprints and daily standups.</li>"
+                "<li>Gained experience in full-stack development and legacy JavaScript frameworks.</li>"
+                "</ul>"
             ),
         },
     ],

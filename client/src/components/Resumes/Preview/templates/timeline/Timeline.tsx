@@ -261,7 +261,7 @@ const renderSidebarSectionContent = (
           {certifications.map(cert => (
             <li key={cert.id} className="cv-timeline-sidebar-item cv-timeline-sidebar-item-block">
               <div className="cv-timeline-sidebar-text">
-                <div className="cv-timeline-sidebar-title">
+                <div className="cv-timeline-sidebar-item-title">
                   {cert.name}
                 </div>
                 {cert.issuer ? (

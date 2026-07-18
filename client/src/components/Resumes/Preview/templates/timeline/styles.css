@@ -268,6 +268,11 @@
 .cv-timeline-sidebar-item-block {
   padding-left: 0.1rem;
   list-style-position: outside;
+  margin-bottom: 0.65em;
+}
+
+.cv-timeline-sidebar-item-block:last-child {
+  margin-bottom: 0;
 } 
 
 .cv-timeline-sidebar-text {
